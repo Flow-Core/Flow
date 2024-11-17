@@ -6,9 +6,14 @@ public enum TokenType {
     IF,
     ELSE,
     FOR,
+    FOREACH,
     WHILE,
+    DO,
     FUNC,
     CLASS,
+    INTERFACE,
+    FINAL,
+    CONST,
 
     OPERATOR,
     OPEN_PARENTHESES,
@@ -23,6 +28,9 @@ public enum TokenType {
     BOOLEAN,
 
     IDENTIFIER,
+    EQUAL_OPERATOR,
+    COLON_OPERATOR,
+    DOT_OPERATOR,
 
     NEW_LINE,
 }
