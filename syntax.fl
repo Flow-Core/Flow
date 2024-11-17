@@ -1,0 +1,121 @@
+// Basics
+func main() {
+    print("Hello, World!")
+}
+
+// Variables
+Int, String, Double, Float, Long, Char, Byte, 
+Int[] etc
+
+final // run-time constant
+const // compile-time constant
+
+// Literals
+String x = "Hello, World!"
+Int x = 10
+Bool x = true
+
+// Conditions
+if (condition) {
+
+} else if (condition) {
+
+} else {
+
+}
+
+// Loops
+while (condition) {
+
+}
+
+do {
+
+} while (condition)
+
+for (Int i = 0; i < 10; i++) {
+
+}
+
+foreach (x in arr) {
+
+}
+
+// Functions
+func myFunc() {
+    print("hello!")   
+}
+
+func Int myFunc() {
+    return 10 
+}
+
+func myFunc(Int x) {
+
+}
+
+myFunc(x = 124) // optional
+myFunc(124)
+
+// Classes 
+class MyClass(Int x, Int y) {
+    func myFunc() {
+        x = 10
+    }
+}
+
+interface MyInterface {
+    func myFunc()
+}
+
+class MyClass(ctor) : MyInterface {
+
+}
+
+// Class without ctor
+class A {
+
+}
+
+class B : A {
+
+}
+
+// Class with ctor
+class A(int a) {
+
+}
+
+class B(int a) : A(a) {
+
+}
+
+B b = B(5)
+
+// Special
+
+// Data types:
+Ip
+Port
+Address
+Socket
+Server
+
+Ip x = 127.0.0.1
+Port = 8080
+Address x = 127.0.0.1:8080 // Address
+
+Address(ip, port)
+
+// Shows how simple it is
+func main() {
+    Socket socket = new Socket(127.0.0.1:8080) 
+    socket.send("Hey!")
+    String x = socket.receive()
+}
+
+func main() {
+    Server server = new Server(127.0.0.1:8080) 
+    server.listen()
+    String x = server.receive()
+}

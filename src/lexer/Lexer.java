@@ -63,7 +63,7 @@ public class Lexer {
 
                 if (type == TokenType.STRING || type == TokenType.COMMENT) {
                     final Pattern newLinePattern = Pattern.compile("(\\r\\n|\\n|\\r)");
-                    final Matcher newLineMatcher = pattern.matcher(value);
+                    final Matcher newLineMatcher = newLinePattern.matcher(value);
 
                     while (newLineMatcher.find()) {
                         currentLine++;
@@ -84,9 +84,14 @@ public class Lexer {
         patterns.put(TokenType.IF, Pattern.compile("if"));
         patterns.put(TokenType.ELSE, Pattern.compile("\\belse\\b"));
         patterns.put(TokenType.FOR, Pattern.compile("\\bfor\\b"));
+        patterns.put(TokenType.FOREACH, Pattern.compile("\\bforeach\\b"));
         patterns.put(TokenType.WHILE, Pattern.compile("\\bwhile\\b"));
+        patterns.put(TokenType.DO, Pattern.compile("\\do\\b"));
         patterns.put(TokenType.FUNC, Pattern.compile("\\b(func)\\b"));
         patterns.put(TokenType.CLASS, Pattern.compile("\\bclass\\b"));
+        patterns.put(TokenType.INTERFACE, Pattern.compile("\\binterface\\b"));
+        patterns.put(TokenType.FINAL, Pattern.compile("\\bfinal\\b"));
+        patterns.put(TokenType.CONST, Pattern.compile("\\bconst\\b"));
 
         // Boolean literals (must also be checked before identifiers)
         patterns.put(TokenType.BOOLEAN, Pattern.compile("\\b(true|false)\\b"));
@@ -101,7 +106,10 @@ public class Lexer {
         patterns.put(TokenType.STRING, Pattern.compile("\"(\\\\.|[^\"])*\""));
 
         // Operators
-        patterns.put(TokenType.OPERATOR, Pattern.compile("==|!=|<=|>=|<|>|\\+\\+|--|\\+|-|\\*|/|%|=|&&|\\|\\|"));
+        patterns.put(TokenType.OPERATOR, Pattern.compile("==|!=|<=|>=|<|>|\\+\\+|--|\\+|-|\\*|/|%|&&|\\|\\|"));
+        patterns.put(TokenType.EQUAL_OPERATOR, Pattern.compile("="));
+        patterns.put(TokenType.COLON_OPERATOR, Pattern.compile(":"));
+        patterns.put(TokenType.DOT_OPERATOR, Pattern.compile("."));
 
         // Grouping and Bracketing
         patterns.put(TokenType.OPEN_PARENTHESES, Pattern.compile("\\("));
