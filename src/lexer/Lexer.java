@@ -90,6 +90,8 @@ public class Lexer {
         patterns.put(TokenType.FUNC, Pattern.compile("\\b(func)\\b"));
         patterns.put(TokenType.CLASS, Pattern.compile("\\bclass\\b"));
         patterns.put(TokenType.INTERFACE, Pattern.compile("\\binterface\\b"));
+        patterns.put(TokenType.TRY, Pattern.compile("\\btry\\b"));
+        patterns.put(TokenType.CATCH, Pattern.compile("\\bcatch\\b"));
         patterns.put(TokenType.FINAL, Pattern.compile("\\bfinal\\b"));
         patterns.put(TokenType.CONST, Pattern.compile("\\bconst\\b"));
 
@@ -117,7 +119,7 @@ public class Lexer {
         patterns.put(TokenType.OPEN_BRACKETS, Pattern.compile("\\["));
         patterns.put(TokenType.CLOSE_BRACKETS, Pattern.compile("]"));
         patterns.put(TokenType.OPEN_BRACES, Pattern.compile("\\{"));
-        patterns.put(TokenType.CLOSE_BRACES, Pattern.compile("\\}"));
+        patterns.put(TokenType.CLOSE_BRACES, Pattern.compile("}"));
 
         // New Line
         patterns.put(TokenType.NEW_LINE, Pattern.compile("(\\r\\n|\\n|\\r)"));
