@@ -13,6 +13,7 @@ const // compile-time constant
 // Literals
 String x = "Hello, World!"
 Int x = 10
+Float x = 10.1
 Bool x = true
 
 // Conditions
@@ -82,11 +83,11 @@ class B : A {
 }
 
 // Class with ctor
-class A(int a) {
+class A(Int a) {
 
 }
 
-class B(int a) : A(a) {
+class B(Int a) : A(a) {
 
 }
 
@@ -98,6 +99,7 @@ B b = B(5)
 Ip
 Port
 Address
+
 Socket
 Server
 
@@ -112,10 +114,4 @@ func main() {
     Socket socket = new Socket(127.0.0.1:8080) 
     socket.send("Hey!")
     String x = socket.receive()
-}
-
-func main() {
-    Server server = new Server(127.0.0.1:8080) 
-    server.listen()
-    String x = server.receive()
 }
