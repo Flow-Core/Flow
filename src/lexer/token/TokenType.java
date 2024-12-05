@@ -12,6 +12,8 @@ public enum TokenType {
     FUNC,
     CLASS,
     INTERFACE,
+    TRY,
+    CATCH,
     FINAL,
     CONST,
 
