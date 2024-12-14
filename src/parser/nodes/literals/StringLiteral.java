@@ -1,4 +1,4 @@
-package parser.nodes;
+package parser.nodes.literals;
 
 public class StringLiteral implements LiteralNode {
     private final String value;

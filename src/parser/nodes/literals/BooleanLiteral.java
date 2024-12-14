@@ -1,4 +1,4 @@
-package parser.nodes;
+package parser.nodes.literals;
 
 public class BooleanLiteral implements LiteralNode {
     private final boolean value;

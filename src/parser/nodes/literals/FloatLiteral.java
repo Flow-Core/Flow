@@ -1,4 +1,6 @@
-package parser.nodes;
+package parser.nodes.literals;
+
+import parser.nodes.ASTNode;
 
 public class FloatLiteral implements ASTNode {
     private final float value;
