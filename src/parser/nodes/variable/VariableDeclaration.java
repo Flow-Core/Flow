@@ -2,15 +2,21 @@ package parser.nodes.variable;
 
 import parser.nodes.ASTNode;
 
-public class VariableDeclaration {
+public class VariableDeclaration implements ASTNode {
+    private final String modifier;
     private final String type;
     private final String name;
     private final ASTNode value;
 
-    public VariableDeclaration(String type, String name, ASTNode value) {
+    public VariableDeclaration(String modifier, String type, String name, ASTNode value) {
+        this.modifier = modifier;
         this.type = type;
         this.name = name;
         this.value = value;
+    }
+
+    public String getModifier() {
+        return modifier;
     }
 
     public String getType() {
@@ -23,5 +29,10 @@ public class VariableDeclaration {
 
     public ASTNode getValue() {
         return value;
+    }
+
+    @Override
+    public String toString() {
+        return "VariableDeclaration(modifier=" + modifier + ", name=" + name + ", type=" + type + ", value=" + value + ")";
     }
 }

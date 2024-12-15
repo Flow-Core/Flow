@@ -2,7 +2,7 @@ package parser.nodes.variable;
 
 import parser.nodes.ASTNode;
 
-public class VariableAssignment {
+public class VariableAssignment implements ASTNode {
     private final String variable;
     private final ASTNode value;
 
@@ -17,5 +17,10 @@ public class VariableAssignment {
 
     public ASTNode getValue() {
         return value;
+    }
+
+    @Override
+    public String toString() {
+        return "VariableAssignment(variable=" + variable + ", value=" + value + ")";
     }
 }
