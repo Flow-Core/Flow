@@ -37,6 +37,7 @@ public enum TokenType {
     EQUAL_OPERATOR,
     COLON_OPERATOR,
     DOT_OPERATOR,
+    COMMA,
 
     NEW_LINE
 }
