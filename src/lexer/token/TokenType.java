@@ -25,7 +25,11 @@ public enum TokenType {
     OPEN_BRACES,
     CLOSE_BRACES,
 
-    NUMBER,
+    IPV6,
+    IPV4,
+    FLOAT,
+    DOUBLE,
+    INT,
     STRING,
     BOOLEAN,
 
@@ -34,5 +38,5 @@ public enum TokenType {
     COLON_OPERATOR,
     DOT_OPERATOR,
 
-    NEW_LINE,
+    NEW_LINE
 }

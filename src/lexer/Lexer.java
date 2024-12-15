@@ -37,9 +37,9 @@ public class Lexer {
                 throw new RuntimeException("Unexpected token at " + currentLine);
             }
 
-            if (token.type() != TokenType.COMMENT) {
+            if (token.getType() != TokenType.COMMENT) {
                 tokens.add(token);
-                if (token.type() == TokenType.NEW_LINE) {
+                if (token.getType() == TokenType.NEW_LINE) {
                     currentLine++;
                 }
             }
@@ -95,23 +95,44 @@ public class Lexer {
         patterns.put(TokenType.FINAL, Pattern.compile("\\bfinal\\b"));
         patterns.put(TokenType.CONST, Pattern.compile("\\bconst\\b"));
 
-        // Boolean literals (must also be checked before identifiers)
+        // Boolean literals
         patterns.put(TokenType.BOOLEAN, Pattern.compile("\\b(true|false)\\b"));
 
-        // Identifiers (must be checked after keywords)
+        // IP
+        patterns.put(TokenType.IPV4, Pattern.compile("^\\d+\\.\\d+\\.\\d+\\.\\d+"));
+        patterns.put(TokenType.IPV6, Pattern.compile(
+                "^(" +
+                        "([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|" +
+                        "([0-9a-fA-F]{1,4}:){1,7}:|" +
+                        "([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|" +
+                        "([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|" +
+                        "([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|" +
+                        "([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|" +
+                        "([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|" +
+                        "[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|" +
+                        ":((:[0-9a-fA-F]{1,4}){1,7}|:)|" +
+                        "fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]+|" +
+                        ":((ffff(:0{1,4})?:)?(([0-9]{1,3}\\.){3}[0-9]{1,3}))|" +
+                        "([0-9a-fA-F]{1,4}:){1,4}:(([0-9]{1,3}\\.){3}[0-9]{1,3})" +
+                        ")"
+        ));
+
+        // Numbers
+        patterns.put(TokenType.FLOAT, Pattern.compile("(^\\d+\\.\\d+f|^\\d+f|^\\.\\d+f)"));
+        patterns.put(TokenType.DOUBLE, Pattern.compile("(\\d+\\.\\d+|\\.\\d+)"));
+        patterns.put(TokenType.INT, Pattern.compile("^\\d+"));
+
+        // Identifiers
         patterns.put(TokenType.IDENTIFIER, Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*"));
 
-        // Numbers (matches integers and floats)
-        patterns.put(TokenType.NUMBER, Pattern.compile("\\b\\d+(\\.\\d+)?\\b"));
-
-        // Strings (supports escape characters)
+        // Strings
         patterns.put(TokenType.STRING, Pattern.compile("\"(\\\\.|[^\"])*\""));
 
         // Operators
         patterns.put(TokenType.OPERATOR, Pattern.compile("==|!=|<=|>=|<|>|\\+\\+|--|\\+|-|\\*|/|%|&&|\\|\\|"));
         patterns.put(TokenType.EQUAL_OPERATOR, Pattern.compile("="));
         patterns.put(TokenType.COLON_OPERATOR, Pattern.compile(":"));
-        patterns.put(TokenType.DOT_OPERATOR, Pattern.compile("."));
+        patterns.put(TokenType.DOT_OPERATOR, Pattern.compile("\\."));
 
         // Grouping and Bracketing
         patterns.put(TokenType.OPEN_PARENTHESES, Pattern.compile("\\("));

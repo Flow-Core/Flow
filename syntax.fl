@@ -4,17 +4,12 @@ func main() {
 }
 
 // Variables
-Int, String, Double, Float, Long, Char, Byte, 
+Int, String, Double, Float, Long, Char, Byte
 Int[] etc
 
-final // run-time constant
-const // compile-time constant
-
-// Literals
-String x = "Hello, World!"
-Int x = 10
-Float x = 10.1
-Bool x = true
+var x: Int = 10
+val x = 5
+const PI = 3.14f
 
 // Conditions
 if (condition) {
@@ -34,11 +29,11 @@ do {
 
 } while (condition)
 
-for (Int i = 0; i < 10; i++) {
+for (x in arr) {
 
 }
 
-foreach (x in arr) {
+for (var x = 0; x < 10; x++) {
 
 }
 
@@ -47,11 +42,11 @@ func myFunc() {
     print("hello!")   
 }
 
-func Int myFunc() {
+func myFunc(): Int {
     return 10 
 }
 
-func myFunc(Int x) {
+func myFunc(x: Int, y: Int) {
 
 }
 
@@ -106,12 +101,3 @@ Server
 Ip x = 127.0.0.1
 Port = 8080
 Address x = 127.0.0.1:8080 // Address
-
-Address(ip, port)
-
-// Shows how simple it is
-func main() {
-    Socket socket = new Socket(127.0.0.1:8080) 
-    socket.send("Hey!")
-    String x = socket.receive()
-}

@@ -1,4 +1,4 @@
-package parser.nodes;
+package parser.nodes.literals;
 
 public class BooleanLiteral implements LiteralNode {
     private final boolean value;
@@ -9,5 +9,10 @@ public class BooleanLiteral implements LiteralNode {
 
     public boolean getValue() {
         return value;
+    }
+
+    @Override
+    public String toString() {
+        return Boolean.toString(value);
     }
 }

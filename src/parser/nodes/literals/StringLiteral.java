@@ -1,4 +1,4 @@
-package parser.nodes;
+package parser.nodes.literals;
 
 public class StringLiteral implements LiteralNode {
     private final String value;
@@ -8,6 +8,11 @@ public class StringLiteral implements LiteralNode {
     }
 
     public String getValue() {
+        return value;
+    }
+
+    @Override
+    public String toString() {
         return value;
     }
 }

@@ -1,20 +1,25 @@
 import lexer.Lexer;
 import lexer.token.Token;
+import parser.Parser;
+import parser.nodes.ASTNode;
 
 import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        final Lexer lexer = new Lexer(
-        """
+        String fullCodeExample = """
             /*
-            starts here
+            124
+            "starts here"
             this is a multiline comment
             here
             ends here */
            \s
             // this is a single line comment
             func main() {
+                Ip ip = 127.0.0.1
+                Double d = 124.5215
+                Float i = 12.0f
                 Int x = 10 * 2
                 String y = "Hello, world!"
                 String multiLine = "
@@ -23,6 +28,7 @@ public class Main {
                 "
                \s
                 while (x < 10) {
+              \s
                   x = 100
                 }
                \s
@@ -38,10 +44,21 @@ public class Main {
            \s
             func test() {
             }
-           \s"""
+           \s""";
+
+        String smallCodeExample = "val x: Int = 100";
+
+        final Lexer lexer = new Lexer(
+            smallCodeExample
         );
 
         final List<Token> tokens = lexer.tokenize();
         System.out.println(tokens);
+
+        final Parser parser = new Parser(tokens);
+
+        ASTNode root = parser.parse();
+
+        parser.printTree(root);
     }
 }
