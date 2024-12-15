@@ -16,7 +16,7 @@ public class Lexer {
     private int currentLine;
     private int currentPosition;
 
-    public Lexer(String code) {
+    public Lexer(final String code) {
         this.code = code;
         tokens = new ArrayList<>();
         currentLine = 1;
