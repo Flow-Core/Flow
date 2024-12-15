@@ -1,8 +1,6 @@
 package parser.nodes.literals;
 
-import parser.nodes.ASTNode;
-
-public class Ipv4Literal implements ASTNode {
+public class Ipv4Literal implements LiteralNode {
     private final String value;
 
     public Ipv4Literal(final String value) {
@@ -10,6 +8,11 @@ public class Ipv4Literal implements ASTNode {
     }
 
     public String getValue() {
+        return value;
+    }
+
+    @Override
+    public String toString() {
         return value;
     }
 }

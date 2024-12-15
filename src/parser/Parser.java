@@ -22,7 +22,7 @@ public class Parser {
     }
 
     public boolean isNotEOF() {
-        return currentToken == tokens.size() - 1;
+        return currentToken < tokens.size() - 1;
     }
 
     public Token advance() {
@@ -40,10 +40,14 @@ public class Parser {
         return peek().getType() == type;
     }
 
-    private Token consume(TokenType type) throws RuntimeException {
+    public Token consume(TokenType type) throws RuntimeException {
         if (!check(type)) {
             throw new RuntimeException("'" + type + "' expected");
         }
         return advance();
+    }
+
+    public void printTree(ASTNode root) {
+        System.out.println(root.toString());
     }
 }

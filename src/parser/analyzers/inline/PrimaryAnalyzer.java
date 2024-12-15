@@ -1,12 +1,13 @@
 package parser.analyzers.inline;
 
 import lexer.token.Token;
+import lexer.token.TokenType;
 import parser.Parser;
 import parser.nodes.*;
 import parser.nodes.literals.*;
 
 public class PrimaryAnalyzer {
-    public static ASTNode parse(final Parser parser) {
+    public static ExpressionNode parse(final Parser parser) {
         final Token token = parser.advance();
 
         return switch (token.getType()) {
@@ -18,6 +19,13 @@ public class PrimaryAnalyzer {
             case STRING -> new StringLiteral(token.getValue());
             case BOOLEAN -> new BooleanLiteral(Boolean.parseBoolean(token.getValue()));
             case IDENTIFIER -> IdentifierReferenceAnalyzer.parse(parser, token);
+            case OPEN_PARENTHESES -> {
+                ExpressionNode expr = ExpressionAnalyzer.parse(parser);
+
+                parser.consume(TokenType.CLOSE_PARENTHESES);
+
+                yield expr;
+            }
             default -> null;
         };
     }

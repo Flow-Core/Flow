@@ -10,4 +10,9 @@ public class BooleanLiteral implements LiteralNode {
     public boolean getValue() {
         return value;
     }
+
+    @Override
+    public String toString() {
+        return Boolean.toString(value);
+    }
 }

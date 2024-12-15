@@ -22,4 +22,9 @@ public class BinaryExpressionNode implements ExpressionNode {
     public String getOperator() {
         return operator;
     }
+
+    @Override
+    public String toString() {
+        return "Operator " + operator + ":\n" + left.toString() + "\n" + right.toString();
+    }
 }

@@ -1,12 +1,13 @@
 import lexer.Lexer;
 import lexer.token.Token;
+import parser.Parser;
+import parser.nodes.ASTNode;
 
 import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        final Lexer lexer = new Lexer(
-        """
+        String fullCodeExample = """
             /*
             124
             "starts here"
@@ -43,10 +44,21 @@ public class Main {
            \s
             func test() {
             }
-           \s"""
+           \s""";
+
+        String smallCodeExample = "12 + 41 * 2 + (124 / 24 + 5) / 2";
+
+        final Lexer lexer = new Lexer(
+            smallCodeExample
         );
 
         final List<Token> tokens = lexer.tokenize();
         System.out.println(tokens);
+
+        final Parser parser = new Parser(tokens);
+
+        ASTNode root = parser.parse();
+
+        parser.printTree(root);
     }
 }

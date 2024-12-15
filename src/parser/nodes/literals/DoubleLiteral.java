@@ -10,4 +10,9 @@ public class DoubleLiteral implements LiteralNode {
     public double getValue() {
         return value;
     }
+
+    @Override
+    public String toString() {
+        return Double.toString(value);
+    }
 }

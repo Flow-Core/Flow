@@ -10,4 +10,9 @@ public class VariableReference implements ExpressionNode {
     public String getVariable() {
         return variable;
     }
+
+    @Override
+    public String toString() {
+        return "Variable reference :" + variable;
+    }
 }

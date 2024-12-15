@@ -18,4 +18,15 @@ public class FunctionCall implements ExpressionNode {
     public List<ExpressionNode> getArguments() {
         return arguments;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder output = new StringBuilder("Function call " + name + ":\n");
+
+        for (ExpressionNode node : arguments) {
+            output.append(node.toString()).append("\n");
+        }
+
+        return output.toString();
+    }
 }

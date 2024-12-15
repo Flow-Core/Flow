@@ -12,4 +12,15 @@ public class BlockNode implements ASTNode {
     public List<ASTNode> getChildren() {
         return children;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder output = new StringBuilder();
+
+        for (ASTNode node : children) {
+            output.append(node.toString());
+        }
+
+        return output.toString();
+    }
 }
