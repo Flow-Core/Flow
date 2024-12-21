@@ -2,6 +2,7 @@ package parser;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
+import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.top.BlockAnalyzer;
 import parser.nodes.ASTNode;
 
@@ -21,7 +22,7 @@ public class Parser {
     }
 
     public ASTNode parse() {
-        return BlockAnalyzer.parse(this, null); // TODO
+        return BlockAnalyzer.parse(this, AnalyzerDeclarations.getTopLevelScope());
     }
 
     public boolean isNotEOF() {
@@ -37,6 +38,10 @@ public class Parser {
 
     public Token peek() {
         return tokens.get(currentToken);
+    }
+
+    public Token peek(int token) {
+        return tokens.get(currentToken + token);
     }
 
     public boolean check(TokenType type) {

@@ -3,6 +3,8 @@ package parser.analyzers.top;
 import lexer.token.Token;
 import lexer.token.TokenType;
 import parser.Parser;
+import parser.analyzers.AnalyzerDeclarations;
+import parser.analyzers.TopAnalyzer;
 import parser.nodes.ASTNode;
 import parser.nodes.FunctionDeclarationNode;
 import parser.nodes.components.ArgumentNode;
@@ -11,8 +13,9 @@ import parser.nodes.components.BlockNode;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FunctionDeclarationAnalyzer {
-    public static ASTNode parse(Parser parser) {
+public class FunctionDeclarationAnalyzer implements TopAnalyzer {
+    @Override
+    public ASTNode parse(Parser parser) {
         parser.consume(TokenType.FUNC);
 
         Token funcName = parser.consume(TokenType.IDENTIFIER);
@@ -43,7 +46,7 @@ public class FunctionDeclarationAnalyzer {
 
         parser.consume(TokenType.OPEN_BRACES);
 
-        BlockNode block = BlockAnalyzer.parse(parser);
+        BlockNode block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getFunctionScope());
 
         parser.consume(TokenType.CLOSE_BRACES);
 
