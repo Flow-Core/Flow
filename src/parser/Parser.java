@@ -6,19 +6,22 @@ import parser.analyzers.top.BlockAnalyzer;
 import parser.nodes.ASTNode;
 
 import java.util.List;
+import java.util.Stack;
 
 public class Parser {
     private final List<Token> tokens;
 
     private int currentToken;
+    private final Stack<Integer> checkpoints;
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
+        checkpoints = new Stack<>();
         currentToken = 0;
     }
 
     public ASTNode parse() {
-        return BlockAnalyzer.parse(this);
+        return BlockAnalyzer.parse(this, null); // TODO
     }
 
     public boolean isNotEOF() {
@@ -49,5 +52,17 @@ public class Parser {
 
     public void printTree(ASTNode root) {
         System.out.println(root.toString());
+    }
+
+    public void checkpoint() {
+        checkpoints.push(currentToken);
+    }
+
+    public void rollback() {
+        if (checkpoints.empty()) {
+            return;
+        }
+
+        currentToken = checkpoints.pop();
     }
 }
