@@ -1,4 +1,6 @@
-package parser.nodes;
+package parser.nodes.variable;
+
+import parser.nodes.ExpressionNode;
 
 public class VariableReference implements ExpressionNode {
     private final String variable;
