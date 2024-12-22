@@ -7,7 +7,7 @@ import parser.analyzers.TopAnalyzer;
 import parser.analyzers.inline.ExpressionAnalyzer;
 import parser.nodes.ExpressionNode;
 import parser.nodes.FunctionCall;
-import parser.nodes.VariableReference;
+import parser.nodes.variable.VariableReference;
 
 import java.util.ArrayList;
 import java.util.List;
