@@ -133,6 +133,7 @@ public class Lexer {
         patterns.put(TokenType.EQUAL_OPERATOR, Pattern.compile("="));
         patterns.put(TokenType.COLON_OPERATOR, Pattern.compile(":"));
         patterns.put(TokenType.DOT_OPERATOR, Pattern.compile("\\."));
+        patterns.put(TokenType.COMMA, Pattern.compile(","));
 
         // Grouping and Bracketing
         patterns.put(TokenType.OPEN_PARENTHESES, Pattern.compile("\\("));

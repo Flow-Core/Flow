@@ -46,7 +46,7 @@ public class Main {
             }
            \s""";
 
-        String smallCodeExample = "val x: Int = 100";
+        String smallCodeExample = "12 + x(12, y + 35) * 2";
 
         final Lexer lexer = new Lexer(
             smallCodeExample

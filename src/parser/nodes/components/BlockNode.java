@@ -1,4 +1,6 @@
-package parser.nodes;
+package parser.nodes.components;
+
+import parser.nodes.ASTNode;
 
 import java.util.List;
 

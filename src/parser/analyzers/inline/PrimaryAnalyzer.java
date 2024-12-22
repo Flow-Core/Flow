@@ -3,6 +3,7 @@ package parser.analyzers.inline;
 import lexer.token.Token;
 import lexer.token.TokenType;
 import parser.Parser;
+import parser.analyzers.top.IdentifierReferenceAnalyzer;
 import parser.nodes.*;
 import parser.nodes.literals.*;
 
@@ -18,7 +19,7 @@ public class PrimaryAnalyzer {
             case INT -> new IntegerLiteral(Integer.parseInt(token.getValue()));
             case STRING -> new StringLiteral(token.getValue());
             case BOOLEAN -> new BooleanLiteral(Boolean.parseBoolean(token.getValue()));
-            case IDENTIFIER -> IdentifierReferenceAnalyzer.parse(parser, token);
+            case IDENTIFIER -> new IdentifierReferenceAnalyzer().parse(parser);
             case OPEN_PARENTHESES -> {
                 ExpressionNode expr = ExpressionAnalyzer.parse(parser);
 
