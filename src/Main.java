@@ -46,7 +46,7 @@ public class Main {
             }
            \s""";
 
-        String smallCodeExample = "12 + 41 * 2 + (124 / 24 + 5) / 2";
+        String smallCodeExample = "12 + x(12, y + 35) * 2";
 
         final Lexer lexer = new Lexer(
             smallCodeExample
