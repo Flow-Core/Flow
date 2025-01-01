@@ -38,6 +38,10 @@ public class VariableAnalyzer {
         } else if (parser.peek().getType() == TokenType.COLON_OPERATOR) {
             parser.consume(TokenType.COLON_OPERATOR);
             final Token type = parser.consume(TokenType.IDENTIFIER);
+            if (parser.peek().getType() != TokenType.EQUAL_OPERATOR) {
+                return new VariableDeclaration(modifier.getValue(), type.getValue(), name.getValue(), null);
+            }
+
             parser.consume(TokenType.EQUAL_OPERATOR);
             final ExpressionNode expr = ExpressionAnalyzer.parse(parser);
 
