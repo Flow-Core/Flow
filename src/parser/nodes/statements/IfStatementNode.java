@@ -1,9 +1,10 @@
 package parser.nodes.statements;
 
+import parser.nodes.ASTNode;
 import parser.nodes.ExpressionNode;
 import parser.nodes.components.BlockNode;
 
-public class IfStatementNode {
+public class IfStatementNode implements ASTNode {
     private final ExpressionNode condition;
     private final BlockNode trueBranch;
     private final BlockNode falseBranch;

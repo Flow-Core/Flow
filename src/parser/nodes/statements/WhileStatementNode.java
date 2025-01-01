@@ -1,9 +1,10 @@
 package parser.nodes.statements;
 
+import parser.nodes.ASTNode;
 import parser.nodes.ExpressionNode;
 import parser.nodes.components.BlockNode;
 
-public class WhileStatementNode {
+public class WhileStatementNode implements ASTNode {
     private final ExpressionNode condition;
     private final BlockNode loopBlock;
 

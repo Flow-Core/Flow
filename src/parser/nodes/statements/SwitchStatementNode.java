@@ -1,5 +1,7 @@
 package parser.nodes.statements;
 
-public class SwitchStatementNode {
+import parser.nodes.ASTNode;
+
+public class SwitchStatementNode implements ASTNode {
 
 }

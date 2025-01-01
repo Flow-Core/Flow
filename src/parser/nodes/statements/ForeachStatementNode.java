@@ -1,5 +1,7 @@
 package parser.nodes.statements;
 
-public class ForeachStatementNode {
+import parser.nodes.ASTNode;
+
+public class ForeachStatementNode implements ASTNode {
 
 }

@@ -1,10 +1,11 @@
 package parser.nodes.statements;
 
+import parser.nodes.ASTNode;
 import parser.nodes.components.BlockNode;
 
 import java.util.List;
 
-public class TryStatementNode {
+public class TryStatementNode implements ASTNode {
     private final BlockNode tryBranch;
     private final List<BlockNode> exceptionBranches;
 
