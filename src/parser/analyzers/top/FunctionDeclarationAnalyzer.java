@@ -5,7 +5,9 @@ import lexer.token.TokenType;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
+import parser.analyzers.inline.ExpressionAnalyzer;
 import parser.nodes.ASTNode;
+import parser.nodes.ExpressionNode;
 import parser.nodes.FunctionDeclarationNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.components.BlockNode;
@@ -24,18 +26,26 @@ public class FunctionDeclarationAnalyzer implements TopAnalyzer {
 
         List<ParameterNode> args = new ArrayList<>();
 
-        while (true) {
-            String type = parser.consume(TokenType.IDENTIFIER).value();
+        while (!parser.check(TokenType.CLOSE_PARENTHESES)) {
             String name = parser.consume(TokenType.IDENTIFIER).value();
+            parser.consume(TokenType.COLON_OPERATOR);
+            String type = parser.consume(TokenType.IDENTIFIER).value();
 
-            ParameterNode arg = new ParameterNode(type, name);
+            ExpressionNode defaultValue = null;
+            if (parser.peek().type() == TokenType.EQUAL_OPERATOR) {
+                parser.advance();
+                defaultValue = ExpressionAnalyzer.parse(parser);
+            }
+
+            ParameterNode arg = new ParameterNode(type, name, defaultValue);
 
             args.add(arg);
 
-            if (parser.check(TokenType.CLOSE_PARENTHESES)) break;
-
-            parser.consume(TokenType.COMMA);
+            if (!parser.check(TokenType.CLOSE_PARENTHESES)) {
+                parser.consume(TokenType.COMMA);
+            }
         }
+        parser.advance();
 
         String returnType = "Void";
 
@@ -44,6 +54,7 @@ public class FunctionDeclarationAnalyzer implements TopAnalyzer {
             returnType = parser.consume(TokenType.IDENTIFIER).value();
         }
 
+        System.out.println(parser.peek());
         parser.consume(TokenType.OPEN_BRACES);
 
         BlockNode block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getFunctionScope());
