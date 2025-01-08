@@ -17,12 +17,12 @@ public class Main {
            \s
             // this is a single line comment
             func main() {
-                Ip ip = 127.0.0.1
-                Double d = 124.5215
-                Float i = 12.0f
-                Int x = 10 * 2
-                String y = "Hello, world!"
-                String multiLine = "
+                var ip: Ip = 127.0.0.1
+                var d: Double = 124.5215
+                val i: Float = 12.0f
+                const x: Int = 10 * 2
+                val String y = "Hello, world!"
+                const multiLine: String = "
                 safasfasf
                 sfsaf
                 "

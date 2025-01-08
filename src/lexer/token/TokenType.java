@@ -15,7 +15,10 @@ public enum TokenType {
     TRY,
     CATCH,
     FINAL,
+
     CONST,
+    VAR,
+    VAL,
 
     OPERATOR,
     OPEN_PARENTHESES,

@@ -1,6 +1,7 @@
 package parser.nodes.classes;
 
 import parser.nodes.ASTNode;
+import parser.nodes.FunctionDeclarationNode;
 
 import java.util.List;
 
@@ -9,7 +10,7 @@ public record ClassDeclarationNode(
     List<String> modifier,
     String baseClass,
     List<String> interfaces,
-    List<ASTNode> fields,
-    List<ASTNode> methods,
+    List<FieldNode> fields,
+    List<FunctionDeclarationNode> methods,
     List<ConstructorNode> constructors
 ) implements ASTNode {}

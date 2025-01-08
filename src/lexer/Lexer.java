@@ -93,7 +93,10 @@ public class Lexer {
         patterns.put(TokenType.TRY, Pattern.compile("\\btry\\b"));
         patterns.put(TokenType.CATCH, Pattern.compile("\\bcatch\\b"));
         patterns.put(TokenType.FINAL, Pattern.compile("\\bfinal\\b"));
+
         patterns.put(TokenType.CONST, Pattern.compile("\\bconst\\b"));
+        patterns.put(TokenType.VAL, Pattern.compile("\\bval\\b"));
+        patterns.put(TokenType.VAR, Pattern.compile("\\bvar\\b"));
 
         // Boolean literals
         patterns.put(TokenType.BOOLEAN, Pattern.compile("\\b(true|false)\\b"));
