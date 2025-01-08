@@ -1,11 +1,12 @@
 package parser.nodes.statements;
 
+import parser.nodes.ASTNode;
 import parser.nodes.ExpressionNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.variable.VariableAssignment;
 import parser.nodes.variable.VariableDeclaration;
 
-public class ForStatementNode {
+public class ForStatementNode implements ASTNode {
     private final VariableDeclaration initialization;
     private final ExpressionNode condition;
     private final VariableAssignment action;
