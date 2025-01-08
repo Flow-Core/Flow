@@ -1,6 +1,6 @@
 package parser.nodes.variable;
 
-public record VariableParseResult(
+public record InitializedVariable(
     VariableDeclarationNode declaration,
     VariableAssignmentNode assignment
 ) {}

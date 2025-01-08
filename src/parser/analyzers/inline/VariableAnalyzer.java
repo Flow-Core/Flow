@@ -6,7 +6,7 @@ import parser.Parser;
 import parser.nodes.ExpressionNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableDeclarationNode;
-import parser.nodes.variable.VariableParseResult;
+import parser.nodes.variable.InitializedVariable;
 import parser.nodes.variable.VariableReferenceNode;
 
 public class VariableAnalyzer {
@@ -26,7 +26,7 @@ public class VariableAnalyzer {
         return new VariableAssignmentNode(variable.getValue(), expr);
     }
 
-    public static VariableParseResult parseDeclaration(final Parser parser) {
+    public static InitializedVariable parseInitialization(final Parser parser) {
         final Token modifier = parser.consume(TokenType.IDENTIFIER);
         final Token name = parser.consume(TokenType.IDENTIFIER);
 
@@ -37,13 +37,13 @@ public class VariableAnalyzer {
             final VariableDeclarationNode declaration = new VariableDeclarationNode(modifier.getValue(), null, name.getValue());
             final VariableAssignmentNode assignment = new VariableAssignmentNode(name.getValue(), expr);
 
-            return new VariableParseResult(declaration, assignment);
+            return new InitializedVariable(declaration, assignment);
         } else if (parser.peek().getType() == TokenType.COLON_OPERATOR) {
             parser.consume(TokenType.COLON_OPERATOR);
             final Token type = parser.consume(TokenType.IDENTIFIER);
             if (parser.peek().getType() != TokenType.EQUAL_OPERATOR) {
                 final VariableDeclarationNode declaration = new VariableDeclarationNode(modifier.getValue(), type.getValue(), name.getValue());
-                return new VariableParseResult(declaration, null);
+                return new InitializedVariable(declaration, null);
             }
 
             parser.consume(TokenType.EQUAL_OPERATOR);
@@ -51,7 +51,7 @@ public class VariableAnalyzer {
             final VariableDeclarationNode declaration = new VariableDeclarationNode(modifier.getValue(), type.getValue(), name.getValue());
             final VariableAssignmentNode assignment = new VariableAssignmentNode(name.getValue(), expr);
 
-            return new VariableParseResult(declaration, assignment);
+            return new InitializedVariable(declaration, assignment);
         }
 
         return null;
