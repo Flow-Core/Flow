@@ -27,7 +27,7 @@ public class VariableAnalyzer {
     }
 
     public static InitializedVariable parseInitialization(final Parser parser) {
-        final Token modifier = parser.consume(TokenType.IDENTIFIER);
+        final Token modifier = parser.consume(TokenType.VAR, TokenType.VAL, TokenType.CONST);
         final Token name = parser.consume(TokenType.IDENTIFIER);
 
         // Check for type specification
