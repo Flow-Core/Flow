@@ -7,7 +7,7 @@ import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
 import parser.nodes.ASTNode;
 import parser.nodes.FunctionDeclarationNode;
-import parser.nodes.components.ArgumentNode;
+import parser.nodes.components.ParameterNode;
 import parser.nodes.components.BlockNode;
 
 import java.util.ArrayList;
@@ -22,13 +22,13 @@ public class FunctionDeclarationAnalyzer implements TopAnalyzer {
 
         parser.consume(TokenType.OPEN_PARENTHESES);
 
-        List<ArgumentNode> args = new ArrayList<>();
+        List<ParameterNode> args = new ArrayList<>();
 
         while (true) {
-            String type = parser.consume(TokenType.IDENTIFIER).getValue();
-            String name = parser.consume(TokenType.IDENTIFIER).getValue();
+            String type = parser.consume(TokenType.IDENTIFIER).value();
+            String name = parser.consume(TokenType.IDENTIFIER).value();
 
-            ArgumentNode arg = new ArgumentNode(type, name);
+            ParameterNode arg = new ParameterNode(type, name);
 
             args.add(arg);
 
@@ -41,7 +41,7 @@ public class FunctionDeclarationAnalyzer implements TopAnalyzer {
 
         if (parser.check(TokenType.COLON_OPERATOR)) {
             parser.advance();
-            returnType = parser.consume(TokenType.IDENTIFIER).getValue();
+            returnType = parser.consume(TokenType.IDENTIFIER).value();
         }
 
         parser.consume(TokenType.OPEN_BRACES);
@@ -51,10 +51,10 @@ public class FunctionDeclarationAnalyzer implements TopAnalyzer {
         parser.consume(TokenType.CLOSE_BRACES);
 
         return new FunctionDeclarationNode(
-                funcName.getValue(),
-                returnType,
-                args,
-                block
+            funcName.value(),
+            returnType,
+            args,
+            block
         );
     }
 }

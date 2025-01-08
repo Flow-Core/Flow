@@ -1,8 +1,9 @@
 package parser.nodes.components;
 
 import parser.nodes.ASTNode;
+import parser.nodes.ExpressionNode;
 
 public record ArgumentNode(
-    String type,
-    String name
+    String name,
+    ExpressionNode value
 ) implements ASTNode {}

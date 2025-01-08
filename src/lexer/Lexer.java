@@ -37,9 +37,9 @@ public class Lexer {
                 throw new RuntimeException("Unexpected token at " + currentLine);
             }
 
-            if (token.getType() != TokenType.COMMENT) {
+            if (token.type() != TokenType.COMMENT) {
                 tokens.add(token);
-                if (token.getType() == TokenType.NEW_LINE) {
+                if (token.type() == TokenType.NEW_LINE) {
                     currentLine++;
                 }
             }

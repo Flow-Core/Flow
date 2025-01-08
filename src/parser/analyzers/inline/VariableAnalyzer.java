@@ -13,7 +13,7 @@ public class VariableAnalyzer {
     public static VariableReferenceNode parseReference(final Parser parser) {
         final Token variable = parser.consume(TokenType.IDENTIFIER);
 
-        return new VariableReferenceNode(variable.getValue());
+        return new VariableReferenceNode(variable.value());
     }
 
     public static VariableAssignmentNode parseAssignment(final Parser parser) {
@@ -23,7 +23,7 @@ public class VariableAnalyzer {
 
         final ExpressionNode expr = ExpressionAnalyzer.parse(parser);
 
-        return new VariableAssignmentNode(variable.getValue(), expr);
+        return new VariableAssignmentNode(variable.value(), expr);
     }
 
     public static InitializedVariable parseInitialization(final Parser parser) {
@@ -31,25 +31,25 @@ public class VariableAnalyzer {
         final Token name = parser.consume(TokenType.IDENTIFIER);
 
         // Check for type specification
-        if (parser.peek().getType() == TokenType.EQUAL_OPERATOR) {
+        if (parser.peek().type() == TokenType.EQUAL_OPERATOR) {
             parser.consume(TokenType.EQUAL_OPERATOR);
             final ExpressionNode expr = ExpressionAnalyzer.parse(parser);
-            final VariableDeclarationNode declaration = new VariableDeclarationNode(modifier.getValue(), null, name.getValue());
-            final VariableAssignmentNode assignment = new VariableAssignmentNode(name.getValue(), expr);
+            final VariableDeclarationNode declaration = new VariableDeclarationNode(modifier.value(), null, name.value());
+            final VariableAssignmentNode assignment = new VariableAssignmentNode(name.value(), expr);
 
             return new InitializedVariable(declaration, assignment);
-        } else if (parser.peek().getType() == TokenType.COLON_OPERATOR) {
+        } else if (parser.peek().type() == TokenType.COLON_OPERATOR) {
             parser.consume(TokenType.COLON_OPERATOR);
             final Token type = parser.consume(TokenType.IDENTIFIER);
-            if (parser.peek().getType() != TokenType.EQUAL_OPERATOR) {
-                final VariableDeclarationNode declaration = new VariableDeclarationNode(modifier.getValue(), type.getValue(), name.getValue());
+            if (parser.peek().type() != TokenType.EQUAL_OPERATOR) {
+                final VariableDeclarationNode declaration = new VariableDeclarationNode(modifier.value(), type.value(), name.value());
                 return new InitializedVariable(declaration, null);
             }
 
             parser.consume(TokenType.EQUAL_OPERATOR);
             final ExpressionNode expr = ExpressionAnalyzer.parse(parser);
-            final VariableDeclarationNode declaration = new VariableDeclarationNode(modifier.getValue(), type.getValue(), name.getValue());
-            final VariableAssignmentNode assignment = new VariableAssignmentNode(name.getValue(), expr);
+            final VariableDeclarationNode declaration = new VariableDeclarationNode(modifier.value(), type.value(), name.value());
+            final VariableAssignmentNode assignment = new VariableAssignmentNode(name.value(), expr);
 
             return new InitializedVariable(declaration, assignment);
         }

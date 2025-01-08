@@ -23,7 +23,7 @@ public class ExpressionAnalyzer {
     ) {
         while (true) {
             Token operator = parser.peek();
-            int opPrecedence = getPrecedence(operator.getValue());
+            int opPrecedence = getPrecedence(operator.value());
 
             if (opPrecedence < precedence)
                 return lhs;
@@ -35,7 +35,7 @@ public class ExpressionAnalyzer {
             if (rhs == null) return null;
 
             Token nextOperator = parser.peek();
-            int nextPrecedence = getPrecedence(nextOperator.getValue());
+            int nextPrecedence = getPrecedence(nextOperator.value());
 
             if (opPrecedence < nextPrecedence) {
                 rhs = parseRHS(parser, opPrecedence + 1, rhs);
@@ -43,7 +43,7 @@ public class ExpressionAnalyzer {
                 if (rhs == null) return null;
             }
 
-            lhs = new BinaryExpressionNode(lhs, rhs, operator.getValue());
+            lhs = new BinaryExpressionNode(lhs, rhs, operator.value());
         }
     }
 

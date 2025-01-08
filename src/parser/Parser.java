@@ -45,7 +45,7 @@ public class Parser {
     }
 
     public boolean check(TokenType type) {
-        return peek().getType() == type;
+        return peek().type() == type;
     }
 
     public Token consume(TokenType type) throws RuntimeException {
