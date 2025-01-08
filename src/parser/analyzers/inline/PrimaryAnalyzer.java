@@ -14,11 +14,11 @@ public class PrimaryAnalyzer {
         return switch (token.getType()) {
             case IPV6 -> new Ipv6Literal(token.getValue());
             case IPV4 -> new Ipv4Literal(token.getValue());
-            case FLOAT -> new FloatLiteral(Float.parseFloat(token.getValue()));
-            case DOUBLE -> new DoubleLiteral(Double.parseDouble(token.getValue()));
+            case FLOAT -> new FloatLiteralNode(Float.parseFloat(token.getValue()));
+            case DOUBLE -> new DoubleLiteralNode(Double.parseDouble(token.getValue()));
             case INT -> new IntegerLiteral(Integer.parseInt(token.getValue()));
             case STRING -> new StringLiteral(token.getValue());
-            case BOOLEAN -> new BooleanLiteral(Boolean.parseBoolean(token.getValue()));
+            case BOOLEAN -> new BooleanLiteralNode(Boolean.parseBoolean(token.getValue()));
             case IDENTIFIER -> new IdentifierReferenceAnalyzer().parse(parser);
             case OPEN_PARENTHESES -> {
                 ExpressionNode expr = ExpressionAnalyzer.parse(parser);

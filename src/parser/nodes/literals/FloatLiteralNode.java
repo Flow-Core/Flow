@@ -1,5 +1,5 @@
 package parser.nodes.literals;
 
-public record Ipv6Literal(
-    String value
+public record FloatLiteralNode(
+    float value
 ) implements LiteralNode {}
