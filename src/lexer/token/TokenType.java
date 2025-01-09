@@ -13,6 +13,7 @@ public enum TokenType {
     CLASS,
     INTERFACE,
     CONSTRUCTOR,
+    INIT,
     TRY,
     CATCH,
 

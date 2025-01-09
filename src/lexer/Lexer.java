@@ -91,6 +91,7 @@ public class Lexer {
         patterns.put(TokenType.CLASS, Pattern.compile("\\bclass\\b"));
         patterns.put(TokenType.INTERFACE, Pattern.compile("\\binterface\\b"));
         patterns.put(TokenType.CONSTRUCTOR, Pattern.compile("\\bconstructor\\b"));
+        patterns.put(TokenType.INIT, Pattern.compile("\\binit\\b"));
         patterns.put(TokenType.TRY, Pattern.compile("\\btry\\b"));
         patterns.put(TokenType.CATCH, Pattern.compile("\\bcatch\\b"));
 
