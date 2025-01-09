@@ -99,6 +99,17 @@ public class Lexer {
         patterns.put(TokenType.VAL, Pattern.compile("\\bval\\b"));
         patterns.put(TokenType.VAR, Pattern.compile("\\bvar\\b"));
 
+        patterns.put(TokenType.MODIFIER, Pattern.compile("\\b(private|" +
+            "protected|" +
+            "public|" +
+            "static|" +
+            "abstract|" +
+            "final|" +
+            "open|" +
+            "data|" +
+            "sealed" +
+        ")\\b"));
+
         // Boolean literals
         patterns.put(TokenType.BOOLEAN, Pattern.compile("\\b(true|false)\\b"));
 

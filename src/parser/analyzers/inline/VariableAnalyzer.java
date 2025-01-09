@@ -41,17 +41,16 @@ public class VariableAnalyzer {
         } else if (parser.peek().type() == TokenType.COLON_OPERATOR) {
             parser.consume(TokenType.COLON_OPERATOR);
             final Token type = parser.consume(TokenType.IDENTIFIER);
+            VariableDeclarationNode variableDeclarationNode = new VariableDeclarationNode(modifier.value(), type.value(), name.value());
             if (parser.peek().type() != TokenType.EQUAL_OPERATOR) {
-                final VariableDeclarationNode declaration = new VariableDeclarationNode(modifier.value(), type.value(), name.value());
-                return new InitializedVariable(declaration, null);
+                return new InitializedVariable(variableDeclarationNode, null);
             }
 
             parser.consume(TokenType.EQUAL_OPERATOR);
             final ExpressionNode expr = ExpressionAnalyzer.parse(parser);
-            final VariableDeclarationNode declaration = new VariableDeclarationNode(modifier.value(), type.value(), name.value());
             final VariableAssignmentNode assignment = new VariableAssignmentNode(name.value(), expr);
 
-            return new InitializedVariable(declaration, assignment);
+            return new InitializedVariable(variableDeclarationNode, assignment);
         }
 
         return null;

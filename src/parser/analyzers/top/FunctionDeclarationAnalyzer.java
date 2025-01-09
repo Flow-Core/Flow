@@ -9,6 +9,7 @@ import parser.analyzers.inline.ExpressionAnalyzer;
 import parser.nodes.ASTNode;
 import parser.nodes.ExpressionNode;
 import parser.nodes.FunctionDeclarationNode;
+import parser.nodes.classes.MethodSignatureNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.components.BlockNode;
 
@@ -18,7 +19,36 @@ import java.util.List;
 public class FunctionDeclarationAnalyzer implements TopAnalyzer {
     @Override
     public ASTNode parse(Parser parser) {
+        final MethodSignatureNode functionSignature = parseFunctionSignature(parser);
+
+        parser.consume(TokenType.OPEN_BRACES);
+
+        BlockNode block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getFunctionScope());
+
+        parser.consume(TokenType.CLOSE_BRACES);
+
+        return new FunctionDeclarationNode(
+            functionSignature.name(),
+            functionSignature.returnType(),
+            functionSignature.modifiers(),
+            functionSignature.parameters(),
+            block
+        );
+    }
+
+    public static List<String> parseModifiers(final Parser parser) {
+        final List<String> modifiers = new ArrayList<>();
+        while (parser.check(TokenType.MODIFIER)) {
+            modifiers.add(parser.advance().value());
+        }
+
+        return modifiers;
+    }
+
+    public static MethodSignatureNode parseFunctionSignature(final Parser parser) {
         parser.consume(TokenType.FUNC);
+
+        final List<String> modifiers = parseModifiers(parser);
 
         Token funcName = parser.consume(TokenType.IDENTIFIER);
 
@@ -54,18 +84,11 @@ public class FunctionDeclarationAnalyzer implements TopAnalyzer {
             returnType = parser.consume(TokenType.IDENTIFIER).value();
         }
 
-        System.out.println(parser.peek());
-        parser.consume(TokenType.OPEN_BRACES);
-
-        BlockNode block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getFunctionScope());
-
-        parser.consume(TokenType.CLOSE_BRACES);
-
-        return new FunctionDeclarationNode(
+        return new MethodSignatureNode(
             funcName.value(),
-            returnType,
+            modifiers,
             args,
-            block
+            returnType
         );
     }
 }

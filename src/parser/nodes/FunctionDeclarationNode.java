@@ -8,6 +8,7 @@ import java.util.List;
 public record FunctionDeclarationNode(
     String name,
     String returnType,
+    List<String> modifiers,
     List<ParameterNode> params,
     BlockNode block
 ) implements ASTNode {}

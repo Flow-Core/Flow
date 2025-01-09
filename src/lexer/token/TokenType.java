@@ -21,6 +21,8 @@ public enum TokenType {
     VAR,
     VAL,
 
+    MODIFIER,
+
     OPERATOR,
     OPEN_PARENTHESES,
     CLOSE_PARENTHESES,
