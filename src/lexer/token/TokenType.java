@@ -12,9 +12,9 @@ public enum TokenType {
     FUNC,
     CLASS,
     INTERFACE,
+    CONSTRUCTOR,
     TRY,
     CATCH,
-    FINAL,
 
     CONST,
     VAR,
