@@ -1,5 +1,5 @@
 package parser.nodes.literals;
 
-public record StringLiteral(
-    String value
+public record IntegerLiteralNode(
+    int value
 ) implements LiteralNode {}

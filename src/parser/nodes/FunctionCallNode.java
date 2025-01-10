@@ -4,7 +4,7 @@ import parser.nodes.components.ArgumentNode;
 
 import java.util.List;
 
-public record FunctionCall(
+public record FunctionCallNode(
     String name,
     List<ArgumentNode> arguments
 ) implements ExpressionNode {

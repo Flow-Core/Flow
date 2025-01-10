@@ -12,12 +12,12 @@ public class PrimaryAnalyzer {
         final Token token = parser.advance();
 
         return switch (token.type()) {
-            case IPV6 -> new Ipv6Literal(token.value());
-            case IPV4 -> new Ipv4Literal(token.value());
+            case IPV6 -> new Ipv6LiteralNode(token.value());
+            case IPV4 -> new Ipv4LiteralNode(token.value());
             case FLOAT -> new FloatLiteralNode(Float.parseFloat(token.value()));
             case DOUBLE -> new DoubleLiteralNode(Double.parseDouble(token.value()));
-            case INT -> new IntegerLiteral(Integer.parseInt(token.value()));
-            case STRING -> new StringLiteral(token.value());
+            case INT -> new IntegerLiteralNode(Integer.parseInt(token.value()));
+            case STRING -> new StringLiteralNode(token.value());
             case BOOLEAN -> new BooleanLiteralNode(Boolean.parseBoolean(token.value()));
             case IDENTIFIER -> new IdentifierReferenceAnalyzer().parse(parser);
             case OPEN_PARENTHESES -> {

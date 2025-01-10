@@ -6,9 +6,8 @@ import parser.Parser;
 import parser.analyzers.TopAnalyzer;
 import parser.analyzers.inline.ExpressionAnalyzer;
 import parser.nodes.ExpressionNode;
-import parser.nodes.FunctionCall;
+import parser.nodes.FunctionCallNode;
 import parser.nodes.components.ArgumentNode;
-import parser.nodes.components.ParameterNode;
 import parser.nodes.variable.VariableReferenceNode;
 
 import java.util.ArrayList;
@@ -31,7 +30,7 @@ public class IdentifierReferenceAnalyzer implements TopAnalyzer {
             }
 
             parser.advance();
-            return new FunctionCall(identifierToken.value(), args);
+            return new FunctionCallNode(identifierToken.value(), args);
         }
 
         return new VariableReferenceNode(identifierToken.value());
