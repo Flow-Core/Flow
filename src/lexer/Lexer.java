@@ -37,9 +37,9 @@ public class Lexer {
                 throw new RuntimeException("Unexpected token at " + currentLine);
             }
 
-            if (token.getType() != TokenType.COMMENT) {
+            if (token.type() != TokenType.COMMENT) {
                 tokens.add(token);
-                if (token.getType() == TokenType.NEW_LINE) {
+                if (token.type() == TokenType.NEW_LINE) {
                     currentLine++;
                 }
             }
@@ -90,10 +90,25 @@ public class Lexer {
         patterns.put(TokenType.FUNC, Pattern.compile("\\b(func)\\b"));
         patterns.put(TokenType.CLASS, Pattern.compile("\\bclass\\b"));
         patterns.put(TokenType.INTERFACE, Pattern.compile("\\binterface\\b"));
+        patterns.put(TokenType.CONSTRUCTOR, Pattern.compile("\\bconstructor\\b"));
+        patterns.put(TokenType.INIT, Pattern.compile("\\binit\\b"));
         patterns.put(TokenType.TRY, Pattern.compile("\\btry\\b"));
         patterns.put(TokenType.CATCH, Pattern.compile("\\bcatch\\b"));
-        patterns.put(TokenType.FINAL, Pattern.compile("\\bfinal\\b"));
+
         patterns.put(TokenType.CONST, Pattern.compile("\\bconst\\b"));
+        patterns.put(TokenType.VAL, Pattern.compile("\\bval\\b"));
+        patterns.put(TokenType.VAR, Pattern.compile("\\bvar\\b"));
+
+        patterns.put(TokenType.MODIFIER, Pattern.compile("\\b(private|" +
+            "protected|" +
+            "public|" +
+            "static|" +
+            "abstract|" +
+            "final|" +
+            "open|" +
+            "data|" +
+            "sealed" +
+        ")\\b"));
 
         // Boolean literals
         patterns.put(TokenType.BOOLEAN, Pattern.compile("\\b(true|false)\\b"));

@@ -4,16 +4,7 @@ import parser.nodes.ASTNode;
 
 import java.util.List;
 
-public class BlockNode implements ASTNode {
-    private final List<ASTNode> children;
-
-    public BlockNode(final List<ASTNode> children) {
-        this.children = children;
-    }
-
-    public List<ASTNode> getChildren() {
-        return children;
-    }
+public record BlockNode(List<ASTNode> children) implements ASTNode {
 
     @Override
     public String toString() {

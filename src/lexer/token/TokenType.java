@@ -12,10 +12,16 @@ public enum TokenType {
     FUNC,
     CLASS,
     INTERFACE,
+    CONSTRUCTOR,
+    INIT,
     TRY,
     CATCH,
-    FINAL,
+
     CONST,
+    VAR,
+    VAL,
+
+    MODIFIER,
 
     OPERATOR,
     OPEN_PARENTHESES,

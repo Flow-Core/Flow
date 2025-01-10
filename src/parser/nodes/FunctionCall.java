@@ -1,29 +1,18 @@
 package parser.nodes;
 
+import parser.nodes.components.ArgumentNode;
+
 import java.util.List;
 
-public class FunctionCall implements ExpressionNode {
-    private final String name;
-    private final List<ExpressionNode> arguments;
-
-    public FunctionCall(final String name, final List<ExpressionNode> arguments) {
-        this.name = name;
-        this.arguments = arguments;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public List<ExpressionNode> getArguments() {
-        return arguments;
-    }
-
+public record FunctionCall(
+    String name,
+    List<ArgumentNode> arguments
+) implements ExpressionNode {
     @Override
     public String toString() {
         StringBuilder output = new StringBuilder("Function call " + name + ":\n");
 
-        for (ExpressionNode node : arguments) {
+        for (final ArgumentNode node : arguments) {
             output.append(node.toString()).append("\n");
         }
 

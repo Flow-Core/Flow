@@ -6,6 +6,7 @@ import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.top.BlockAnalyzer;
 import parser.nodes.ASTNode;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
 
@@ -45,7 +46,7 @@ public class Parser {
     }
 
     public boolean check(TokenType type) {
-        return peek().getType() == type;
+        return peek().type() == type;
     }
 
     public Token consume(TokenType type) throws RuntimeException {
@@ -53,6 +54,15 @@ public class Parser {
             throw new RuntimeException("'" + type + "' expected");
         }
         return advance();
+    }
+
+    public Token consume(TokenType... expectedTypes) throws RuntimeException {
+        for (TokenType type : expectedTypes) {
+            if (check(type)) {
+                return advance();
+            }
+        }
+        throw new RuntimeException("Expected one of " + Arrays.toString(expectedTypes) + " but found '" + peek().value() + "'");
     }
 
     public void printTree(ASTNode root) {

@@ -18,7 +18,7 @@ import parser.nodes.variable.VariableDeclaration;
 public class StatementAnalyzer implements TopAnalyzer {
     @Override
     public ASTNode parse(final Parser parser) {
-        switch (parser.advance().getType()) {
+        switch (parser.advance().type()) {
             case IF:
                 parser.consume(TokenType.OPEN_PARENTHESES);
 
