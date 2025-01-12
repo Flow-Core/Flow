@@ -3,6 +3,7 @@ package semantic_analysis;
 import parser.nodes.ASTNode;
 import parser.nodes.FunctionCall;
 import parser.nodes.FunctionDeclarationNode;
+import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableDeclarationNode;
@@ -20,6 +21,7 @@ public class SymbolCohesionCheck {
         List<VariableDeclarationNode> variables = new ArrayList<>();
 
         List<FunctionDeclarationNode> functions = loadFunctions(root);
+        List<ClassDeclarationNode> classes = loadClasses(root);
 
         for (ASTNode statement : statements) {
             if (statement instanceof FunctionCall functionCall) {
@@ -57,8 +59,21 @@ public class SymbolCohesionCheck {
         return functions;
     }
 
-    public static List<FunctionDeclarationNode> loadFunctions(BlockNode root) {
+    public static List<ClassDeclarationNode> loadClasses(BlockNode root) {
         List<ASTNode> statements = root.children();
+        List<ClassDeclarationNode> classes = new ArrayList<>();
+
+        for (ASTNode statement : statements) {
+            if (statement instanceof ClassDeclarationNode declaration) {
+                classes.add(declaration);
+            }
+        }
+
+        return classes;
+    }
+
+    public static List<FunctionDeclarationNode> loadFunctions(BlockNode block) {
+        List<ASTNode> statements = block.children();
         List<FunctionDeclarationNode> functions = new ArrayList<>();
 
         for (ASTNode statement : statements) {
