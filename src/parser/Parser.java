@@ -58,11 +58,12 @@ public class Parser {
 
     public Token consume(TokenType... expectedTypes) throws RuntimeException {
         for (TokenType type : expectedTypes) {
-            if (check(type)) {
-                return advance();
+            if (!check(type)) {
+                throw new RuntimeException("Expected one of " + Arrays.toString(expectedTypes) + " but found '" + peek().value() + "'");
             }
         }
-        throw new RuntimeException("Expected one of " + Arrays.toString(expectedTypes) + " but found '" + peek().value() + "'");
+
+        return advance();
     }
 
     public void printTree(ASTNode root) {
