@@ -44,6 +44,7 @@ public enum TokenType {
     COLON_OPERATOR,
     DOT_OPERATOR,
     COMMA,
+    SEMICOLON,
 
     NEW_LINE
 }

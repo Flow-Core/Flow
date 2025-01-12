@@ -160,5 +160,6 @@ public class Lexer {
 
         // New Line
         patterns.put(TokenType.NEW_LINE, Pattern.compile("(\\r\\n|\\n|\\r)"));
+        patterns.put(TokenType.SEMICOLON, Pattern.compile(";"));
     }
 }
