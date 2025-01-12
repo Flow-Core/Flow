@@ -9,6 +9,6 @@ public record FunctionDeclarationNode(
     String name,
     String returnType,
     List<String> modifiers,
-    List<ParameterNode> params,
+    List<ParameterNode> parameters,
     BlockNode block
 ) implements ASTNode {}

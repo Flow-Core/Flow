@@ -9,7 +9,6 @@ import parser.analyzers.inline.ExpressionAnalyzer;
 import parser.nodes.ASTNode;
 import parser.nodes.ExpressionNode;
 import parser.nodes.FunctionDeclarationNode;
-import parser.nodes.classes.MethodSignatureNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.components.BlockNode;
 
@@ -19,7 +18,7 @@ import java.util.List;
 public class FunctionDeclarationAnalyzer implements TopAnalyzer {
     @Override
     public ASTNode parse(Parser parser) {
-        final MethodSignatureNode functionSignature = parseFunctionSignature(parser);
+        final FunctionDeclarationNode functionSignature = parseFunctionSignature(parser);
 
         parser.consume(TokenType.OPEN_BRACES);
 
@@ -45,7 +44,7 @@ public class FunctionDeclarationAnalyzer implements TopAnalyzer {
         return modifiers;
     }
 
-    public static MethodSignatureNode parseFunctionSignature(final Parser parser) {
+    public static FunctionDeclarationNode parseFunctionSignature(final Parser parser) {
         parser.consume(TokenType.FUNC);
 
         final List<String> modifiers = parseModifiers(parser);
@@ -54,7 +53,7 @@ public class FunctionDeclarationAnalyzer implements TopAnalyzer {
 
         parser.consume(TokenType.OPEN_PARENTHESES);
 
-        List<ParameterNode> args = new ArrayList<>();
+        List<ParameterNode> parameters = new ArrayList<>();
 
         while (!parser.check(TokenType.CLOSE_PARENTHESES)) {
             String name = parser.consume(TokenType.IDENTIFIER).value();
@@ -69,7 +68,7 @@ public class FunctionDeclarationAnalyzer implements TopAnalyzer {
 
             ParameterNode arg = new ParameterNode(type, name, defaultValue);
 
-            args.add(arg);
+            parameters.add(arg);
 
             if (!parser.check(TokenType.CLOSE_PARENTHESES)) {
                 parser.consume(TokenType.COMMA);
@@ -84,11 +83,12 @@ public class FunctionDeclarationAnalyzer implements TopAnalyzer {
             returnType = parser.consume(TokenType.IDENTIFIER).value();
         }
 
-        return new MethodSignatureNode(
+        return new FunctionDeclarationNode(
             funcName.value(),
+            returnType,
             modifiers,
-            args,
-            returnType
+            parameters,
+            null
         );
     }
 }

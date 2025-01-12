@@ -5,8 +5,8 @@ import lexer.token.TokenType;
 import parser.Parser;
 import parser.analyzers.TopAnalyzer;
 import parser.analyzers.top.FunctionDeclarationAnalyzer;
+import parser.nodes.FunctionDeclarationNode;
 import parser.nodes.classes.InterfaceNode;
-import parser.nodes.classes.MethodSignatureNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +24,7 @@ public class InterfaceAnalyzer implements TopAnalyzer {
         final List<String> implementedInterfaces = parseImplementedInterfaces(parser);
 
         parser.consume(TokenType.OPEN_BRACES);
-        List<MethodSignatureNode> methods = new ArrayList<>();
+        List<FunctionDeclarationNode> methods = new ArrayList<>();
         while (!parser.check(TokenType.CLOSE_BRACES)) {
             methods.add(FunctionDeclarationAnalyzer.parseFunctionSignature(parser));
         }
