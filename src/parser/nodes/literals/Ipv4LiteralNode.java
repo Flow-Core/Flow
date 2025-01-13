@@ -1,5 +1,9 @@
 package parser.nodes.literals;
 
-public record Ipv4LiteralNode(
-    String value
-) implements LiteralNode { }
+public class Ipv4LiteralNode implements LiteralNode {
+    public String value;
+
+    public Ipv4LiteralNode(String value) {
+        this.value = value;
+    }
+}

@@ -1,5 +1,9 @@
 package parser.nodes.literals;
 
-public record FloatLiteralNode(
-    float value
-) implements LiteralNode {}
+public class FloatLiteralNode implements LiteralNode {
+    public float value;
+
+    public FloatLiteralNode(float value) {
+        this.value = value;
+    }
+}

@@ -1,5 +1,9 @@
 package parser.nodes.literals;
 
-public record IntegerLiteralNode(
-    int value
-) implements LiteralNode {}
+public class IntegerLiteralNode implements LiteralNode {
+    public int value;
+
+    public IntegerLiteralNode(int value) {
+        this.value = value;
+    }
+}

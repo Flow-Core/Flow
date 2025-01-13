@@ -26,13 +26,8 @@ public class FunctionDeclarationAnalyzer implements TopAnalyzer {
 
         parser.consume(TokenType.CLOSE_BRACES);
 
-        return new FunctionDeclarationNode(
-            functionSignature.name(),
-            functionSignature.returnType(),
-            functionSignature.modifiers(),
-            functionSignature.parameters(),
-            block
-        );
+        functionSignature.block = block;
+        return functionSignature;
     }
 
     public static List<String> parseModifiers(final Parser parser) {

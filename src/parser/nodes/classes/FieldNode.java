@@ -5,7 +5,13 @@ import parser.nodes.variable.InitializedVariable;
 
 import java.util.List;
 
-public record FieldNode(
-    List<String> modifiers,
-    InitializedVariable initialization
-) implements ASTNode {}
+public class FieldNode implements ASTNode {
+    public List<String> modifiers;
+    public InitializedVariable initialization;
+
+    public FieldNode(List<String> modifiers, InitializedVariable initialization
+    ) {
+        this.modifiers = modifiers;
+        this.initialization = initialization;
+    }
+}
