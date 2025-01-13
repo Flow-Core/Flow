@@ -6,7 +6,7 @@ import parser.Parser;
 import parser.nodes.ExpressionNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableDeclarationNode;
-import parser.nodes.variable.InitializedVariable;
+import parser.nodes.variable.InitializedVariableNode;
 import parser.nodes.variable.VariableReferenceNode;
 
 public class VariableAnalyzer {
@@ -26,7 +26,7 @@ public class VariableAnalyzer {
         return new VariableAssignmentNode(variable.value(), expr);
     }
 
-    public static InitializedVariable parseInitialization(final Parser parser) {
+    public static InitializedVariableNode parseInitialization(final Parser parser) {
         final Token modifier = parser.consume(TokenType.VAR, TokenType.VAL, TokenType.CONST);
         final Token name = parser.consume(TokenType.IDENTIFIER);
 
@@ -37,20 +37,20 @@ public class VariableAnalyzer {
             final VariableDeclarationNode declaration = new VariableDeclarationNode(modifier.value(), null, name.value());
             final VariableAssignmentNode assignment = new VariableAssignmentNode(name.value(), expr);
 
-            return new InitializedVariable(declaration, assignment);
+            return new InitializedVariableNode(declaration, assignment);
         } else if (parser.peek().type() == TokenType.COLON_OPERATOR) {
             parser.consume(TokenType.COLON_OPERATOR);
             final Token type = parser.consume(TokenType.IDENTIFIER);
             VariableDeclarationNode variableDeclarationNode = new VariableDeclarationNode(modifier.value(), type.value(), name.value());
             if (parser.peek().type() != TokenType.EQUAL_OPERATOR) {
-                return new InitializedVariable(variableDeclarationNode, null);
+                return new InitializedVariableNode(variableDeclarationNode, null);
             }
 
             parser.consume(TokenType.EQUAL_OPERATOR);
             final ExpressionNode expr = ExpressionAnalyzer.parse(parser);
             final VariableAssignmentNode assignment = new VariableAssignmentNode(name.value(), expr);
 
-            return new InitializedVariable(variableDeclarationNode, assignment);
+            return new InitializedVariableNode(variableDeclarationNode, assignment);
         }
 
         return null;

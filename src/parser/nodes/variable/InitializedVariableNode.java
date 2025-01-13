@@ -1,6 +1,8 @@
 package parser.nodes.variable;
 
-public record InitializedVariable(
+import parser.nodes.ASTNode;
+
+public record InitializedVariableNode(
     VariableDeclarationNode declaration,
     VariableAssignmentNode assignment
-) {}
+) implements ASTNode {}

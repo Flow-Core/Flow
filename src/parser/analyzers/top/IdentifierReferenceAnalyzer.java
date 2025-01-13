@@ -18,35 +18,38 @@ public class IdentifierReferenceAnalyzer implements TopAnalyzer {
     public ExpressionNode parse(final Parser parser) {
         final Token identifierToken = parser.peek(-1);
         if (parser.peek().type() == TokenType.OPEN_PARENTHESES) {
-            parser.advance();
+            final List<ArgumentNode> args = parseArguments(parser);
 
-            List<ArgumentNode> args = new ArrayList<>();
-            while (!parser.check(TokenType.CLOSE_PARENTHESES)) {
-                args.add(parseArgument(parser));
-
-                if (!parser.check(TokenType.CLOSE_PARENTHESES)) {
-                    parser.consume(TokenType.COMMA);
-                }
-            }
-
-            parser.advance();
             return new FunctionCallNode(identifierToken.value(), args);
         }
 
         return new VariableReferenceNode(identifierToken.value());
     }
 
-    private ArgumentNode parseArgument(Parser parser) {
-        if (parser.peek().type() == TokenType.IDENTIFIER && parser.peek(1).type() == TokenType.EQUAL_OPERATOR) {
-            final Token argumentName = parser.consume(TokenType.IDENTIFIER);
-            parser.consume(TokenType.EQUAL_OPERATOR);
-            ExpressionNode value = ExpressionAnalyzer.parse(parser);
+    public static List<ArgumentNode> parseArguments(final Parser parser) {
+        final List<ArgumentNode> args = new ArrayList<>();
 
-            return new ArgumentNode(argumentName.value(), value);
+        parser.advance();
+        while (!parser.check(TokenType.CLOSE_PARENTHESES)) {
+            // Parse named parameter
+            if (parser.peek().type() == TokenType.IDENTIFIER && parser.peek(1).type() == TokenType.EQUAL_OPERATOR) {
+                final Token argumentName = parser.consume(TokenType.IDENTIFIER);
+                parser.consume(TokenType.EQUAL_OPERATOR);
+                ExpressionNode value = ExpressionAnalyzer.parse(parser);
+
+                args.add(new ArgumentNode(argumentName.value(), value));
+            } else {
+                ExpressionNode value = ExpressionAnalyzer.parse(parser);
+                args.add(new ArgumentNode(null, value));
+            }
+
+            if (!parser.check(TokenType.CLOSE_PARENTHESES)) {
+                parser.consume(TokenType.COMMA);
+            }
         }
+        parser.advance();
 
-        ExpressionNode value = ExpressionAnalyzer.parse(parser);
-        return new ArgumentNode(null, value);
+        return args;
     }
 }
 

@@ -57,10 +57,8 @@ public class Parser {
     }
 
     public Token consume(TokenType... expectedTypes) throws RuntimeException {
-        for (TokenType type : expectedTypes) {
-            if (!check(type)) {
-                throw new RuntimeException("Expected one of " + Arrays.toString(expectedTypes) + " but found '" + peek().value() + "'");
-            }
+        if (Arrays.stream(expectedTypes).noneMatch(tokenType -> peek().type() == tokenType)) {
+            throw new RuntimeException("Expected one of " + Arrays.toString(expectedTypes) + " but found '" + peek().value() + "'");
         }
 
         return advance();

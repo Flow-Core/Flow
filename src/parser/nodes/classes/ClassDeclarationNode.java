@@ -2,18 +2,16 @@ package parser.nodes.classes;
 
 import parser.nodes.ASTNode;
 import parser.nodes.FunctionDeclarationNode;
-import parser.nodes.components.ArgumentNode;
 import parser.nodes.components.BlockNode;
-import parser.nodes.components.ParameterNode;
 
 import java.util.List;
 
 public class ClassDeclarationNode implements ASTNode {
     public String name;
-    public List<ParameterNode> primaryConstructor;
-    public String baseClass;
-    public List<ArgumentNode> baseClassArguments;
-    public List<String> interfaces;
+    public List<String> modifiers;
+    public List<FieldNode> primaryConstructor;
+    public List<BaseClassNode> baseClasses;
+    public List<BaseInterfaceNode> interfaces;
     public List<FieldNode> fields;
     public List<FunctionDeclarationNode> methods;
     public List<ConstructorNode> constructors;
@@ -21,19 +19,19 @@ public class ClassDeclarationNode implements ASTNode {
 
     public ClassDeclarationNode(
         final String name,
-        final List<ParameterNode> primaryConstructor,
-        final String baseClass,
-        final List<ArgumentNode> baseClassArguments,
-        final List<String> interfaces,
+        final List<String> modifiers,
+        final List<FieldNode> primaryConstructor,
+        final List<BaseClassNode> baseClasses,
+        final List<BaseInterfaceNode> interfaces,
         final List<FieldNode> fields,
         final List<FunctionDeclarationNode> methods,
         final List<ConstructorNode> constructors,
         final BlockNode initBlock
     ) {
         this.name = name;
+        this.modifiers = modifiers;
         this.primaryConstructor = primaryConstructor;
-        this.baseClass = baseClass;
-        this.baseClassArguments = baseClassArguments;
+        this.baseClasses = baseClasses;
         this.interfaces = interfaces;
         this.fields = fields;
         this.methods = methods;

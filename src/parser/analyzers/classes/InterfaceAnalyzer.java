@@ -6,6 +6,7 @@ import parser.Parser;
 import parser.analyzers.TopAnalyzer;
 import parser.analyzers.top.FunctionDeclarationAnalyzer;
 import parser.nodes.FunctionDeclarationNode;
+import parser.nodes.classes.BaseInterfaceNode;
 import parser.nodes.classes.InterfaceNode;
 
 import java.util.ArrayList;
@@ -15,13 +16,13 @@ import static parser.analyzers.top.FunctionDeclarationAnalyzer.parseModifiers;
 
 public class InterfaceAnalyzer implements TopAnalyzer {
     public InterfaceNode parse(final Parser parser) {
-        parser.consume(TokenType.INTERFACE);
-
         List<String> modifiers = parseModifiers(parser);
+
+        parser.consume(TokenType.INTERFACE);
 
         final String name = parser.consume(TokenType.IDENTIFIER).value();
 
-        final List<String> implementedInterfaces = parseImplementedInterfaces(parser);
+        final List<BaseInterfaceNode> implementedInterfaces = parseImplementedInterfaces(parser);
 
         parser.consume(TokenType.OPEN_BRACES);
         List<FunctionDeclarationNode> methods = new ArrayList<>();
@@ -33,13 +34,13 @@ public class InterfaceAnalyzer implements TopAnalyzer {
         return new InterfaceNode(name, modifiers, implementedInterfaces, methods);
     }
 
-    private List<String> parseImplementedInterfaces(final Parser parser) {
-        final List<String> implementedInterfaces = new ArrayList<>();
+    public static List<BaseInterfaceNode> parseImplementedInterfaces(final Parser parser) {
+        final List<BaseInterfaceNode> implementedInterfaces = new ArrayList<>();
         if (parser.check(TokenType.COLON_OPERATOR)) {
             parser.consume(TokenType.COLON_OPERATOR);
             do {
                 final Token interfaceName = parser.consume(TokenType.IDENTIFIER);
-                implementedInterfaces.add(interfaceName.value());
+                implementedInterfaces.add(new BaseInterfaceNode(interfaceName.value()));
             } while (parser.check(TokenType.COMMA));
         }
 
