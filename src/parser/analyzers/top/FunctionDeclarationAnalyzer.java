@@ -18,7 +18,7 @@ import java.util.List;
 public class FunctionDeclarationAnalyzer implements TopAnalyzer {
     @Override
     public ASTNode parse(Parser parser) {
-        final FunctionDeclarationNode functionSignature = parseFunctionSignature(parser);
+        final FunctionDeclarationNode functionDeclaration = parseFunctionSignature(parser);
 
         parser.consume(TokenType.OPEN_BRACES);
 
@@ -26,8 +26,8 @@ public class FunctionDeclarationAnalyzer implements TopAnalyzer {
 
         parser.consume(TokenType.CLOSE_BRACES);
 
-        functionSignature.block = block;
-        return functionSignature;
+        functionDeclaration.block = block;
+        return functionDeclaration;
     }
 
     public static List<String> parseModifiers(final Parser parser) {
