@@ -1,7 +1,7 @@
 package parser.nodes;
 
 public record BinaryExpressionNode(
-    ASTNode left,
-    ASTNode right,
+    ExpressionNode left,
+    ExpressionNode right,
     String operator
 ) implements ExpressionNode { }
