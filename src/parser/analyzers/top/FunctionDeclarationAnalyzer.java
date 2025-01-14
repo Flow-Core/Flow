@@ -6,7 +6,6 @@ import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
 import parser.analyzers.inline.ExpressionAnalyzer;
-import parser.nodes.ASTNode;
 import parser.nodes.ExpressionNode;
 import parser.nodes.FunctionDeclarationNode;
 import parser.nodes.components.ParameterNode;
@@ -17,7 +16,7 @@ import java.util.List;
 
 public class FunctionDeclarationAnalyzer implements TopAnalyzer {
     @Override
-    public ASTNode parse(Parser parser) {
+    public FunctionDeclarationNode parse(Parser parser) {
         final FunctionDeclarationNode functionDeclaration = parseFunctionSignature(parser);
 
         parser.consume(TokenType.OPEN_BRACES);

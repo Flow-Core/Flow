@@ -3,8 +3,8 @@ package parser.analyzers.classes;
 import lexer.token.TokenType;
 import parser.Parser;
 import parser.analyzers.TopAnalyzer;
-import parser.analyzers.inline.VariableAnalyzer;
 import parser.analyzers.top.BlockAnalyzer;
+import parser.analyzers.top.FieldAnalyzer;
 import parser.analyzers.top.FunctionDeclarationAnalyzer;
 import parser.nodes.ASTNode;
 import parser.nodes.FunctionDeclarationNode;
@@ -22,8 +22,8 @@ import static parser.analyzers.top.IdentifierReferenceAnalyzer.parseArguments;
 public class ClassAnalyzer implements TopAnalyzer {
     final static List<TopAnalyzer> TOP_ANALYZERS = Arrays.asList(
         new FunctionDeclarationAnalyzer(),
-        new ClassAnalyzer()
-        // new VariableAnalyzer()
+        new ClassAnalyzer(),
+        new FieldAnalyzer()
     );
 
     @Override
@@ -37,8 +37,7 @@ public class ClassAnalyzer implements TopAnalyzer {
         if (parser.check(TokenType.OPEN_PARENTHESES)) {
             parser.advance();
             while (!parser.check(TokenType.CLOSE_PARENTHESES)) {
-                final List<String> fieldModifiers = parseModifiers(parser);
-                classArgs.add(new FieldNode(fieldModifiers, VariableAnalyzer.parseInitialization(parser)));
+                classArgs.add(new FieldAnalyzer().parse(parser));
             }
             parser.advance();
         }
