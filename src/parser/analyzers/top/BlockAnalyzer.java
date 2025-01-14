@@ -3,6 +3,9 @@ package parser.analyzers.top;
 import lexer.token.TokenType;
 import parser.Parser;
 import parser.analyzers.TopAnalyzer;
+import parser.exceptions.PARSE_InvalidStatement;
+import parser.exceptions.PARSE_TerminatorNotFound;
+import parser.exceptions.PARSE_UnexpectedToken;
 import parser.nodes.ASTNode;
 import parser.nodes.components.BlockNode;
 
@@ -22,29 +25,38 @@ public class BlockAnalyzer {
         final List<ASTNode> nodes = new ArrayList<>();
 
         TopAnalyzer.AnalyzerResult result = null;
-        if (parser.peek().isLineTerminator()) {
-            parser.advance();
-        }
         while (!parser.check(blockTerminators)) {
+            if (parser.peek().isLineTerminator()) {
+                parser.advance();
+            }
+            if (parser.check(blockTerminators)) {
+                break;
+            }
+
             for (final TopAnalyzer analyzer : analyzers) {
                 parser.checkpoint();
                 try {
                     result = analyzer.parse(parser);
                     if (result == null || result.node() == null) {
                         parser.rollback();
+                        continue;
                     }
-                } catch (RuntimeException exception) {
+                } catch (PARSE_UnexpectedToken exception) {
                     parser.rollback();
+                    continue;
                 }
-            }
 
+                break;
+            }
+            System.out.println(parser.peek());
+            System.out.println(result);
             if (result == null || result.node() == null) {
-                throw new RuntimeException("Invalid statement");
+                throw new PARSE_InvalidStatement("Invalid statement");
             }
             if (result.terminationStatus() == TopAnalyzer.TerminationStatus.WAS_TERMINATED) {
                 parser.advance();
             } else if (result.terminationStatus() == TopAnalyzer.TerminationStatus.NOT_TERMINATED && !parser.check(blockTerminators)) {
-                throw new RuntimeException("Required newline or ';' after statement");
+                throw new PARSE_TerminatorNotFound("Required newline or ';' after statement");
             }
             nodes.add(result.node());
         }

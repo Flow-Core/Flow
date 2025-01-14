@@ -4,6 +4,7 @@ import lexer.token.Token;
 import lexer.token.TokenType;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.top.BlockAnalyzer;
+import parser.exceptions.PARSE_UnexpectedToken;
 import parser.nodes.ASTNode;
 
 import java.util.Arrays;
@@ -55,14 +56,14 @@ public class Parser {
 
     public Token consume(final TokenType type) throws RuntimeException {
         if (!check(type)) {
-            throw new RuntimeException("'" + type + "' expected");
+            throw new PARSE_UnexpectedToken("'" + type + "' expected");
         }
         return advance();
     }
 
     public Token consume(final TokenType... expectedTypes) throws RuntimeException {
         if (Arrays.stream(expectedTypes).noneMatch(tokenType -> peek().type() == tokenType)) {
-            throw new RuntimeException("Expected one of " + Arrays.toString(expectedTypes) + " but found '" + peek().value() + "'");
+            throw new PARSE_UnexpectedToken("Expected one of " + Arrays.toString(expectedTypes) + " but found '" + peek().value() + "'");
         }
 
         return advance();

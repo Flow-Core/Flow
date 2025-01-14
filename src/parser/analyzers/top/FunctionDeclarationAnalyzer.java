@@ -18,13 +18,16 @@ public class FunctionDeclarationAnalyzer implements TopAnalyzer {
     public TopAnalyzer.AnalyzerResult parse(Parser parser) {
         final FunctionDeclarationNode functionDeclaration = parseFunctionSignature(parser);
 
-        parser.consume(TokenType.OPEN_BRACES);
+        if (parser.check(TokenType.OPEN_BRACES)) {
+            parser.advance();
 
-        BlockNode block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getFunctionScope(), TokenType.CLOSE_BRACES);
+            BlockNode block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getFunctionScope(), TokenType.CLOSE_BRACES);
 
-        parser.consume(TokenType.CLOSE_BRACES);
+            parser.consume(TokenType.CLOSE_BRACES);
 
-        functionDeclaration.block = block;
+            functionDeclaration.block = block;
+        }
+
         return new AnalyzerResult(functionDeclaration, TerminationStatus.NO_TERMINATION);
     }
 
