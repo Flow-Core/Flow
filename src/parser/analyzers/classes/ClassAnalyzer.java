@@ -64,7 +64,7 @@ public class ClassAnalyzer implements TopAnalyzer {
                     .map(child -> (BlockNode) child)
                     .findFirst()
                     .orElse(null)),
-            true
+            TerminationStatus.NO_TERMINATION
         );
     }
 

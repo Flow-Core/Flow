@@ -31,7 +31,7 @@ public class InterfaceAnalyzer implements TopAnalyzer {
 
         return new AnalyzerResult(
             new InterfaceNode(name, modifiers, implementedInterfaces, block),
-            true
+            TerminationStatus.NO_TERMINATION
         );
     }
 

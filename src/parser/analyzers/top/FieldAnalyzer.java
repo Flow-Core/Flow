@@ -18,7 +18,7 @@ public class FieldAnalyzer implements TopAnalyzer {
 
         return new AnalyzerResult(
             field,
-            parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON)
+            parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
         );
     }
 }

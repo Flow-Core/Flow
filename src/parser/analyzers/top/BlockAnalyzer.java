@@ -30,6 +30,9 @@ public class BlockAnalyzer {
                 parser.checkpoint();
                 try {
                     result = analyzer.parse(parser);
+                    if (result == null || result.node() == null) {
+                        parser.rollback();
+                    }
                 } catch (RuntimeException exception) {
                     parser.rollback();
                 }
@@ -38,9 +41,9 @@ public class BlockAnalyzer {
             if (result == null || result.node() == null) {
                 throw new RuntimeException("Invalid statement");
             }
-            if (result.wasTerminated() && parser.peek().isLineTerminator()) {
+            if (result.terminationStatus() == TopAnalyzer.TerminationStatus.WAS_TERMINATED) {
                 parser.advance();
-            } else if (!parser.check(blockTerminators)) {
+            } else if (result.terminationStatus() == TopAnalyzer.TerminationStatus.NOT_TERMINATED && !parser.check(blockTerminators)) {
                 throw new RuntimeException("Required newline or ';' after statement");
             }
             nodes.add(result.node());

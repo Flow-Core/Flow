@@ -112,7 +112,8 @@ public class Lexer {
             "final|" +
             "open|" +
             "data|" +
-            "sealed" +
+            "sealed|" +
+            "override" +
         ")\\b"));
 
         // Boolean literals

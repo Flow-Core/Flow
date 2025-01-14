@@ -41,7 +41,7 @@ public class StatementAnalyzer implements TopAnalyzer {
                         trueBranch,
                         falseBranch
                     ),
-                    true
+                    parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
             case FOR:
                 parser.consume(TokenType.OPEN_PARENTHESES);
@@ -53,7 +53,7 @@ public class StatementAnalyzer implements TopAnalyzer {
                         null,
                         null
                     ),
-                    true
+                    parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
             default:
                 return null;

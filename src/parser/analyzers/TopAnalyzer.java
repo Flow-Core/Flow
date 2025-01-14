@@ -8,6 +8,12 @@ public interface TopAnalyzer {
 
     record AnalyzerResult(
         ASTNode node,
-        boolean wasTerminated
+        TerminationStatus terminationStatus
     ) {}
+
+    enum TerminationStatus {
+        WAS_TERMINATED,
+        NO_TERMINATION,
+        NOT_TERMINATED
+    }
 }

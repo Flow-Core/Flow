@@ -25,7 +25,7 @@ public class FunctionDeclarationAnalyzer implements TopAnalyzer {
         parser.consume(TokenType.CLOSE_BRACES);
 
         functionDeclaration.block = block;
-        return new AnalyzerResult(functionDeclaration, true);
+        return new AnalyzerResult(functionDeclaration, TerminationStatus.NO_TERMINATION);
     }
 
     public static List<String> parseModifiers(final Parser parser) {

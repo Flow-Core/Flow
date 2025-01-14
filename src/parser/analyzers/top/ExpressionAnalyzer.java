@@ -17,7 +17,7 @@ public class ExpressionAnalyzer implements TopAnalyzer {
 
         return new AnalyzerResult(
             parseRHS(parser, 0, currValue),
-            parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON)
+            parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
         );
     }
 
