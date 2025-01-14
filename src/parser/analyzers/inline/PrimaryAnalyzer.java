@@ -19,7 +19,7 @@ public class PrimaryAnalyzer {
             case INT -> new IntegerLiteralNode(Integer.parseInt(token.value()));
             case STRING -> new StringLiteralNode(token.value());
             case BOOLEAN -> new BooleanLiteralNode(Boolean.parseBoolean(token.value()));
-            case IDENTIFIER -> new IdentifierReferenceAnalyzer().parse(parser);
+            case IDENTIFIER -> (ExpressionNode) new IdentifierReferenceAnalyzer().parse(parser).node();
             case OPEN_PARENTHESES -> {
                 ExpressionNode expr = ExpressionAnalyzer.parse(parser);
 

@@ -2,17 +2,15 @@ package parser.analyzers.classes;
 
 import lexer.token.TokenType;
 import parser.Parser;
+import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
 import parser.analyzers.top.BlockAnalyzer;
 import parser.analyzers.top.FieldAnalyzer;
-import parser.analyzers.top.FunctionDeclarationAnalyzer;
-import parser.nodes.ASTNode;
 import parser.nodes.FunctionDeclarationNode;
 import parser.nodes.classes.*;
 import parser.nodes.components.BlockNode;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,14 +18,8 @@ import static parser.analyzers.top.FunctionDeclarationAnalyzer.parseModifiers;
 import static parser.analyzers.top.IdentifierReferenceAnalyzer.parseArguments;
 
 public class ClassAnalyzer implements TopAnalyzer {
-    final static List<TopAnalyzer> TOP_ANALYZERS = Arrays.asList(
-        new FunctionDeclarationAnalyzer(),
-        new ClassAnalyzer(),
-        new FieldAnalyzer()
-    );
-
     @Override
-    public ASTNode parse(final Parser parser) {
+    public AnalyzerResult parse(final Parser parser) {
         final List<String> modifiers = parseModifiers(parser);
 
         parser.consume(TokenType.CLASS);
@@ -37,37 +29,42 @@ public class ClassAnalyzer implements TopAnalyzer {
         if (parser.check(TokenType.OPEN_PARENTHESES)) {
             parser.advance();
             while (!parser.check(TokenType.CLOSE_PARENTHESES)) {
-                classArgs.add(new FieldAnalyzer().parse(parser));
+                classArgs.add((FieldNode) new FieldAnalyzer().parse(parser).node());
             }
             parser.advance();
         }
 
         final Supertypes supertypes = parseInheritance(parser);
-        final BlockNode block = BlockAnalyzer.parse(parser, TOP_ANALYZERS);
 
-        return new ClassDeclarationNode(
-            name,
-            modifiers,
-            classArgs,
-            supertypes.implementedClasses,
-            supertypes.implementedInterfaces,
-            block.children.stream()
+        parser.consume(TokenType.OPEN_BRACES);
+        final BlockNode block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getClassScope(), TokenType.CLOSE_BRACES);
+        parser.consume(TokenType.CLOSE_BRACES);
+
+        return new AnalyzerResult(
+            new ClassDeclarationNode(
+                name,
+                modifiers,
+                classArgs,
+                supertypes.implementedClasses,
+                supertypes.implementedInterfaces,
+                block.children.stream()
                     .filter(child -> child instanceof FieldNode)
                     .map(child -> (FieldNode) child)
                     .collect(Collectors.toList()),
-            block.children.stream()
+                block.children.stream()
                     .filter(child -> child instanceof FunctionDeclarationNode)
                     .map(child -> (FunctionDeclarationNode) child)
                     .collect(Collectors.toList()),
-            block.children.stream()
+                block.children.stream()
                     .filter(child -> child instanceof ConstructorNode)
                     .map(child -> (ConstructorNode) child)
                     .collect(Collectors.toList()),
-            block.children.stream()
+                block.children.stream()
                     .filter(child -> child instanceof BlockNode)
                     .map(child -> (BlockNode) child)
                     .findFirst()
-                    .orElse(null)
+                    .orElse(null)),
+            true
         );
     }
 

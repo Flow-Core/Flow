@@ -21,35 +21,30 @@ public class Main {
                 var d: Double = 124.5215
                 val i: Float = 12.0f
                 const x: Int = 10 * 2
-                val String y = "Hello, world!"
+                val y: String = "Hello, world!"
                 const multiLine: String = "
                 safasfasf
                 sfsaf
                 "
-               \s
-                while (x < 10) {
-              \s
-                  x = 100
-                }
-               \s
-               \s
-               \s
-                if (x == 10) { x = 100 }
-                else { x = 1000 }
-               \s
-                if (x >= 200) {
-                    x = 100
-                }
             }
-           \s
             func test() {
+            }
+            
+            interface A {
+                func test()
+            }
+            
+            class B: A {
+                override func test() {
+                    print("works!")
+                }
             }
            \s""";
 
-        String smallCodeExample = "12 + x(12, y + 35) * 2";
+        String smallCodeExample = "class A { func test() {} }";
 
         final Lexer lexer = new Lexer(
-            smallCodeExample
+            fullCodeExample
         );
 
         final List<Token> tokens = lexer.tokenize();

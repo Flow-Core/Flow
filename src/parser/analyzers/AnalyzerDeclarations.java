@@ -1,5 +1,8 @@
 package parser.analyzers;
 
+import parser.analyzers.classes.ClassAnalyzer;
+import parser.analyzers.classes.InterfaceAnalyzer;
+import parser.analyzers.top.FieldAnalyzer;
 import parser.analyzers.top.FunctionDeclarationAnalyzer;
 import parser.analyzers.top.IdentifierReferenceAnalyzer;
 
@@ -11,6 +14,8 @@ public final class AnalyzerDeclarations {
     private final static List<TopAnalyzer> FUNCTION_SCOPE = new ArrayList<>();
     private final static List<TopAnalyzer> TOP_LEVEL_SCOPE = new ArrayList<>();
     private final static List<TopAnalyzer> STATEMENT_SCOPE = new ArrayList<>();
+    private final static List<TopAnalyzer> CLASS_SCOPE = new ArrayList<>();
+    private final static List<TopAnalyzer> INTERFACE_SCOPE = new ArrayList<>();
 
     private AnalyzerDeclarations() {}
 
@@ -26,16 +31,41 @@ public final class AnalyzerDeclarations {
         return Collections.unmodifiableList(STATEMENT_SCOPE);
     }
 
+    public static List<TopAnalyzer> getClassScope() {
+        return Collections.unmodifiableList(CLASS_SCOPE);
+    }
+
+    public static List<TopAnalyzer> getInterfaceScope() {
+        return Collections.unmodifiableList(INTERFACE_SCOPE);
+    }
+
     static {
         // Function Scope
         FUNCTION_SCOPE.add(new FunctionDeclarationAnalyzer());
         FUNCTION_SCOPE.add(new IdentifierReferenceAnalyzer());
+        FUNCTION_SCOPE.add(new FieldAnalyzer());
 
         // Top Level Scope
         TOP_LEVEL_SCOPE.add(new FunctionDeclarationAnalyzer());
+        TOP_LEVEL_SCOPE.add(new ClassAnalyzer());
+        TOP_LEVEL_SCOPE.add(new InterfaceAnalyzer());
+        FUNCTION_SCOPE.add(new FieldAnalyzer());
 
         // Statement Scope
         STATEMENT_SCOPE.add(new FunctionDeclarationAnalyzer());
         STATEMENT_SCOPE.add(new IdentifierReferenceAnalyzer());
+        FUNCTION_SCOPE.add(new FieldAnalyzer());
+
+        // Class Scope
+        CLASS_SCOPE.add(new FunctionDeclarationAnalyzer());
+        CLASS_SCOPE.add(new ClassAnalyzer());
+        CLASS_SCOPE.add(new InterfaceAnalyzer());
+        CLASS_SCOPE.add(new FieldAnalyzer());
+
+        // Interface Scope
+        INTERFACE_SCOPE.add(new FunctionDeclarationAnalyzer());
+        INTERFACE_SCOPE.add(new ClassAnalyzer());
+        INTERFACE_SCOPE.add(new InterfaceAnalyzer());
+        INTERFACE_SCOPE.add(new FieldAnalyzer());
     }
 }

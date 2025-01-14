@@ -24,6 +24,7 @@ public class Lexer {
     }
 
     public List<Token> tokenize() throws RuntimeException {
+        Token previousToken = null;
         while (currentPosition < code.length()) {
             char currentChar = code.charAt(currentPosition);
 
@@ -38,13 +39,17 @@ public class Lexer {
             }
 
             if (token.type() != TokenType.COMMENT) {
-                tokens.add(token);
+                if (!token.isLineTerminator() || (previousToken == null || !previousToken.isLineTerminator())) {
+                    tokens.add(token);
+                    previousToken = token;
+                }
                 if (token.type() == TokenType.NEW_LINE) {
                     currentLine++;
                 }
             }
         }
 
+        tokens.add(new Token(TokenType.EOF, "", currentLine));
         return tokens;
     }
 

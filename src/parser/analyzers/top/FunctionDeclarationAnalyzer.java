@@ -16,17 +16,17 @@ import java.util.List;
 
 public class FunctionDeclarationAnalyzer implements TopAnalyzer {
     @Override
-    public FunctionDeclarationNode parse(Parser parser) {
+    public TopAnalyzer.AnalyzerResult parse(Parser parser) {
         final FunctionDeclarationNode functionDeclaration = parseFunctionSignature(parser);
 
         parser.consume(TokenType.OPEN_BRACES);
 
-        BlockNode block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getFunctionScope());
+        BlockNode block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getFunctionScope(), TokenType.CLOSE_BRACES);
 
         parser.consume(TokenType.CLOSE_BRACES);
 
         functionDeclaration.block = block;
-        return functionDeclaration;
+        return new AnalyzerResult(functionDeclaration, true);
     }
 
     public static List<String> parseModifiers(final Parser parser) {

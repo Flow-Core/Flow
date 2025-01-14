@@ -15,15 +15,21 @@ import java.util.List;
 
 public class IdentifierReferenceAnalyzer implements TopAnalyzer {
     @Override
-    public ExpressionNode parse(final Parser parser) {
+    public TopAnalyzer.AnalyzerResult parse(final Parser parser) {
         final Token identifierToken = parser.peek(-1);
         if (parser.peek().type() == TokenType.OPEN_PARENTHESES) {
             final List<ArgumentNode> args = parseArguments(parser);
 
-            return new FunctionCallNode(identifierToken.value(), args);
+            return new AnalyzerResult(
+                new FunctionCallNode(identifierToken.value(), args),
+                parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON)
+            );
         }
 
-        return new VariableReferenceNode(identifierToken.value());
+        return new AnalyzerResult(
+            new VariableReferenceNode(identifierToken.value()),
+            parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON)
+        );
     }
 
     public static List<ArgumentNode> parseArguments(final Parser parser) {

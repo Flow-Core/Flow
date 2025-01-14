@@ -46,5 +46,6 @@ public enum TokenType {
     COMMA,
     SEMICOLON,
 
-    NEW_LINE
+    NEW_LINE,
+    EOF
 }

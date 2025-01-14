@@ -4,5 +4,10 @@ import parser.Parser;
 import parser.nodes.ASTNode;
 
 public interface TopAnalyzer {
-    ASTNode parse(final Parser parser);
+    AnalyzerResult parse(final Parser parser);
+
+    record AnalyzerResult(
+        ASTNode node,
+        boolean wasTerminated
+    ) {}
 }
