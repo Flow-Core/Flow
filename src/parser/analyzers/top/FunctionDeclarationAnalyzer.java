@@ -13,7 +13,7 @@ import parser.nodes.components.BlockNode;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FunctionDeclarationAnalyzer implements TopAnalyzer {
+public class FunctionDeclarationAnalyzer extends TopAnalyzer {
     @Override
     public TopAnalyzer.AnalyzerResult parse(Parser parser) {
         final FunctionDeclarationNode functionDeclaration = parseFunctionSignature(parser);
@@ -43,7 +43,7 @@ public class FunctionDeclarationAnalyzer implements TopAnalyzer {
     public static FunctionDeclarationNode parseFunctionSignature(final Parser parser) {
         final List<String> modifiers = parseModifiers(parser);
 
-        parser.consume(TokenType.FUNC);
+        TopAnalyzer.testFor(parser, TokenType.FUNC);
 
         Token funcName = parser.consume(TokenType.IDENTIFIER);
 

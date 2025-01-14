@@ -9,7 +9,7 @@ import parser.nodes.components.BlockNode;
 import parser.nodes.statements.ForStatementNode;
 import parser.nodes.statements.IfStatementNode;
 
-public class StatementAnalyzer implements TopAnalyzer {
+public class StatementAnalyzer extends TopAnalyzer {
     @Override
     public TopAnalyzer.AnalyzerResult parse(final Parser parser) {
         switch (parser.advance().type()) {

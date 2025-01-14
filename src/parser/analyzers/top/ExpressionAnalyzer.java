@@ -10,7 +10,7 @@ import parser.nodes.ExpressionNode;
 
 import java.util.HashMap;
 
-public class ExpressionAnalyzer implements TopAnalyzer {
+public class ExpressionAnalyzer extends TopAnalyzer {
     public AnalyzerResult parse(final Parser parser) {
         ExpressionNode currValue = PrimaryAnalyzer.parse(parser);
         if (currValue == null) return null;

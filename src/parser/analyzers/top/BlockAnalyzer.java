@@ -5,7 +5,7 @@ import parser.Parser;
 import parser.analyzers.TopAnalyzer;
 import parser.exceptions.PARSE_InvalidStatement;
 import parser.exceptions.PARSE_TerminatorNotFound;
-import parser.exceptions.PARSE_UnexpectedToken;
+import parser.exceptions.PARSE_WrongAnalyzer;
 import parser.nodes.ASTNode;
 import parser.nodes.components.BlockNode;
 
@@ -41,7 +41,7 @@ public class BlockAnalyzer {
                         parser.rollback();
                         continue;
                     }
-                } catch (PARSE_UnexpectedToken exception) {
+                } catch (PARSE_WrongAnalyzer exception) {
                     parser.rollback();
                     continue;
                 }

@@ -17,12 +17,12 @@ import java.util.stream.Collectors;
 import static parser.analyzers.top.FunctionDeclarationAnalyzer.parseModifiers;
 import static parser.analyzers.inline.IdentifierReferenceAnalyzer.parseArguments;
 
-public class ClassAnalyzer implements TopAnalyzer {
+public class ClassAnalyzer extends TopAnalyzer {
     @Override
     public AnalyzerResult parse(final Parser parser) {
         final List<String> modifiers = parseModifiers(parser);
 
-        parser.consume(TokenType.CLASS);
+        TopAnalyzer.testFor(parser, TokenType.CLASS);
         final String name = parser.consume(TokenType.IDENTIFIER).value();
 
         final List<FieldNode> classArgs = new ArrayList<>();

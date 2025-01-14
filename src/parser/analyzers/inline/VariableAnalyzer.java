@@ -3,6 +3,7 @@ package parser.analyzers.inline;
 import lexer.token.Token;
 import lexer.token.TokenType;
 import parser.Parser;
+import parser.analyzers.TopAnalyzer;
 import parser.analyzers.top.ExpressionAnalyzer;
 import parser.nodes.ExpressionNode;
 import parser.nodes.variable.VariableAssignmentNode;
@@ -21,7 +22,7 @@ public class VariableAnalyzer {
     }
 
     public static InitializedVariableNode parseInitialization(final Parser parser) {
-        final Token modifier = parser.consume(TokenType.VAR, TokenType.VAL, TokenType.CONST);
+        final Token modifier = TopAnalyzer.testFor(parser, TokenType.VAR, TokenType.VAL, TokenType.CONST);
         final Token name = parser.consume(TokenType.IDENTIFIER);
 
         // Check for type specification

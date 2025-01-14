@@ -15,11 +15,11 @@ import java.util.List;
 
 import static parser.analyzers.top.FunctionDeclarationAnalyzer.parseModifiers;
 
-public class InterfaceAnalyzer implements TopAnalyzer {
+public class InterfaceAnalyzer extends TopAnalyzer {
     public AnalyzerResult parse(final Parser parser) {
         List<String> modifiers = parseModifiers(parser);
 
-        parser.consume(TokenType.INTERFACE);
+        TopAnalyzer.testFor(parser, TokenType.INTERFACE);
 
         final String name = parser.consume(TokenType.IDENTIFIER).value();
 

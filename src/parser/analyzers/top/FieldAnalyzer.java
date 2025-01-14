@@ -10,7 +10,7 @@ import java.util.List;
 
 import static parser.analyzers.top.FunctionDeclarationAnalyzer.parseModifiers;
 
-public class FieldAnalyzer implements TopAnalyzer {
+public class FieldAnalyzer extends TopAnalyzer {
     @Override
     public TopAnalyzer.AnalyzerResult parse(Parser parser) {
         final List<String> fieldModifiers = parseModifiers(parser);
