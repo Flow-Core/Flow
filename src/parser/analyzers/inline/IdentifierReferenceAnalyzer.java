@@ -1,10 +1,10 @@
-package parser.analyzers.top;
+package parser.analyzers.inline;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
 import parser.Parser;
-import parser.analyzers.TopAnalyzer;
-import parser.analyzers.inline.ExpressionAnalyzer;
+import parser.analyzers.top.ExpressionAnalyzer;
+import parser.nodes.ASTNode;
 import parser.nodes.ExpressionNode;
 import parser.nodes.FunctionCallNode;
 import parser.nodes.components.ArgumentNode;
@@ -13,23 +13,16 @@ import parser.nodes.variable.VariableReferenceNode;
 import java.util.ArrayList;
 import java.util.List;
 
-public class IdentifierReferenceAnalyzer implements TopAnalyzer {
-    @Override
-    public TopAnalyzer.AnalyzerResult parse(final Parser parser) {
+public class IdentifierReferenceAnalyzer {
+    public ASTNode parse(final Parser parser) {
         final Token identifierToken = parser.peek(-1);
         if (parser.peek().type() == TokenType.OPEN_PARENTHESES) {
             final List<ArgumentNode> args = parseArguments(parser);
 
-            return new AnalyzerResult(
-                new FunctionCallNode(identifierToken.value(), args),
-                parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON)
-            );
+            return new FunctionCallNode(identifierToken.value(), args);
         }
 
-        return new AnalyzerResult(
-            new VariableReferenceNode(identifierToken.value()),
-            parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON)
-        );
+        return new VariableReferenceNode(identifierToken.value());
     }
 
     public static List<ArgumentNode> parseArguments(final Parser parser) {
@@ -41,11 +34,11 @@ public class IdentifierReferenceAnalyzer implements TopAnalyzer {
             if (parser.peek().type() == TokenType.IDENTIFIER && parser.peek(1).type() == TokenType.EQUAL_OPERATOR) {
                 final Token argumentName = parser.consume(TokenType.IDENTIFIER);
                 parser.consume(TokenType.EQUAL_OPERATOR);
-                ExpressionNode value = ExpressionAnalyzer.parse(parser);
+                final ExpressionNode value = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
 
                 args.add(new ArgumentNode(argumentName.value(), value));
             } else {
-                ExpressionNode value = ExpressionAnalyzer.parse(parser);
+                final ExpressionNode value = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
                 args.add(new ArgumentNode(null, value));
             }
 

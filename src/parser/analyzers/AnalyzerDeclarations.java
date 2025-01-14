@@ -2,9 +2,9 @@ package parser.analyzers;
 
 import parser.analyzers.classes.ClassAnalyzer;
 import parser.analyzers.classes.InterfaceAnalyzer;
+import parser.analyzers.top.ExpressionAnalyzer;
 import parser.analyzers.top.FieldAnalyzer;
 import parser.analyzers.top.FunctionDeclarationAnalyzer;
-import parser.analyzers.top.IdentifierReferenceAnalyzer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,19 +42,20 @@ public final class AnalyzerDeclarations {
     static {
         // Function Scope
         FUNCTION_SCOPE.add(new FunctionDeclarationAnalyzer());
-        FUNCTION_SCOPE.add(new IdentifierReferenceAnalyzer());
+        FUNCTION_SCOPE.add(new ExpressionAnalyzer());
         FUNCTION_SCOPE.add(new FieldAnalyzer());
 
         // Top Level Scope
         TOP_LEVEL_SCOPE.add(new FunctionDeclarationAnalyzer());
         TOP_LEVEL_SCOPE.add(new ClassAnalyzer());
         TOP_LEVEL_SCOPE.add(new InterfaceAnalyzer());
-        FUNCTION_SCOPE.add(new FieldAnalyzer());
+        TOP_LEVEL_SCOPE.add(new FieldAnalyzer());
+
 
         // Statement Scope
         STATEMENT_SCOPE.add(new FunctionDeclarationAnalyzer());
-        STATEMENT_SCOPE.add(new IdentifierReferenceAnalyzer());
-        FUNCTION_SCOPE.add(new FieldAnalyzer());
+        STATEMENT_SCOPE.add(new ExpressionAnalyzer());
+        STATEMENT_SCOPE.add(new FieldAnalyzer());
 
         // Class Scope
         CLASS_SCOPE.add(new FunctionDeclarationAnalyzer());

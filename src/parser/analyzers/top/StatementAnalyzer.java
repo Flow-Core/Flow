@@ -4,7 +4,6 @@ import lexer.token.TokenType;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
-import parser.analyzers.inline.ExpressionAnalyzer;
 import parser.nodes.ExpressionNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.statements.ForStatementNode;
@@ -17,7 +16,7 @@ public class StatementAnalyzer implements TopAnalyzer {
             case IF:
                 parser.consume(TokenType.OPEN_PARENTHESES);
 
-                ExpressionNode condition = ExpressionAnalyzer.parse(parser);
+                ExpressionNode condition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
 
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 

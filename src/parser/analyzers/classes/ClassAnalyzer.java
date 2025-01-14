@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static parser.analyzers.top.FunctionDeclarationAnalyzer.parseModifiers;
-import static parser.analyzers.top.IdentifierReferenceAnalyzer.parseArguments;
+import static parser.analyzers.inline.IdentifierReferenceAnalyzer.parseArguments;
 
 public class ClassAnalyzer implements TopAnalyzer {
     @Override

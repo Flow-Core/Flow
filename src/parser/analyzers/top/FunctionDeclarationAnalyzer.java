@@ -5,7 +5,6 @@ import lexer.token.TokenType;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
-import parser.analyzers.inline.ExpressionAnalyzer;
 import parser.nodes.ExpressionNode;
 import parser.nodes.FunctionDeclarationNode;
 import parser.nodes.components.ParameterNode;
@@ -57,7 +56,7 @@ public class FunctionDeclarationAnalyzer implements TopAnalyzer {
             ExpressionNode defaultValue = null;
             if (parser.peek().type() == TokenType.EQUAL_OPERATOR) {
                 parser.advance();
-                defaultValue = ExpressionAnalyzer.parse(parser);
+                defaultValue = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
             }
 
             ParameterNode arg = new ParameterNode(type, name, defaultValue);

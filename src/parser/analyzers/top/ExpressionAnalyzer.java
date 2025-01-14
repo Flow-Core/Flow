@@ -1,19 +1,25 @@
-package parser.analyzers.inline;
+package parser.analyzers.top;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
 import parser.Parser;
+import parser.analyzers.TopAnalyzer;
+import parser.analyzers.inline.PrimaryAnalyzer;
 import parser.nodes.BinaryExpressionNode;
 import parser.nodes.ExpressionNode;
 
 import java.util.HashMap;
 
-public class ExpressionAnalyzer {
-    public static ExpressionNode parse(final Parser parser) {
+public class ExpressionAnalyzer implements TopAnalyzer {
+    public AnalyzerResult parse(final Parser parser) {
+        System.out.println("ExpressionAnalyzer");
         ExpressionNode currValue = PrimaryAnalyzer.parse(parser);
         if (currValue == null) return null;
 
-        return parseRHS(parser, 0, currValue);
+        return new AnalyzerResult(
+            parseRHS(parser, 0, currValue),
+            parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON)
+        );
     }
 
     private static ExpressionNode parseRHS(

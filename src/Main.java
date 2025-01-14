@@ -19,13 +19,16 @@ public class Main {
             func main() {
                 var ip: Ip = 127.0.0.1
                 var d: Double = 124.5215
-                val i: Float = 12.0f
+                val i: Float = 12.0f + 24.2f / 2
+                val z = 12f
                 const x: Int = 10 * 2
                 val y: String = "Hello, world!"
                 const multiLine: String = "
                 safasfasf
                 sfsaf
                 "
+                
+                test()
             }
             func test() {
             }
@@ -41,7 +44,7 @@ public class Main {
             }
            \s""";
 
-        String smallCodeExample = "class A { func test() {} }";
+        String smallCodeExample = "10 + 100 * 250 + (2 + 4)";
 
         final Lexer lexer = new Lexer(
             fullCodeExample
