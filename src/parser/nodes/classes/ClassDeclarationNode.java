@@ -38,4 +38,19 @@ public class ClassDeclarationNode implements ASTNode {
         this.constructors = constructors;
         this.initBlock = initBlock;
     }
+
+    @Override
+    public String toString() {
+        return "ClassDeclarationNode{" +
+            "name='" + name + '\'' +
+            ", modifiers=" + modifiers +
+            ", primaryConstructor=" + primaryConstructor +
+            ", baseClasses=" + baseClasses +
+            ", interfaces=" + interfaces +
+            ", fields=" + fields +
+            ", methods=" + methods +
+            ", constructors=" + constructors +
+            ", initBlock=" + initBlock +
+            '}';
+    }
 }

@@ -16,4 +16,13 @@ public class ConstructorNode implements ASTNode {
         this.parameters = parameters;
         this.body = body;
     }
+
+    @Override
+    public String toString() {
+        return "ConstructorNode{" +
+            "accessModifier='" + accessModifier + '\'' +
+            ", parameters=" + parameters +
+            ", body=" + body +
+            '}';
+    }
 }

@@ -13,4 +13,12 @@ public class TryStatementNode implements ASTNode {
         this.tryBranch = tryBranch;
         this.exceptionBranches = exceptionBranches;
     }
+
+    @Override
+    public String toString() {
+        return "TryStatementNode{" +
+            "tryBranch=" + tryBranch +
+            ", exceptionBranches=" + exceptionBranches +
+            '}';
+    }
 }

@@ -16,4 +16,13 @@ public class SwitchStatementNode implements ASTNode {
         this.cases = cases;
         this.defaultBlock = defaultBlock;
     }
+
+    @Override
+    public String toString() {
+        return "SwitchStatementNode{" +
+            "condition=" + condition +
+            ", cases=" + cases +
+            ", defaultBlock=" + defaultBlock +
+            '}';
+    }
 }

@@ -22,4 +22,14 @@ public class InterfaceNode implements ASTNode {
         this.implementedInterfaces = implementedInterfaces;
         this.block = block;
     }
+
+    @Override
+    public String toString() {
+        return "InterfaceNode{" +
+            "name='" + name + '\'' +
+            ", modifiers=" + modifiers +
+            ", implementedInterfaces=" + implementedInterfaces +
+            ", block=" + block +
+            '}';
+    }
 }

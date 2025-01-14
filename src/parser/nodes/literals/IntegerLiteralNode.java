@@ -6,4 +6,11 @@ public class IntegerLiteralNode implements LiteralNode {
     public IntegerLiteralNode(int value) {
         this.value = value;
     }
+
+    @Override
+    public String toString() {
+        return "IntegerLiteralNode{" +
+            "value=" + value +
+            '}';
+    }
 }

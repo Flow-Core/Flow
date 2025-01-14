@@ -12,4 +12,12 @@ public class WhileStatementNode implements ASTNode {
         this.condition = condition;
         this.loopBlock = loopBlock;
     }
+
+    @Override
+    public String toString() {
+        return "WhileStatementNode{" +
+            "condition=" + condition +
+            ", loopBlock=" + loopBlock +
+            '}';
+    }
 }

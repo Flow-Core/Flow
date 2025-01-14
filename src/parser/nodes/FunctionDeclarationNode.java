@@ -19,4 +19,15 @@ public class FunctionDeclarationNode implements ASTNode {
         this.parameters = parameters;
         this.block = block;
     }
+
+    @Override
+    public String toString() {
+        return "FunctionDeclarationNode{" +
+            "name='" + name + '\'' +
+            ", returnType='" + returnType + '\'' +
+            ", modifiers=" + modifiers +
+            ", parameters=" + parameters +
+            ", block=" + block +
+            '}';
+    }
 }

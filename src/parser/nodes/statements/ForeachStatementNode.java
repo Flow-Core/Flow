@@ -14,4 +14,13 @@ public class ForeachStatementNode implements ASTNode {
         this.collection = collection;
         this.body = body;
     }
+
+    @Override
+    public String toString() {
+        return "ForeachStatementNode{" +
+            "loopVariable=" + loopVariable +
+            ", collection=" + collection +
+            ", body=" + body +
+            '}';
+    }
 }

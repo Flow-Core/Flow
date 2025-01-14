@@ -13,4 +13,13 @@ public class ParameterNode implements ASTNode {
         this.name = name;
         this.defaultValue = defaultValue;
     }
+
+    @Override
+    public String toString() {
+        return "ParameterNode{" +
+            "type='" + type + '\'' +
+            ", name='" + name + '\'' +
+            ", defaultValue=" + defaultValue +
+            '}';
+    }
 }

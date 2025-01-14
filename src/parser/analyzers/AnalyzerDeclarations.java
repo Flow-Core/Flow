@@ -51,7 +51,6 @@ public final class AnalyzerDeclarations {
         TOP_LEVEL_SCOPE.add(new InterfaceAnalyzer());
         TOP_LEVEL_SCOPE.add(new FieldAnalyzer());
 
-
         // Statement Scope
         STATEMENT_SCOPE.add(new FunctionDeclarationAnalyzer());
         STATEMENT_SCOPE.add(new ExpressionAnalyzer());

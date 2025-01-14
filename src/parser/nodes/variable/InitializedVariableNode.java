@@ -10,4 +10,12 @@ public class InitializedVariableNode implements ASTNode {
         this.declaration = declaration;
         this.assignment = assignment;
     }
+
+    @Override
+    public String toString() {
+        return "InitializedVariableNode{" +
+            "declaration=" + declaration +
+            ", assignment=" + assignment +
+            '}';
+    }
 }

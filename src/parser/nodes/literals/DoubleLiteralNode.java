@@ -6,4 +6,11 @@ public class DoubleLiteralNode implements LiteralNode {
     public DoubleLiteralNode(double value) {
         this.value = value;
     }
+
+    @Override
+    public String toString() {
+        return "DoubleLiteralNode{" +
+            "value=" + value +
+            '}';
+    }
 }

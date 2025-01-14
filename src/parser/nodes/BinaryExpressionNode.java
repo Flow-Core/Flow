@@ -10,4 +10,13 @@ public class BinaryExpressionNode implements ExpressionNode {
         this.right = right;
         this.operator = operator;
     }
+
+    @Override
+    public String toString() {
+        return "BinaryExpressionNode{" +
+            "left=" + left +
+            ", right=" + right +
+            ", operator='" + operator + '\'' +
+            '}';
+    }
 }

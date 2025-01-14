@@ -12,4 +12,13 @@ public class VariableDeclarationNode implements ASTNode {
         this.type = type;
         this.name = name;
     }
+
+    @Override
+    public String toString() {
+        return "VariableDeclarationNode{" +
+            "modifier='" + modifier + '\'' +
+            ", type='" + type + '\'' +
+            ", name='" + name + '\'' +
+            '}';
+    }
 }

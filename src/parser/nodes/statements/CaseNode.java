@@ -12,4 +12,12 @@ public class CaseNode implements ASTNode {
         this.value = value;
         this.body = body;
     }
+
+    @Override
+    public String toString() {
+        return "CaseNode{" +
+            "value=" + value +
+            ", body=" + body +
+            '}';
+    }
 }

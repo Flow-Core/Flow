@@ -27,7 +27,7 @@ public class Main {
                 safasfasf
                 sfsaf
                 "
-                
+              
                 test()
             }
             func test() {

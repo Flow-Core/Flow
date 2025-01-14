@@ -18,4 +18,14 @@ public class ForStatementNode implements ASTNode {
         this.action = action;
         this.loopBlock = loopBlock;
     }
+
+    @Override
+    public String toString() {
+        return "ForStatementNode{" +
+            "initialization=" + initialization +
+            ", condition=" + condition +
+            ", action=" + action +
+            ", loopBlock=" + loopBlock +
+            '}';
+    }
 }

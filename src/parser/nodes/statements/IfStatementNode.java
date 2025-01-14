@@ -14,4 +14,13 @@ public class IfStatementNode implements ASTNode {
         this.trueBranch = trueBranch;
         this.falseBranch = falseBranch;
     }
+
+    @Override
+    public String toString() {
+        return "IfStatementNode{" +
+            "condition=" + condition +
+            ", trueBranch=" + trueBranch +
+            ", falseBranch=" + falseBranch +
+            '}';
+    }
 }

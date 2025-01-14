@@ -38,7 +38,7 @@ public class BlockAnalyzer {
             if (result == null || result.node() == null) {
                 throw new RuntimeException("Invalid statement");
             }
-            if (result.wasTerminated()) {
+            if (result.wasTerminated() && parser.peek().isLineTerminator()) {
                 parser.advance();
             } else if (!parser.check(blockTerminators)) {
                 throw new RuntimeException("Required newline or ';' after statement");

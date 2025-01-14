@@ -14,4 +14,12 @@ public class FieldNode implements ASTNode {
         this.modifiers = modifiers;
         this.initialization = initialization;
     }
+
+    @Override
+    public String toString() {
+        return "FieldNode{" +
+            "modifiers=" + modifiers +
+            ", initialization=" + initialization +
+            '}';
+    }
 }

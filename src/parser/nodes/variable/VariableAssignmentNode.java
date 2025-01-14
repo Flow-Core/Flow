@@ -11,4 +11,12 @@ public class VariableAssignmentNode implements ASTNode {
         this.variable = variable;
         this.value = value;
     }
+
+    @Override
+    public String toString() {
+        return "VariableAssignmentNode{" +
+            "variable='" + variable + '\'' +
+            ", value=" + value +
+            '}';
+    }
 }

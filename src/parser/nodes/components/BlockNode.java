@@ -16,7 +16,7 @@ public class BlockNode implements ASTNode {
         StringBuilder output = new StringBuilder();
 
         for (ASTNode node : children) {
-            output.append(node.toString());
+            output.append(node.toString()).append("\n");
         }
 
         return output.toString();

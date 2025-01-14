@@ -6,4 +6,11 @@ public class StringLiteralNode implements LiteralNode {
     public StringLiteralNode(String value) {
         this.value = value;
     }
+
+    @Override
+    public String toString() {
+        return "StringLiteralNode{" +
+            "value='" + value + '\'' +
+            '}';
+    }
 }

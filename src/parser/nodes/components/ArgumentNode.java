@@ -11,4 +11,12 @@ public class ArgumentNode implements ASTNode {
         this.name = name;
         this.value = value;
     }
+
+    @Override
+    public String toString() {
+        return "ArgumentNode{" +
+            "name='" + name + '\'' +
+            ", value=" + value +
+            '}';
+    }
 }

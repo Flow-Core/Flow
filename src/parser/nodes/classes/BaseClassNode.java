@@ -12,4 +12,12 @@ public class BaseClassNode {
         this.name = name;
         this.arguments = arguments;
     }
+
+    @Override
+    public String toString() {
+        return "BaseClassNode{" +
+            "name='" + name + '\'' +
+            ", arguments=" + arguments +
+            '}';
+    }
 }

@@ -6,4 +6,11 @@ public class Ipv4LiteralNode implements LiteralNode {
     public Ipv4LiteralNode(String value) {
         this.value = value;
     }
+
+    @Override
+    public String toString() {
+        return "Ipv4LiteralNode{" +
+            "value='" + value + '\'' +
+            '}';
+    }
 }

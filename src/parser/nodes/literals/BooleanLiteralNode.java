@@ -6,4 +6,11 @@ public class BooleanLiteralNode implements LiteralNode {
     public BooleanLiteralNode(boolean value) {
         this.value = value;
     }
+
+    @Override
+    public String toString() {
+        return "BooleanLiteralNode{" +
+            "value=" + value +
+            '}';
+    }
 }
