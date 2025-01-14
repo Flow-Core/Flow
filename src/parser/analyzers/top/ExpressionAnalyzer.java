@@ -12,7 +12,6 @@ import java.util.HashMap;
 
 public class ExpressionAnalyzer implements TopAnalyzer {
     public AnalyzerResult parse(final Parser parser) {
-        System.out.println("ExpressionAnalyzer");
         ExpressionNode currValue = PrimaryAnalyzer.parse(parser);
         if (currValue == null) return null;
 
