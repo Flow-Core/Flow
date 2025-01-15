@@ -37,6 +37,7 @@ public enum TokenType {
     AS("\\bas\\b"),
     IT("\\bit\\b"),
     NULL("\\bnull\\b"),
+    NEW("\\bnew\\b"),
 
     SUPER("\\bsuper\\b"),
     THIS("\\bthis\\b"),

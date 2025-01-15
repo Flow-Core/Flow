@@ -76,7 +76,9 @@ public class ClassAnalyzer extends TopAnalyzer {
                 parser.advance();
                 final String name = parser.consume(TokenType.IDENTIFIER).value();
                 if (parser.check(TokenType.OPEN_PARENTHESES)) {
+                    parser.advance();
                     supertypes.implementedClasses.add(new BaseClassNode(name, parseArguments(parser)));
+                    parser.consume(TokenType.CLOSE_PARENTHESES);
                 } else {
                     supertypes.implementedInterfaces.add(new BaseInterfaceNode(name));
                 }

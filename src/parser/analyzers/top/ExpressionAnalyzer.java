@@ -40,7 +40,7 @@ public class ExpressionAnalyzer extends TopAnalyzer {
             if (parser.check(TokenType.DOT_OPERATOR)) {
                 parser.advance();
                 parser.advance();
-                rhs = (ExpressionNode) new IdentifierReferenceAnalyzer().parse(parser);
+                rhs = new IdentifierReferenceAnalyzer().parse(parser);
             } else {
                 parser.consume(TokenType.OPERATOR);
 

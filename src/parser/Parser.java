@@ -33,12 +33,14 @@ public class Parser {
 
     public Token advance() {
         if (isNotEOF()) {
+            peek();
             return tokens.get(currentToken++);
         }
         return peek();
     }
 
     public Token peek() {
+        System.out.println(tokens.get(currentToken));
         return tokens.get(currentToken);
     }
 

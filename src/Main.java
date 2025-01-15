@@ -28,24 +28,21 @@ public class Main {
                 sfsaf
                 "
                 val d: Int = ip.toAddress().toString().length
-             \s
+                var NEW: Object = new Object();\s
                 test(x = 2, 10, y = 8)
                 test2(
                     x = 2,
                     10,
                     8
                 )
-                
                 while (x > 5) {
                     print("hi!");
                 }
-                
                 if (x == 5) {
                     print("test")
                 } else if (x > 5) print("hi!")
                 else
                     print("test2")
-                
                 foreach (x in collection) {
                 }
             }
