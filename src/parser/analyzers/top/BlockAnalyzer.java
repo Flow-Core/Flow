@@ -32,6 +32,7 @@ public class BlockAnalyzer {
 
             for (final TopAnalyzer analyzer : analyzers) {
                 parser.checkpoint();
+                result = null;
                 try {
                     result = analyzer.parse(parser);
                     if (result == null || result.node() == null) {
@@ -45,6 +46,7 @@ public class BlockAnalyzer {
 
                 break;
             }
+            System.out.println(result);
             if (result == null || result.node() == null) {
                 throw new PARSE_InvalidStatement("Invalid statement");
             }
