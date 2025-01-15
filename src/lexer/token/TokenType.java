@@ -35,12 +35,9 @@ public enum TokenType {
     IN("\\bin\\b"),
     IS("\\bis\\b"),
     AS("\\bas\\b"),
-    IT("\\bit\\b"),
     NULL("\\bnull\\b"),
     NEW("\\bnew\\b"),
 
-    SUPER("\\bsuper\\b"),
-    THIS("\\bthis\\b"),
     INIT("\\binit\\b"),
     CONSTRUCTOR("\\bconstructor\\b"),
 

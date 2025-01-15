@@ -54,6 +54,10 @@ public class Main {
             }
            \s
             class B: A {
+                init {
+                    print("B created!")
+                }
+                \s
                 override func test() {
                     print("works!")
                 }
