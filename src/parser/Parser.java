@@ -55,15 +55,15 @@ public class Parser {
         return Arrays.stream(type).anyMatch(tokenType -> peek().type() == tokenType);
     }
 
-    public Token consume(final TokenType type) throws RuntimeException {
-        if (!check(type)) {
-            throw new PARSE_UnexpectedToken("'" + type + "' expected");
-        }
-        return advance();
-    }
-
     public Token consume(final TokenType... expectedTypes) throws RuntimeException {
+        if (expectedTypes.length == 0) {
+            throw new IllegalArgumentException("Consume can't be empty");
+        }
+
         if (Arrays.stream(expectedTypes).noneMatch(tokenType -> peek().type() == tokenType)) {
+            if (expectedTypes.length == 1) {
+                throw new PARSE_UnexpectedToken("Expected " + Arrays.stream(expectedTypes).findFirst().get() + " but found '" + peek().value() + "'");
+            }
             throw new PARSE_UnexpectedToken("Expected one of " + Arrays.toString(expectedTypes) + " but found '" + peek().value() + "'");
         }
 
