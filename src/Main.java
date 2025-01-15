@@ -8,15 +8,8 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) {
         String fullCodeExample = """
-            /*
-            124
-            "starts here"
-            this is a multiline comment
-            here
-            ends here */
-           \s
-            // this is a single line comment
             func main() {
+                val x = 10
                 var ip: Ip = 127.0.0.1
                 var d: Double = 124.5215
                 val i: Float = 12.0f + 24.2f / 2
@@ -47,6 +40,18 @@ public class Main {
                 }
             }
             func test() {
+                val x = 10
+                switch (x) {
+                    case (10) {
+                        print(x)
+                    }
+                    case (12) {
+                        print(x + 2)
+                    }
+                    default {
+                        print("error")
+                    }
+                }
             }
            \s
             interface A {

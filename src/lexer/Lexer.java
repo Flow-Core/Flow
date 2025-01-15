@@ -53,6 +53,10 @@ public class Lexer {
 
     private Token nextToken() {
         for (final TokenType type : TokenType.values()) {
+            if (type.getRegex() == null) {
+                continue;
+            }
+
             final Pattern pattern = Pattern.compile(type.getRegex());
             final Matcher matcher = pattern.matcher(code.substring(currentPosition));
 

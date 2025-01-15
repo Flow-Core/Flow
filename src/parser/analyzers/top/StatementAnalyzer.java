@@ -6,10 +6,7 @@ import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
 import parser.nodes.ExpressionNode;
 import parser.nodes.components.BlockNode;
-import parser.nodes.statements.ForStatementNode;
-import parser.nodes.statements.ForeachStatementNode;
-import parser.nodes.statements.IfStatementNode;
-import parser.nodes.statements.WhileStatementNode;
+import parser.nodes.statements.*;
 
 public class StatementAnalyzer extends TopAnalyzer {
     @Override
@@ -88,6 +85,28 @@ public class StatementAnalyzer extends TopAnalyzer {
                 parser.consume(TokenType.OPEN_PARENTHESES);
                 final ExpressionNode switchCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
                 parser.consume(TokenType.CLOSE_PARENTHESES);
+
+                parser.consume(TokenType.OPEN_BRACES);
+                final BlockNode switchBlock = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getSwitchScope(), TokenType.CLOSE_BRACES);
+                parser.consume(TokenType.CLOSE_BRACES);
+
+                return new AnalyzerResult(
+                    new SwitchStatementNode(
+                        switchCondition,
+                        switchBlock.children
+                            .stream()
+                            .filter(node -> node instanceof CaseNode)
+                            .map(node -> (CaseNode) node)
+                            .toList(),
+                        switchBlock.children
+                            .stream()
+                            .filter(node -> node instanceof BlockNode)
+                            .map(node -> (BlockNode) node)
+                            .findFirst()
+                            .orElse(null)
+                    ),
+                    parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
+                );
             default:
                 return null;
         }

@@ -3,6 +3,8 @@ package parser.analyzers;
 import parser.analyzers.classes.ClassAnalyzer;
 import parser.analyzers.classes.InitAnalyzer;
 import parser.analyzers.classes.InterfaceAnalyzer;
+import parser.analyzers.switches.CaseAnalyzer;
+import parser.analyzers.switches.DefaultCaseAnalyzer;
 import parser.analyzers.top.ExpressionAnalyzer;
 import parser.analyzers.top.FieldAnalyzer;
 import parser.analyzers.top.FunctionDeclarationAnalyzer;
@@ -18,6 +20,7 @@ public final class AnalyzerDeclarations {
     private final static List<TopAnalyzer> STATEMENT_SCOPE = new ArrayList<>();
     private final static List<TopAnalyzer> CLASS_SCOPE = new ArrayList<>();
     private final static List<TopAnalyzer> INTERFACE_SCOPE = new ArrayList<>();
+    private final static List<TopAnalyzer> SWITCH_SCOPE = new ArrayList<>();
 
     private AnalyzerDeclarations() {}
 
@@ -39,6 +42,10 @@ public final class AnalyzerDeclarations {
 
     public static List<TopAnalyzer> getInterfaceScope() {
         return Collections.unmodifiableList(INTERFACE_SCOPE);
+    }
+
+    public static List<TopAnalyzer> getSwitchScope() {
+        return Collections.unmodifiableList(SWITCH_SCOPE);
     }
 
     static {
@@ -72,5 +79,9 @@ public final class AnalyzerDeclarations {
         INTERFACE_SCOPE.add(new ClassAnalyzer());
         INTERFACE_SCOPE.add(new InterfaceAnalyzer());
         INTERFACE_SCOPE.add(new FieldAnalyzer());
+
+        // Switch Scope
+        SWITCH_SCOPE.add(new CaseAnalyzer());
+        SWITCH_SCOPE.add(new DefaultCaseAnalyzer());
     }
 }

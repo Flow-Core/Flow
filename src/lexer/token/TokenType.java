@@ -13,6 +13,7 @@ public enum TokenType {
     DO("\\bdo\\b"),
     SWITCH("\\bswitch\\b"),
     CASE("\\bcase\\b"),
+    DEFAULT("\\bdefault\\b"),
     FUNC("\\bfunc\\b"),
     CLASS("\\bclass\\b"),
     INTERFACE("\\binterface\\b"),
