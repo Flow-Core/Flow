@@ -17,24 +17,19 @@ public class StatementAnalyzer extends TopAnalyzer {
         switch (parser.advance().type()) {
             case IF:
                 parser.consume(TokenType.OPEN_PARENTHESES);
-
                 final ExpressionNode ifCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
-
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
-                parser.consume(TokenType.OPEN_BRACES);
+                final BlockNode trueBranch = getBlock(parser);
 
-                BlockNode trueBranch = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getStatementScope(), TokenType.CLOSE_BRACES);
-
-                parser.consume(TokenType.CLOSE_BRACES);
+                if (parser.check(TokenType.NEW_LINE)) {
+                    parser.advance();
+                }
 
                 BlockNode falseBranch = null;
-
                 if (parser.check(TokenType.ELSE)) {
                     parser.advance();
-                    parser.consume(TokenType.OPEN_BRACES);
-
-                    falseBranch = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getStatementScope(), TokenType.CLOSE_BRACES);
+                    falseBranch = getBlock(parser);
                 }
 
                 return new AnalyzerResult(
@@ -66,9 +61,7 @@ public class StatementAnalyzer extends TopAnalyzer {
 
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
-                parser.consume(TokenType.OPEN_BRACES);
-                final BlockNode foreachBlock = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getStatementScope(), TokenType.CLOSE_BRACES);
-                parser.consume(TokenType.CLOSE_BRACES);
+                final BlockNode foreachBlock = getBlock(parser);
 
                 return new AnalyzerResult(
                     new ForeachStatementNode(
@@ -83,9 +76,7 @@ public class StatementAnalyzer extends TopAnalyzer {
                 final ExpressionNode whileCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
-                parser.consume(TokenType.OPEN_BRACES);
-                final BlockNode whileBlock = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getStatementScope(), TokenType.CLOSE_BRACES);
-                parser.consume(TokenType.CLOSE_BRACES);
+                final BlockNode whileBlock = getBlock(parser);
 
                 return new AnalyzerResult(
                     new WhileStatementNode(
@@ -93,8 +84,25 @@ public class StatementAnalyzer extends TopAnalyzer {
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
+            case SWITCH:
+                parser.consume(TokenType.OPEN_PARENTHESES);
+                final ExpressionNode switchCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                parser.consume(TokenType.CLOSE_PARENTHESES);
             default:
                 return null;
         }
+    }
+
+    private BlockNode getBlock(final Parser parser) {
+        final BlockNode block;
+        if (parser.check(TokenType.OPEN_BRACES)) {
+            parser.advance();
+            block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getStatementScope(), TokenType.CLOSE_BRACES);
+            parser.consume(TokenType.CLOSE_BRACES);
+        } else {
+            block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getStatementScope());
+        }
+
+        return block;
     }
 }

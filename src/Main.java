@@ -39,6 +39,12 @@ public class Main {
                     print("hi!");
                 }
                 
+                if (x == 5) {
+                    print("test")
+                } else if (x > 5) print("hi!")
+                else
+                    print("test2")
+                
                 foreach (x in collection) {
                 }
             }

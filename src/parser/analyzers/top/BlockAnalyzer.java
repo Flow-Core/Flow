@@ -18,14 +18,11 @@ public class BlockAnalyzer {
         final List<TopAnalyzer> analyzers,
         final TokenType... blockTerminators
     ) {
-        if (blockTerminators.length == 0) {
-            throw new IllegalArgumentException("Block terminator must not be empty");
-        }
-
+        final boolean isSingleLine = blockTerminators.length == 0;
         final List<ASTNode> nodes = new ArrayList<>();
 
         TopAnalyzer.AnalyzerResult result = null;
-        while (!parser.check(blockTerminators)) {
+        do {
             if (parser.peek().isLineTerminator()) {
                 parser.advance();
             }
@@ -52,12 +49,14 @@ public class BlockAnalyzer {
                 throw new PARSE_InvalidStatement("Invalid statement");
             }
             if (result.terminationStatus() == TopAnalyzer.TerminationStatus.WAS_TERMINATED) {
-                parser.advance();
+                if (!isSingleLine) {
+                    parser.advance();
+                }
             } else if (result.terminationStatus() == TopAnalyzer.TerminationStatus.NOT_TERMINATED && !parser.check(blockTerminators)) {
                 throw new PARSE_TerminatorNotFound("Required newline or ';' after statement");
             }
             nodes.add(result.node());
-        }
+        } while (!isSingleLine && !parser.check(blockTerminators));
 
         return new BlockNode(nodes);
     }
