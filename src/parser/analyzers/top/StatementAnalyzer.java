@@ -8,6 +8,7 @@ import parser.nodes.ExpressionNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.statements.ForStatementNode;
 import parser.nodes.statements.IfStatementNode;
+import parser.nodes.statements.WhileStatementNode;
 
 public class StatementAnalyzer extends TopAnalyzer {
     @Override
@@ -16,7 +17,7 @@ public class StatementAnalyzer extends TopAnalyzer {
             case IF:
                 parser.consume(TokenType.OPEN_PARENTHESES);
 
-                ExpressionNode condition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                final ExpressionNode ifCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
 
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
@@ -37,7 +38,7 @@ public class StatementAnalyzer extends TopAnalyzer {
 
                 return new AnalyzerResult(
                     new IfStatementNode(
-                        condition,
+                        ifCondition,
                         trueBranch,
                         falseBranch
                     ),
@@ -52,6 +53,21 @@ public class StatementAnalyzer extends TopAnalyzer {
                         null,
                         null,
                         null
+                    ),
+                    parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
+                );
+            case WHILE:
+                parser.consume(TokenType.OPEN_PARENTHESES);
+
+                final ExpressionNode whileCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+
+                parser.consume(TokenType.CLOSE_PARENTHESES);
+
+                final BlockNode whileBlock = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getStatementScope(), TokenType.CLOSE_BRACES);
+
+                return new AnalyzerResult(
+                    new WhileStatementNode(
+                        whileCondition, whileBlock
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );

@@ -11,6 +11,8 @@ public enum TokenType {
     FOREACH("\\bforeach\\b"),
     WHILE("\\bwhile\\b"),
     DO("\\bdo\\b"),
+    SWITCH("\\bswitch\\b"),
+    CASE("\\bcase\\b"),
     FUNC("\\bfunc\\b"),
     CLASS("\\bclass\\b"),
     INTERFACE("\\binterface\\b"),
