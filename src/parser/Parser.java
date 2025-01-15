@@ -40,7 +40,6 @@ public class Parser {
     }
 
     public Token peek() {
-        System.out.println(tokens.get(currentToken));
         return tokens.get(currentToken);
     }
 

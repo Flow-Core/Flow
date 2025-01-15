@@ -11,7 +11,7 @@ import java.util.Arrays;
 public abstract class TopAnalyzer {
     public abstract AnalyzerResult parse(final Parser parser);
 
-    public static Token testFor(final Parser parser, final TokenType... expectedTypes) {
+    public static Token testFor(final Parser parser, final TokenType... expectedTypes) throws PARSE_WrongAnalyzer {
         if (Arrays.stream(expectedTypes).noneMatch(tokenType -> parser.peek().type() == tokenType)) {
             throw new PARSE_WrongAnalyzer();
         }
