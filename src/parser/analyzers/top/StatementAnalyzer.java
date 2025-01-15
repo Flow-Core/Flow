@@ -7,6 +7,7 @@ import parser.analyzers.TopAnalyzer;
 import parser.nodes.ExpressionNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.statements.ForStatementNode;
+import parser.nodes.statements.ForeachStatementNode;
 import parser.nodes.statements.IfStatementNode;
 import parser.nodes.statements.WhileStatementNode;
 
@@ -56,14 +57,35 @@ public class StatementAnalyzer extends TopAnalyzer {
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
-            case WHILE:
+            case FOREACH:
                 parser.consume(TokenType.OPEN_PARENTHESES);
 
-                final ExpressionNode whileCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                final String foreachVariable = parser.consume(TokenType.IDENTIFIER).value();
+                parser.consume(TokenType.IN);
+                final ExpressionNode foreachCollection = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
 
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
+                parser.consume(TokenType.OPEN_BRACES);
+                final BlockNode foreachBlock = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getStatementScope(), TokenType.CLOSE_BRACES);
+                parser.consume(TokenType.CLOSE_BRACES);
+
+                return new AnalyzerResult(
+                    new ForeachStatementNode(
+                        foreachVariable,
+                        foreachCollection,
+                        foreachBlock
+                    ),
+                    parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
+                );
+            case WHILE:
+                parser.consume(TokenType.OPEN_PARENTHESES);
+                final ExpressionNode whileCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                parser.consume(TokenType.CLOSE_PARENTHESES);
+
+                parser.consume(TokenType.OPEN_BRACES);
                 final BlockNode whileBlock = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getStatementScope(), TokenType.CLOSE_BRACES);
+                parser.consume(TokenType.CLOSE_BRACES);
 
                 return new AnalyzerResult(
                     new WhileStatementNode(

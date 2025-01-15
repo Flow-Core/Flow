@@ -34,6 +34,13 @@ public class Main {
                     10,
                     8
                 )
+                
+                while (x > 5) {
+                    print("hi!");
+                }
+                
+                foreach (x in collection) {
+                }
             }
             func test() {
             }

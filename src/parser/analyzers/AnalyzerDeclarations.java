@@ -5,6 +5,7 @@ import parser.analyzers.classes.InterfaceAnalyzer;
 import parser.analyzers.top.ExpressionAnalyzer;
 import parser.analyzers.top.FieldAnalyzer;
 import parser.analyzers.top.FunctionDeclarationAnalyzer;
+import parser.analyzers.top.StatementAnalyzer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,6 +45,7 @@ public final class AnalyzerDeclarations {
         FUNCTION_SCOPE.add(new FunctionDeclarationAnalyzer());
         FUNCTION_SCOPE.add(new ExpressionAnalyzer());
         FUNCTION_SCOPE.add(new FieldAnalyzer());
+        FUNCTION_SCOPE.add(new StatementAnalyzer());
 
         // Top Level Scope
         TOP_LEVEL_SCOPE.add(new FunctionDeclarationAnalyzer());
@@ -55,6 +57,7 @@ public final class AnalyzerDeclarations {
         STATEMENT_SCOPE.add(new FunctionDeclarationAnalyzer());
         STATEMENT_SCOPE.add(new ExpressionAnalyzer());
         STATEMENT_SCOPE.add(new FieldAnalyzer());
+        STATEMENT_SCOPE.add(new StatementAnalyzer());
 
         // Class Scope
         CLASS_SCOPE.add(new FunctionDeclarationAnalyzer());
