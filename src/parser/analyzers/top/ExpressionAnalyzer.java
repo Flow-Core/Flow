@@ -4,6 +4,7 @@ import lexer.token.Token;
 import lexer.token.TokenType;
 import parser.Parser;
 import parser.analyzers.TopAnalyzer;
+import parser.analyzers.inline.IdentifierReferenceAnalyzer;
 import parser.analyzers.inline.PrimaryAnalyzer;
 import parser.nodes.BinaryExpressionNode;
 import parser.nodes.ExpressionNode;
@@ -33,14 +34,23 @@ public class ExpressionAnalyzer extends TopAnalyzer {
             if (opPrecedence < precedence)
                 return lhs;
 
-            parser.consume(TokenType.OPERATOR);
+            ExpressionNode rhs;
+            int nextPrecedence;
 
-            ExpressionNode rhs = PrimaryAnalyzer.parse(parser);
+            if (parser.check(TokenType.DOT_OPERATOR)) {
+                parser.advance();
+                parser.advance();
+                rhs = (ExpressionNode) new IdentifierReferenceAnalyzer().parse(parser);
+            } else {
+                parser.consume(TokenType.OPERATOR);
+
+                rhs = PrimaryAnalyzer.parse(parser);
+            }
 
             if (rhs == null) return null;
 
             Token nextOperator = parser.peek();
-            int nextPrecedence = getPrecedence(nextOperator.value());
+            nextPrecedence = getPrecedence(nextOperator.value());
 
             if (opPrecedence < nextPrecedence) {
                 rhs = parseRHS(parser, opPrecedence + 1, rhs);
@@ -50,7 +60,7 @@ public class ExpressionAnalyzer extends TopAnalyzer {
 
             lhs = new BinaryExpressionNode(lhs, rhs, operator.value());
         }
-    }
+    } // 123 * 13 + (13 / 123 + 123 * x.mashu).foo()
 
     private static int getPrecedence(String operator) {
         //<editor-fold desc="Precedence">
@@ -68,6 +78,7 @@ public class ExpressionAnalyzer extends TopAnalyzer {
         precedenceValues.put("*", 40);
         precedenceValues.put("/", 40);
         precedenceValues.put("%", 40);
+        precedenceValues.put(".", 10000);
         //</editor-fold>
 
         Integer value = precedenceValues.get(operator);

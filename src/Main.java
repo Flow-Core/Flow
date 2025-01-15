@@ -27,6 +27,7 @@ public class Main {
                 safasfasf
                 sfsaf
                 "
+                val d: Int = ip.toAddress().toString().length
              \s
                 test(x = 2, 10, y = 8)
                 test2(

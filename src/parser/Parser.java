@@ -35,7 +35,7 @@ public class Parser {
         if (isNotEOF()) {
             return tokens.get(currentToken++);
         }
-        return tokens.get(currentToken);
+        return peek();
     }
 
     public Token peek() {
