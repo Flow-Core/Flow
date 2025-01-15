@@ -48,8 +48,6 @@ public class BlockAnalyzer {
 
                 break;
             }
-            System.out.println(parser.peek());
-            System.out.println(result);
             if (result == null || result.node() == null) {
                 throw new PARSE_InvalidStatement("Invalid statement");
             }
