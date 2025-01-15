@@ -30,6 +30,10 @@ public class IdentifierReferenceAnalyzer {
 
         parser.advance();
         while (!parser.check(TokenType.CLOSE_PARENTHESES)) {
+            if (parser.check(TokenType.NEW_LINE)) {
+                parser.advance();
+            }
+
             // Parse named parameter
             if (parser.peek().type() == TokenType.IDENTIFIER && parser.peek(1).type() == TokenType.EQUAL_OPERATOR) {
                 final Token argumentName = parser.consume(TokenType.IDENTIFIER);
@@ -43,7 +47,11 @@ public class IdentifierReferenceAnalyzer {
             }
 
             if (!parser.check(TokenType.CLOSE_PARENTHESES)) {
-                parser.consume(TokenType.COMMA);
+                if (parser.check(TokenType.NEW_LINE)) {
+                    parser.advance();
+                } else {
+                    parser.consume(TokenType.COMMA);
+                }
             }
         }
         parser.advance();

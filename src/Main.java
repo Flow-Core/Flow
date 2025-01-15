@@ -27,16 +27,21 @@ public class Main {
                 safasfasf
                 sfsaf
                 "
-              
-                test()
+             \s
+                test(x = 2, 10, y = 8)
+                test2(
+                    x = 2,
+                    10,
+                    8
+                )
             }
             func test() {
             }
-            
+           \s
             interface A {
                 func test()
             }
-            
+           \s
             class B: A {
                 override func test() {
                     print("works!")
