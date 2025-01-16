@@ -21,7 +21,7 @@ public class Main {
                 sfsaf
                 "
                 val d: Int = ip.toAddress().toString().length
-                var NEW: Object = new Object();\s
+                var NEW: Object = new Object();
                 test(x = 2, 10, y = 8)
                 test2(
                     x = 2,

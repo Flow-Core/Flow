@@ -5,10 +5,7 @@ import parser.analyzers.classes.InitAnalyzer;
 import parser.analyzers.classes.InterfaceAnalyzer;
 import parser.analyzers.switches.CaseAnalyzer;
 import parser.analyzers.switches.DefaultCaseAnalyzer;
-import parser.analyzers.top.ExpressionAnalyzer;
-import parser.analyzers.top.FieldAnalyzer;
-import parser.analyzers.top.FunctionDeclarationAnalyzer;
-import parser.analyzers.top.StatementAnalyzer;
+import parser.analyzers.top.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,17 +46,18 @@ public final class AnalyzerDeclarations {
     }
 
     static {
-        // Function Scope
-        FUNCTION_SCOPE.add(new FunctionDeclarationAnalyzer());
-        FUNCTION_SCOPE.add(new ExpressionAnalyzer());
-        FUNCTION_SCOPE.add(new FieldAnalyzer());
-        FUNCTION_SCOPE.add(new StatementAnalyzer());
-
         // Top Level Scope
         TOP_LEVEL_SCOPE.add(new FunctionDeclarationAnalyzer());
         TOP_LEVEL_SCOPE.add(new ClassAnalyzer());
         TOP_LEVEL_SCOPE.add(new InterfaceAnalyzer());
         TOP_LEVEL_SCOPE.add(new FieldAnalyzer());
+        TOP_LEVEL_SCOPE.add(new ImportAnalyzer());
+
+        // Function Scope
+        FUNCTION_SCOPE.add(new FunctionDeclarationAnalyzer());
+        FUNCTION_SCOPE.add(new ExpressionAnalyzer());
+        FUNCTION_SCOPE.add(new FieldAnalyzer());
+        FUNCTION_SCOPE.add(new StatementAnalyzer());
 
         // Statement Scope
         STATEMENT_SCOPE.add(new FunctionDeclarationAnalyzer());
