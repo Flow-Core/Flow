@@ -80,6 +80,7 @@ public enum TokenType {
     COLON_OPERATOR(":"),
     DOT_OPERATOR("\\."),
     COMMA(","),
+    NULLABLE("\\?"),
 
     // Grouping and Bracketing
     OPEN_PARENTHESES("\\("),

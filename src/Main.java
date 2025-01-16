@@ -9,13 +9,14 @@ public class Main {
     public static void main(String[] args) {
         String fullCodeExample = """
             package first.main
-            
+            \s
             import flow.util
             import flow.*
             import flow.networking.http as http
-            
+            \s
             func main() {
                 val x = 10
+                var address: Address? = null
                 var ip: Ip = 127.0.0.1
                 var d: Double = 124.5215
                 d = 12.9
