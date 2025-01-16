@@ -5,10 +5,12 @@ import parser.nodes.ExpressionNode;
 
 public class VariableAssignmentNode implements ASTNode {
     public String variable;
+    public String operator;
     public ExpressionNode value;
 
-    public VariableAssignmentNode(String variable, ExpressionNode value) {
+    public VariableAssignmentNode(String variable, String operator, ExpressionNode value) {
         this.variable = variable;
+        this.operator = operator;
         this.value = value;
     }
 
@@ -16,6 +18,7 @@ public class VariableAssignmentNode implements ASTNode {
     public String toString() {
         return "VariableAssignmentNode{" +
             "variable='" + variable + '\'' +
+            ", operator='" + operator + '\'' +
             ", value=" + value +
             '}';
     }

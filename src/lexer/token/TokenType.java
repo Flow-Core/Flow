@@ -74,6 +74,7 @@ public enum TokenType {
     STRING("\"(\\\\.|[^\"])*\""),
 
     // Operators
+    ASSIGNMENT_OPERATOR("\\+=|-=|\\*=|/=|%=|&=|\\|=|\\^=|<<=|>>="),
     OPERATOR("==|!=|<=|>=|<|>|\\+\\+|--|\\+|-|\\*|/|%|&&|\\|\\|"),
     EQUAL_OPERATOR("="),
     COLON_OPERATOR(":"),

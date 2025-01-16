@@ -55,12 +55,14 @@ public final class AnalyzerDeclarations {
         TOP_LEVEL_SCOPE.add(new PackageAnalyzer());
 
         // Function Scope
+        FUNCTION_SCOPE.add(new VariableAssignmentAnalyzer());
         FUNCTION_SCOPE.add(new FunctionDeclarationAnalyzer());
         FUNCTION_SCOPE.add(new ExpressionAnalyzer());
         FUNCTION_SCOPE.add(new FieldAnalyzer());
         FUNCTION_SCOPE.add(new StatementAnalyzer());
 
         // Statement Scope
+        STATEMENT_SCOPE.add(new VariableAssignmentAnalyzer());
         STATEMENT_SCOPE.add(new FunctionDeclarationAnalyzer());
         STATEMENT_SCOPE.add(new ExpressionAnalyzer());
         STATEMENT_SCOPE.add(new FieldAnalyzer());

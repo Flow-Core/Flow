@@ -18,6 +18,8 @@ public class Main {
                 val x = 10
                 var ip: Ip = 127.0.0.1
                 var d: Double = 124.5215
+                d = 12.9
+                d += 10
                 val i: Float = 12.0f + 24.2f / 2
                 val z = 12f
                 const x: Int = 10 * 2
@@ -46,7 +48,7 @@ public class Main {
                 }
             }
             func test() {
-                val x = 10
+                var x = 10
                 switch (x) {
                     case (10) {
                         print(x)
