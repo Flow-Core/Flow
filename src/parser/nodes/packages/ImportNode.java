@@ -3,22 +3,22 @@ package parser.nodes.packages;
 import parser.nodes.ASTNode;
 
 public class ImportNode implements ASTNode {
-    public String modulePath;
     public String module;
     public String alias;
+    public boolean isWildcard;
 
-    public ImportNode(String modulePath, String module, String alias) {
-        this.modulePath = modulePath;
+    public ImportNode(String module, String alias, boolean isWildcard) {
         this.module = module;
         this.alias = alias;
+        this.isWildcard = isWildcard;
     }
 
     @Override
     public String toString() {
         return "ImportNode{" +
-            "modulePath='" + modulePath + '\'' +
-            ", module='" + module + '\'' +
+            "module='" + module + '\'' +
             ", alias='" + alias + '\'' +
+            ", isWildcard=" + isWildcard +
             '}';
     }
 }

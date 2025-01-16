@@ -52,6 +52,7 @@ public final class AnalyzerDeclarations {
         TOP_LEVEL_SCOPE.add(new InterfaceAnalyzer());
         TOP_LEVEL_SCOPE.add(new FieldAnalyzer());
         TOP_LEVEL_SCOPE.add(new ImportAnalyzer());
+        TOP_LEVEL_SCOPE.add(new PackageAnalyzer());
 
         // Function Scope
         FUNCTION_SCOPE.add(new FunctionDeclarationAnalyzer());

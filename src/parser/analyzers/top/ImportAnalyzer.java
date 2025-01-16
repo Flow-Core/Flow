@@ -5,18 +5,18 @@ import parser.Parser;
 import parser.analyzers.TopAnalyzer;
 import parser.nodes.packages.ImportNode;
 
+import java.util.Objects;
+
+import static parser.analyzers.top.PackageAnalyzer.parseModulePath;
+
 public class ImportAnalyzer extends TopAnalyzer {
     @Override
     public AnalyzerResult parse(final Parser parser) {
         TopAnalyzer.testFor(parser, TokenType.IMPORT);
 
-        final StringBuilder modulePath = new StringBuilder();
-        while (!parser.peek().isLineTerminator()) {
-            modulePath.append(parser.consume(TokenType.IDENTIFIER).value());
-            modulePath.append(parser.consume(TokenType.DOT_OPERATOR).value());
-        }
-
+        final String modulePath = parseModulePath(parser);
         final String module = parser.consume(TokenType.IDENTIFIER, TokenType.OPERATOR).value();
+        final boolean isWildcard = Objects.equals(module, "*");
 
         if (parser.check(TokenType.AS)) {
             parser.advance();
@@ -24,9 +24,9 @@ public class ImportAnalyzer extends TopAnalyzer {
             final String alias = parser.consume(TokenType.IDENTIFIER).value();
             return new AnalyzerResult(
                 new ImportNode(
-                    modulePath.toString(),
-                    module,
-                    alias
+                    modulePath + module,
+                    alias,
+                    isWildcard
                 ),
                 parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
             );
@@ -34,9 +34,9 @@ public class ImportAnalyzer extends TopAnalyzer {
 
         return new AnalyzerResult(
             new ImportNode(
-                modulePath.toString(),
-                module,
-                null
+                modulePath + module,
+                null,
+                isWildcard
             ),
             parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
         );

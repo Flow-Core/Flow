@@ -8,6 +8,12 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) {
         String fullCodeExample = """
+            package first.main
+            
+            import flow.util
+            import flow.*
+            import flow.networking.http as http
+            
             func main() {
                 val x = 10
                 var ip: Ip = 127.0.0.1
