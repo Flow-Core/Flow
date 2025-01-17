@@ -15,7 +15,7 @@ import java.util.List;
 
 public class FunctionDeclarationAnalyzer extends TopAnalyzer {
     @Override
-    public TopAnalyzer.AnalyzerResult parse(Parser parser) {
+    public TopAnalyzer.AnalyzerResult parse(final Parser parser) {
         final FunctionDeclarationNode functionDeclaration = parseFunctionSignature(parser);
 
         if (parser.check(TokenType.OPEN_BRACES)) {

@@ -8,10 +8,16 @@ import parser.nodes.ExpressionNode;
 import parser.nodes.variable.VariableAssignmentNode;
 
 public class VariableAssignmentAnalyzer extends TopAnalyzer {
+    final boolean supportsAugmented;
+
+    public VariableAssignmentAnalyzer(boolean supportsAugmented) {
+        this.supportsAugmented = supportsAugmented;
+    }
+
     @Override
-    public AnalyzerResult parse(Parser parser) {
+    public AnalyzerResult parse(final Parser parser) {
         final Token variable = TopAnalyzer.testFor(parser, TokenType.IDENTIFIER);
-        final String operator = TopAnalyzer.testFor(parser, TokenType.EQUAL_OPERATOR, TokenType.ASSIGNMENT_OPERATOR).value();
+        final String operator = supportsAugmented ? TopAnalyzer.testFor(parser, TokenType.EQUAL_OPERATOR, TokenType.ASSIGNMENT_OPERATOR).value() : TopAnalyzer.testFor(parser, TokenType.EQUAL_OPERATOR).value();
         final ExpressionNode expr = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
 
         return new AnalyzerResult(
