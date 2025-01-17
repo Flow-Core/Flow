@@ -8,12 +8,13 @@ import parser.analyzers.inline.IdentifierReferenceAnalyzer;
 import parser.analyzers.inline.PrimaryAnalyzer;
 import parser.nodes.BinaryExpressionNode;
 import parser.nodes.ExpressionNode;
+import parser.nodes.UnaryOperatorNode;
 
 import java.util.HashMap;
 
 public class ExpressionAnalyzer extends TopAnalyzer {
     public AnalyzerResult parse(final Parser parser) {
-        ExpressionNode currValue = PrimaryAnalyzer.parse(parser);
+        ExpressionNode currValue = parseValue(parser);
         if (currValue == null) return null;
 
         return new AnalyzerResult(
@@ -42,9 +43,9 @@ public class ExpressionAnalyzer extends TopAnalyzer {
                 parser.advance();
                 rhs = new IdentifierReferenceAnalyzer().parse(parser);
             } else {
-                parser.consume(TokenType.OPERATOR);
+                parser.consume(TokenType.BINARY_OPERATOR);
 
-                rhs = PrimaryAnalyzer.parse(parser);
+                rhs = parseValue(parser);;
             }
 
             if (rhs == null) return null;
@@ -60,7 +61,27 @@ public class ExpressionAnalyzer extends TopAnalyzer {
 
             lhs = new BinaryExpressionNode(lhs, rhs, operator.value());
         }
-    } // 123 * 13 + (13 / 123 + 123 * x.mashu).foo()
+    }
+
+    private static ExpressionNode parseValue(Parser parser) {
+        Token prefix = null, postfix = null;
+
+        if (parser.check(TokenType.UNARY_OPERATOR))
+            prefix = parser.advance();
+
+        ExpressionNode value = PrimaryAnalyzer.parse(parser);
+
+        if (parser.check(TokenType.UNARY_OPERATOR))
+            postfix = parser.advance();
+
+        if (postfix != null)
+            value = new UnaryOperatorNode(value, postfix.value());
+
+        if (prefix != null)
+            value = new UnaryOperatorNode(value, prefix.value());
+
+        return value;
+    }
 
     private static int getPrecedence(String operator) {
         //<editor-fold desc="Precedence">

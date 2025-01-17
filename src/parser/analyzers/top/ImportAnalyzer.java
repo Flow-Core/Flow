@@ -15,7 +15,7 @@ public class ImportAnalyzer extends TopAnalyzer {
         TopAnalyzer.testFor(parser, TokenType.IMPORT);
 
         final String modulePath = parseModulePath(parser);
-        final String module = parser.consume(TokenType.IDENTIFIER, TokenType.OPERATOR).value();
+        final String module = parser.consume(TokenType.IDENTIFIER, TokenType.BINARY_OPERATOR).value();
         final boolean isWildcard = Objects.equals(module, "*");
 
         if (parser.check(TokenType.AS)) {
