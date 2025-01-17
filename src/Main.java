@@ -15,6 +15,9 @@ public class Main {
             import flow.networking.http as http
             \s
             func main() {
+                for (x = 10, x < 15, x += 1)
+                    print(x)
+            
                 val x = 10
                 var ip: Ip = 127.0.0.1
                 var d: Double = 124.5215
