@@ -1,8 +1,25 @@
 package parser.nodes.variable;
 
 import parser.nodes.ASTNode;
+import parser.nodes.ExpressionNode;
 
-public record VariableAssignmentNode(
-    String variable,
-    ASTNode value
-) implements ASTNode {}
+public class VariableAssignmentNode implements ASTNode {
+    public String variable;
+    public String operator;
+    public ExpressionNode value;
+
+    public VariableAssignmentNode(String variable, String operator, ExpressionNode value) {
+        this.variable = variable;
+        this.operator = operator;
+        this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return "VariableAssignmentNode{" +
+            "variable='" + variable + '\'' +
+            ", operator='" + operator + '\'' +
+            ", value=" + value +
+            '}';
+    }
+}

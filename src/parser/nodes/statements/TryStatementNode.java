@@ -5,7 +5,20 @@ import parser.nodes.components.BlockNode;
 
 import java.util.List;
 
-public record TryStatementNode(
-    BlockNode tryBranch,
-    List<BlockNode> exceptionBranches
-) implements ASTNode {}
+public class TryStatementNode implements ASTNode {
+    public BlockNode tryBranch;
+    public List<BlockNode> exceptionBranches;
+
+    public TryStatementNode(BlockNode tryBranch, List<BlockNode> exceptionBranches) {
+        this.tryBranch = tryBranch;
+        this.exceptionBranches = exceptionBranches;
+    }
+
+    @Override
+    public String toString() {
+        return "TryStatementNode{" +
+            "tryBranch=" + tryBranch +
+            ", exceptionBranches=" + exceptionBranches +
+            '}';
+    }
+}

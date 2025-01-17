@@ -1,11 +1,25 @@
 package parser.nodes.classes;
 
 import parser.nodes.ASTNode;
-import parser.nodes.variable.InitializedVariable;
+import parser.nodes.variable.InitializedVariableNode;
 
 import java.util.List;
 
-public record FieldNode(
-    List<String> modifiers,
-    InitializedVariable initialization
-) implements ASTNode {}
+public class FieldNode implements ASTNode {
+    public List<String> modifiers;
+    public InitializedVariableNode initialization;
+
+    public FieldNode(List<String> modifiers, InitializedVariableNode initialization
+    ) {
+        this.modifiers = modifiers;
+        this.initialization = initialization;
+    }
+
+    @Override
+    public String toString() {
+        return "FieldNode{" +
+            "modifiers=" + modifiers +
+            ", initialization=" + initialization +
+            '}';
+    }
+}

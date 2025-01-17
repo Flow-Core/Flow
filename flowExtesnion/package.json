@@ -1,0 +1,25 @@
+{
+  "name": "flow",
+  "displayName": "Flow",
+  "description": "A programming language made for netowrking",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "flow",
+      "aliases": ["Flow", "flow"],
+      "extensions": [".fl",".flow"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "flow",
+      "scopeName": "source.flow",
+      "path": "./syntaxes/flow.tmLanguage.json"
+    }]
+  }
+}

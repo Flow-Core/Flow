@@ -6,8 +6,23 @@ import parser.nodes.components.BlockNode;
 
 import java.util.List;
 
-public record ConstructorNode(
-    String accessModifier,
-    List<ParameterNode> parameters,
-    BlockNode body
-) implements ASTNode {}
+public class ConstructorNode implements ASTNode {
+    public String accessModifier;
+    public List<ParameterNode> parameters;
+    public BlockNode body;
+
+    public ConstructorNode(String accessModifier, List<ParameterNode> parameters, BlockNode body) {
+        this.accessModifier = accessModifier;
+        this.parameters = parameters;
+        this.body = body;
+    }
+
+    @Override
+    public String toString() {
+        return "ConstructorNode{" +
+            "accessModifier='" + accessModifier + '\'' +
+            ", parameters=" + parameters +
+            ", body=" + body +
+            '}';
+    }
+}

@@ -5,35 +5,30 @@ import lexer.token.TokenType;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
-import parser.analyzers.inline.ExpressionAnalyzer;
-import parser.nodes.ASTNode;
 import parser.nodes.ExpressionNode;
 import parser.nodes.FunctionDeclarationNode;
-import parser.nodes.classes.MethodSignatureNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.components.BlockNode;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class FunctionDeclarationAnalyzer implements TopAnalyzer {
+public class FunctionDeclarationAnalyzer extends TopAnalyzer {
     @Override
-    public ASTNode parse(Parser parser) {
-        final MethodSignatureNode functionSignature = parseFunctionSignature(parser);
+    public TopAnalyzer.AnalyzerResult parse(Parser parser) {
+        final FunctionDeclarationNode functionDeclaration = parseFunctionSignature(parser);
 
-        parser.consume(TokenType.OPEN_BRACES);
+        if (parser.check(TokenType.OPEN_BRACES)) {
+            parser.advance();
 
-        BlockNode block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getFunctionScope());
+            BlockNode block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getFunctionScope(), TokenType.CLOSE_BRACES);
 
-        parser.consume(TokenType.CLOSE_BRACES);
+            parser.consume(TokenType.CLOSE_BRACES);
 
-        return new FunctionDeclarationNode(
-            functionSignature.name(),
-            functionSignature.returnType(),
-            functionSignature.modifiers(),
-            functionSignature.parameters(),
-            block
-        );
+            functionDeclaration.block = block;
+        }
+
+        return new AnalyzerResult(functionDeclaration, TerminationStatus.NO_TERMINATION);
     }
 
     public static List<String> parseModifiers(final Parser parser) {
@@ -45,16 +40,16 @@ public class FunctionDeclarationAnalyzer implements TopAnalyzer {
         return modifiers;
     }
 
-    public static MethodSignatureNode parseFunctionSignature(final Parser parser) {
-        parser.consume(TokenType.FUNC);
-
+    public static FunctionDeclarationNode parseFunctionSignature(final Parser parser) {
         final List<String> modifiers = parseModifiers(parser);
+
+        TopAnalyzer.testFor(parser, TokenType.FUNC);
 
         Token funcName = parser.consume(TokenType.IDENTIFIER);
 
         parser.consume(TokenType.OPEN_PARENTHESES);
 
-        List<ParameterNode> args = new ArrayList<>();
+        List<ParameterNode> parameters = new ArrayList<>();
 
         while (!parser.check(TokenType.CLOSE_PARENTHESES)) {
             String name = parser.consume(TokenType.IDENTIFIER).value();
@@ -64,12 +59,12 @@ public class FunctionDeclarationAnalyzer implements TopAnalyzer {
             ExpressionNode defaultValue = null;
             if (parser.peek().type() == TokenType.EQUAL_OPERATOR) {
                 parser.advance();
-                defaultValue = ExpressionAnalyzer.parse(parser);
+                defaultValue = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
             }
 
             ParameterNode arg = new ParameterNode(type, name, defaultValue);
 
-            args.add(arg);
+            parameters.add(arg);
 
             if (!parser.check(TokenType.CLOSE_PARENTHESES)) {
                 parser.consume(TokenType.COMMA);
@@ -84,11 +79,12 @@ public class FunctionDeclarationAnalyzer implements TopAnalyzer {
             returnType = parser.consume(TokenType.IDENTIFIER).value();
         }
 
-        return new MethodSignatureNode(
+        return new FunctionDeclarationNode(
             funcName.value(),
+            returnType,
             modifiers,
-            args,
-            returnType
+            parameters,
+            null
         );
     }
 }

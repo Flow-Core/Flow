@@ -4,93 +4,124 @@ import lexer.token.TokenType;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
-import parser.analyzers.inline.ExpressionAnalyzer;
-import parser.analyzers.inline.VariableAnalyzer;
-import parser.nodes.ASTNode;
 import parser.nodes.ExpressionNode;
 import parser.nodes.components.BlockNode;
-import parser.nodes.statements.ForStatementNode;
-import parser.nodes.statements.IfStatementNode;
-import parser.nodes.statements.WhileStatementNode;
-import parser.nodes.variable.VariableAssignment;
-import parser.nodes.variable.VariableDeclaration;
+import parser.nodes.statements.*;
 
-public class StatementAnalyzer implements TopAnalyzer {
+public class StatementAnalyzer extends TopAnalyzer {
     @Override
-    public ASTNode parse(final Parser parser) {
+    public TopAnalyzer.AnalyzerResult parse(final Parser parser) {
         switch (parser.advance().type()) {
             case IF:
                 parser.consume(TokenType.OPEN_PARENTHESES);
-
-                ExpressionNode condition = ExpressionAnalyzer.parse(parser);
-
+                final ExpressionNode ifCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
-                parser.consume(TokenType.OPEN_BRACES);
+                final BlockNode trueBranch = getBlock(parser);
 
-                BlockNode trueBranch = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getStatementScope());
-
-                parser.consume(TokenType.CLOSE_BRACES);
-
-                BlockNode falseBranch = null;
-
-                if (parser.check(TokenType.ELSE)) {
+                if (parser.check(TokenType.NEW_LINE)) {
                     parser.advance();
-                    parser.consume(TokenType.OPEN_BRACES);
-
-                    falseBranch = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getStatementScope());
                 }
 
-                return new IfStatementNode(
-                        condition,
+                BlockNode falseBranch = null;
+                if (parser.check(TokenType.ELSE)) {
+                    parser.advance();
+                    falseBranch = getBlock(parser);
+                }
+
+                return new AnalyzerResult(
+                    new IfStatementNode(
+                        ifCondition,
                         trueBranch,
                         falseBranch
-                );
-            case WHILE:
-                parser.consume(TokenType.OPEN_PARENTHESES);
-
-                ExpressionNode loopCondition = ExpressionAnalyzer.parse(parser);
-
-                parser.consume(TokenType.CLOSE_PARENTHESES);
-
-                parser.consume(TokenType.OPEN_BRACES);
-
-                BlockNode loopBlock = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getStatementScope());
-
-                parser.consume(TokenType.CLOSE_BRACES);
-
-                return new WhileStatementNode(
-                        loopCondition,
-                        loopBlock
+                    ),
+                    parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
             case FOR:
                 parser.consume(TokenType.OPEN_PARENTHESES);
 
-                VariableDeclaration loopVariable = VariableAnalyzer.parseDeclaration(parser);
+                return new AnalyzerResult(
+                    new ForStatementNode(
+                        null,
+                        null,
+                        null,
+                        null
+                    ),
+                    parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
+                );
+            case FOREACH:
+                parser.consume(TokenType.OPEN_PARENTHESES);
 
-                parser.consume(TokenType.COMMA);
-
-                ExpressionNode forCondition = ExpressionAnalyzer.parse(parser);
-
-                parser.consume(TokenType.COMMA);
-
-                VariableAssignment loopUpdate = VariableAnalyzer.parseAssignment(parser);
+                final String foreachVariable = parser.consume(TokenType.IDENTIFIER).value();
+                parser.consume(TokenType.IN);
+                final ExpressionNode foreachCollection = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
 
                 parser.consume(TokenType.CLOSE_PARENTHESES);
+
+                final BlockNode foreachBlock = getBlock(parser);
+
+                return new AnalyzerResult(
+                    new ForeachStatementNode(
+                        foreachVariable,
+                        foreachCollection,
+                        foreachBlock
+                    ),
+                    parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
+                );
+            case WHILE:
+                parser.consume(TokenType.OPEN_PARENTHESES);
+                final ExpressionNode whileCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                parser.consume(TokenType.CLOSE_PARENTHESES);
+
+                final BlockNode whileBlock = getBlock(parser);
+
+                return new AnalyzerResult(
+                    new WhileStatementNode(
+                        whileCondition, whileBlock
+                    ),
+                    parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
+                );
+            case SWITCH:
+                parser.consume(TokenType.OPEN_PARENTHESES);
+                final ExpressionNode switchCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                parser.consume(TokenType.CLOSE_PARENTHESES);
+
                 parser.consume(TokenType.OPEN_BRACES);
-
-                BlockNode forBlock = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getStatementScope());
-
+                final BlockNode switchBlock = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getSwitchScope(), TokenType.CLOSE_BRACES);
                 parser.consume(TokenType.CLOSE_BRACES);
 
-                return new ForStatementNode(
-                        loopVariable,
-                        forCondition,
-                        loopUpdate,
-                        forBlock
+                return new AnalyzerResult(
+                    new SwitchStatementNode(
+                        switchCondition,
+                        switchBlock.children
+                            .stream()
+                            .filter(node -> node instanceof CaseNode)
+                            .map(node -> (CaseNode) node)
+                            .toList(),
+                        switchBlock.children
+                            .stream()
+                            .filter(node -> node instanceof BlockNode)
+                            .map(node -> (BlockNode) node)
+                            .findFirst()
+                            .orElse(null)
+                    ),
+                    parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
             default:
                 return null;
         }
+    }
+
+    private BlockNode getBlock(final Parser parser) {
+        final BlockNode block;
+        if (parser.check(TokenType.OPEN_BRACES)) {
+            parser.advance();
+            block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getStatementScope(), TokenType.CLOSE_BRACES);
+            parser.consume(TokenType.CLOSE_BRACES);
+        } else {
+            block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getStatementScope());
+        }
+
+        return block;
     }
 }

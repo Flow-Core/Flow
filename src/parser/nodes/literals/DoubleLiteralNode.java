@@ -1,5 +1,16 @@
 package parser.nodes.literals;
 
-public record DoubleLiteralNode(
-    double value
-) implements LiteralNode {}
+public class DoubleLiteralNode implements LiteralNode {
+    public double value;
+
+    public DoubleLiteralNode(double value) {
+        this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return "DoubleLiteralNode{" +
+            "value=" + value +
+            '}';
+    }
+}

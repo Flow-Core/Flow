@@ -1,7 +1,11 @@
 package parser.analyzers;
 
-import parser.analyzers.top.FunctionDeclarationAnalyzer;
-import parser.analyzers.top.IdentifierReferenceAnalyzer;
+import parser.analyzers.classes.ClassAnalyzer;
+import parser.analyzers.classes.InitAnalyzer;
+import parser.analyzers.classes.InterfaceAnalyzer;
+import parser.analyzers.switches.CaseAnalyzer;
+import parser.analyzers.switches.DefaultCaseAnalyzer;
+import parser.analyzers.top.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,6 +15,9 @@ public final class AnalyzerDeclarations {
     private final static List<TopAnalyzer> FUNCTION_SCOPE = new ArrayList<>();
     private final static List<TopAnalyzer> TOP_LEVEL_SCOPE = new ArrayList<>();
     private final static List<TopAnalyzer> STATEMENT_SCOPE = new ArrayList<>();
+    private final static List<TopAnalyzer> CLASS_SCOPE = new ArrayList<>();
+    private final static List<TopAnalyzer> INTERFACE_SCOPE = new ArrayList<>();
+    private final static List<TopAnalyzer> SWITCH_SCOPE = new ArrayList<>();
 
     private AnalyzerDeclarations() {}
 
@@ -26,16 +33,56 @@ public final class AnalyzerDeclarations {
         return Collections.unmodifiableList(STATEMENT_SCOPE);
     }
 
-    static {
-        // Function Scope
-        FUNCTION_SCOPE.add(new FunctionDeclarationAnalyzer());
-        FUNCTION_SCOPE.add(new IdentifierReferenceAnalyzer());
+    public static List<TopAnalyzer> getClassScope() {
+        return Collections.unmodifiableList(CLASS_SCOPE);
+    }
 
+    public static List<TopAnalyzer> getInterfaceScope() {
+        return Collections.unmodifiableList(INTERFACE_SCOPE);
+    }
+
+    public static List<TopAnalyzer> getSwitchScope() {
+        return Collections.unmodifiableList(SWITCH_SCOPE);
+    }
+
+    static {
         // Top Level Scope
         TOP_LEVEL_SCOPE.add(new FunctionDeclarationAnalyzer());
+        TOP_LEVEL_SCOPE.add(new ClassAnalyzer());
+        TOP_LEVEL_SCOPE.add(new InterfaceAnalyzer());
+        TOP_LEVEL_SCOPE.add(new FieldAnalyzer());
+        TOP_LEVEL_SCOPE.add(new ImportAnalyzer());
+        TOP_LEVEL_SCOPE.add(new PackageAnalyzer());
+
+        // Function Scope
+        FUNCTION_SCOPE.add(new VariableAssignmentAnalyzer());
+        FUNCTION_SCOPE.add(new FunctionDeclarationAnalyzer());
+        FUNCTION_SCOPE.add(new ExpressionAnalyzer());
+        FUNCTION_SCOPE.add(new FieldAnalyzer());
+        FUNCTION_SCOPE.add(new StatementAnalyzer());
 
         // Statement Scope
+        STATEMENT_SCOPE.add(new VariableAssignmentAnalyzer());
         STATEMENT_SCOPE.add(new FunctionDeclarationAnalyzer());
-        STATEMENT_SCOPE.add(new IdentifierReferenceAnalyzer());
+        STATEMENT_SCOPE.add(new ExpressionAnalyzer());
+        STATEMENT_SCOPE.add(new FieldAnalyzer());
+        STATEMENT_SCOPE.add(new StatementAnalyzer());
+
+        // Class Scope
+        CLASS_SCOPE.add(new FunctionDeclarationAnalyzer());
+        CLASS_SCOPE.add(new ClassAnalyzer());
+        CLASS_SCOPE.add(new InterfaceAnalyzer());
+        CLASS_SCOPE.add(new FieldAnalyzer());
+        CLASS_SCOPE.add(new InitAnalyzer());
+
+        // Interface Scope
+        INTERFACE_SCOPE.add(new FunctionDeclarationAnalyzer());
+        INTERFACE_SCOPE.add(new ClassAnalyzer());
+        INTERFACE_SCOPE.add(new InterfaceAnalyzer());
+        INTERFACE_SCOPE.add(new FieldAnalyzer());
+
+        // Switch Scope
+        SWITCH_SCOPE.add(new CaseAnalyzer());
+        SWITCH_SCOPE.add(new DefaultCaseAnalyzer());
     }
 }
