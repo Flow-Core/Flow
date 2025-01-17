@@ -7,6 +7,7 @@ import parser.analyzers.TopAnalyzer;
 import parser.nodes.ExpressionNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.statements.*;
+import parser.nodes.variable.VariableAssignmentNode;
 
 public class StatementAnalyzer extends TopAnalyzer {
     @Override
@@ -40,12 +41,26 @@ public class StatementAnalyzer extends TopAnalyzer {
             case FOR:
                 parser.consume(TokenType.OPEN_PARENTHESES);
 
+                final VariableAssignmentNode loopVariable = (VariableAssignmentNode) new VariableAssignmentAnalyzer(false).parse(parser).node();
+
+                parser.consume(TokenType.COMMA);
+
+                final ExpressionNode forCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+
+                parser.consume(TokenType.COMMA);
+
+                final VariableAssignmentNode loopUpdate = (VariableAssignmentNode) new VariableAssignmentAnalyzer(true).parse(parser).node();
+
+                parser.consume(TokenType.CLOSE_PARENTHESES);
+
+                final BlockNode forBlock = getBlock(parser);
+
                 return new AnalyzerResult(
                     new ForStatementNode(
-                        null,
-                        null,
-                        null,
-                        null
+                        loopVariable,
+                        forCondition,
+                        loopUpdate,
+                        forBlock
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );

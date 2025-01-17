@@ -38,7 +38,7 @@ public class ExpressionAnalyzer extends TopAnalyzer {
             ExpressionNode rhs;
             int nextPrecedence;
 
-            if (parser.check(TokenType.DOT_OPERATOR)) {
+            if (parser.check(TokenType.DOT_OPERATOR, TokenType.SAFE_CALL)) {
                 parser.advance();
                 parser.advance();
                 rhs = new IdentifierReferenceAnalyzer().parse(parser);
@@ -100,6 +100,7 @@ public class ExpressionAnalyzer extends TopAnalyzer {
         precedenceValues.put("/", 40);
         precedenceValues.put("%", 40);
         precedenceValues.put(".", 10000);
+        precedenceValues.put("?.", 10000);
         //</editor-fold>
 
         Integer value = precedenceValues.get(operator);

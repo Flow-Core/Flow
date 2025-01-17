@@ -32,3 +32,4 @@ public class CaseAnalyzer extends TopAnalyzer {
         );
     }
 }
+

@@ -12,7 +12,7 @@ import static parser.analyzers.top.FunctionDeclarationAnalyzer.parseModifiers;
 
 public class FieldAnalyzer extends TopAnalyzer {
     @Override
-    public TopAnalyzer.AnalyzerResult parse(Parser parser) {
+    public TopAnalyzer.AnalyzerResult parse(final Parser parser) {
         final List<String> fieldModifiers = parseModifiers(parser);
         final FieldNode field = new FieldNode(fieldModifiers, VariableAnalyzer.parseInitialization(parser));
 

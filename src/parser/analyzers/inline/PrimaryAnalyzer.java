@@ -18,6 +18,7 @@ public class PrimaryAnalyzer {
         final Token token = parser.advance();
 
         return switch (token.type()) {
+            case NULL -> new NullLiteral();
             case IPV6 -> new Ipv6LiteralNode(token.value());
             case IPV4 -> new Ipv4LiteralNode(token.value());
             case FLOAT -> new FloatLiteralNode(Float.parseFloat(token.value()));

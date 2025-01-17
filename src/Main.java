@@ -9,17 +9,24 @@ public class Main {
     public static void main(String[] args) {
         String fullCodeExample = """
             package first.main
-            
+            \s
             import flow.util
             import flow.*
             import flow.networking.http as http
-            
+            \s
             func main() {
+                for (x = 10, x < 15, x += 1)
+                    print(x)
+            
                 val x = 10
                 var ip: Ip = 127.0.0.1
                 var d: Double = 124.5215
                 d = 12.9++
                 d += !10
+                d = 12.9
+                d += 10
+                var x: String? = "test"
+                x?.length
                 val i: Float = 12.0f + 24.2f / 2
                 val z = 12f
                 const x: Int = 10 * 2
