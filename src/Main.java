@@ -16,11 +16,12 @@ public class Main {
             \s
             func main() {
                 val x = 10
-                var address: Address? = null
                 var ip: Ip = 127.0.0.1
                 var d: Double = 124.5215
                 d = 12.9
                 d += 10
+                var x: String? = "test"
+                x?.length
                 val i: Float = 12.0f + 24.2f / 2
                 val z = 12f
                 const x: Int = 10 * 2

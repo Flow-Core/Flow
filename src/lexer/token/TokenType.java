@@ -78,6 +78,8 @@ public enum TokenType {
     OPERATOR("==|!=|<=|>=|<|>|\\+\\+|--|\\+|-|\\*|/|%|&&|\\|\\|"),
     EQUAL_OPERATOR("="),
     COLON_OPERATOR(":"),
+    SAFE_CALL("\\?\\."),
+    NOT_NULL_ASSERTION("!!"),
     DOT_OPERATOR("\\."),
     COMMA(","),
     NULLABLE("\\?"),
