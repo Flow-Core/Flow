@@ -75,8 +75,9 @@ public enum TokenType {
 
     // Operators
     ASSIGNMENT_OPERATOR("\\+=|-=|\\*=|/=|%=|&=|\\|=|\\^=|<<=|>>="),
-UNARY_OPERATOR("!!|!|\\+\\+|--"),
-    BINARY_OPERATOR("==|!=|<=|>=|<|>|\\+\\+|--|\\+|-|\\*|/|%|&&|\\|\\|"),
+    UNARY_OPERATOR("!!|!|\\+\\+|--"),
+    POLARITY_OPERATOR("\\+|-"),
+    BINARY_OPERATOR("==|!=|<=|>=|<|>|\\*|/|%|&&|\\|\\|"),
     EQUAL_OPERATOR("="),
     COLON_OPERATOR(":"),
     SAFE_CALL("\\?\\."),

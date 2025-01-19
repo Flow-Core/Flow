@@ -16,10 +16,10 @@ import java.util.List;
 import static parser.analyzers.inline.IdentifierReferenceAnalyzer.parseArguments;
 
 public class PrimaryAnalyzer {
-    public static ExpressionBaseNode parse(final Parser parser) {
+    public static ExpressionNode parse(final Parser parser) {
         final Token token = parser.advance();
 
-        ExpressionNode expression = switch (token.type()) {
+        return switch (token.type()) {
             case NULL -> new NullLiteral();
             case IPV6 -> new Ipv6LiteralNode(token.value());
             case IPV4 -> new Ipv4LiteralNode(token.value());
@@ -47,9 +47,5 @@ public class PrimaryAnalyzer {
             }
             default -> null;
         };
-
-        return new ExpressionBaseNode(
-                expression
-        );
     }
 }

@@ -6,18 +6,18 @@ import parser.nodes.components.ArgumentNode;
 import java.util.List;
 
 public class ObjectNode implements ExpressionNode {
-    public String name;
+    public String className;
     public List<ArgumentNode> arguments;
 
-    public ObjectNode(String name, List<ArgumentNode> arguments) {
-        this.name = name;
+    public ObjectNode(String className, List<ArgumentNode> arguments) {
+        this.className = className;
         this.arguments = arguments;
     }
 
     @Override
     public String toString() {
         return "ObjectNode{" +
-            "name='" + name + '\'' +
+            "name='" + className + '\'' +
             ", arguments=" + arguments +
             '}';
     }

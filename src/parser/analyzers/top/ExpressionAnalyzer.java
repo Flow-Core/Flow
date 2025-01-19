@@ -43,7 +43,7 @@ public class ExpressionAnalyzer extends TopAnalyzer {
                 parser.advance();
                 rhs = new IdentifierReferenceAnalyzer().parse(parser);
             } else {
-                parser.consume(TokenType.BINARY_OPERATOR);
+                parser.consume(TokenType.BINARY_OPERATOR, TokenType.POLARITY_OPERATOR);
 
                 rhs = parseValue(parser);;
             }
@@ -66,7 +66,7 @@ public class ExpressionAnalyzer extends TopAnalyzer {
     private static ExpressionNode parseValue(Parser parser) {
         Token prefix = null, postfix = null;
 
-        if (parser.check(TokenType.UNARY_OPERATOR))
+        if (parser.check(TokenType.UNARY_OPERATOR, TokenType.POLARITY_OPERATOR))
             prefix = parser.advance();
 
         ExpressionNode value = PrimaryAnalyzer.parse(parser);

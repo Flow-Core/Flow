@@ -55,7 +55,7 @@ public class Main {
                 foreach (x in collection) {
                 }
             }
-            func test() {
+            func test(x: Int) {
                 var x = 10
                 switch (x) {
                     case (10) {
