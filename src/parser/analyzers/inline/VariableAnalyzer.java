@@ -5,10 +5,11 @@ import lexer.token.TokenType;
 import parser.Parser;
 import parser.analyzers.TopAnalyzer;
 import parser.analyzers.top.ExpressionAnalyzer;
+import parser.nodes.ExpressionBaseNode;
 import parser.nodes.ExpressionNode;
+import parser.nodes.variable.InitializedVariableNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableDeclarationNode;
-import parser.nodes.variable.InitializedVariableNode;
 
 public class VariableAnalyzer {
     public static InitializedVariableNode parseInitialization(final Parser parser) {
@@ -20,7 +21,10 @@ public class VariableAnalyzer {
             parser.advance();
             final ExpressionNode expr = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
             final VariableDeclarationNode declaration = new VariableDeclarationNode(modifier.value(), null, name.value(), false);
-            final VariableAssignmentNode assignment = new VariableAssignmentNode(name.value(), "=", expr);
+            final VariableAssignmentNode assignment = new VariableAssignmentNode(
+                name.value(),
+                "=",
+                new ExpressionBaseNode(expr));
 
             return new InitializedVariableNode(declaration, assignment);
         } else if (parser.check(TokenType.COLON_OPERATOR)) {
@@ -45,7 +49,10 @@ public class VariableAnalyzer {
 
             parser.consume(TokenType.EQUAL_OPERATOR);
             final ExpressionNode expr = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
-            final VariableAssignmentNode assignment = new VariableAssignmentNode(name.value(), "=", expr);
+            final VariableAssignmentNode assignment = new VariableAssignmentNode(
+                name.value(),
+                "=",
+                new ExpressionBaseNode(expr));
 
             return new InitializedVariableNode(variableDeclarationNode, assignment);
         }

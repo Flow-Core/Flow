@@ -4,6 +4,7 @@ import lexer.token.Token;
 import lexer.token.TokenType;
 import parser.Parser;
 import parser.analyzers.TopAnalyzer;
+import parser.nodes.ExpressionBaseNode;
 import parser.nodes.ExpressionNode;
 import parser.nodes.variable.VariableAssignmentNode;
 
@@ -21,7 +22,7 @@ public class VariableAssignmentAnalyzer extends TopAnalyzer {
         final ExpressionNode expr = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
 
         return new AnalyzerResult(
-            new VariableAssignmentNode(variable.value(), operator, expr),
+            new VariableAssignmentNode(variable.value(), operator, new ExpressionBaseNode(expr)),
             parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
         );
     }

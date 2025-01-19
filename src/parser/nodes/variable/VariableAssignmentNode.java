@@ -1,14 +1,14 @@
 package parser.nodes.variable;
 
 import parser.nodes.ASTNode;
-import parser.nodes.ExpressionNode;
+import parser.nodes.ExpressionBaseNode;
 
 public class VariableAssignmentNode implements ASTNode {
     public String variable;
     public String operator;
-    public ExpressionNode value;
+    public ExpressionBaseNode value;
 
-    public VariableAssignmentNode(String variable, String operator, ExpressionNode value) {
+    public VariableAssignmentNode(String variable, String operator, ExpressionBaseNode value) {
         this.variable = variable;
         this.operator = operator;
         this.value = value;
