@@ -8,6 +8,11 @@ public class IntegerLiteralNode implements LiteralNode {
     }
 
     @Override
+    public String getClassName() {
+        return "Int";
+    }
+
+    @Override
     public String toString() {
         return "IntegerLiteralNode{" +
             "value=" + value +

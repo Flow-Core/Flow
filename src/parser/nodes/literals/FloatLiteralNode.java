@@ -8,6 +8,11 @@ public class FloatLiteralNode implements LiteralNode {
     }
 
     @Override
+    public String getClassName() {
+        return "Float";
+    }
+
+    @Override
     public String toString() {
         return "FloatLiteralNode{" +
             "value=" + value +

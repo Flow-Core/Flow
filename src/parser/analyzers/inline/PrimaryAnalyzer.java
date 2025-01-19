@@ -8,6 +8,8 @@ import parser.nodes.*;
 import parser.nodes.classes.ObjectNode;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.literals.*;
+import parser.nodes.literals.ip.Ipv4LiteralNode;
+import parser.nodes.literals.ip.Ipv6LiteralNode;
 
 import java.util.List;
 

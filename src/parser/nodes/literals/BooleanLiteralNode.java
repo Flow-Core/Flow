@@ -8,6 +8,11 @@ public class BooleanLiteralNode implements LiteralNode {
     }
 
     @Override
+    public String getClassName() {
+        return "Bool";
+    }
+
+    @Override
     public String toString() {
         return "BooleanLiteralNode{" +
             "value=" + value +

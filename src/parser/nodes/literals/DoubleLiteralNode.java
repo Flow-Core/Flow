@@ -8,6 +8,11 @@ public class DoubleLiteralNode implements LiteralNode {
     }
 
     @Override
+    public String getClassName() {
+        return "Double";
+    }
+
+    @Override
     public String toString() {
         return "DoubleLiteralNode{" +
             "value=" + value +
