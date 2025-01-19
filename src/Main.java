@@ -27,6 +27,7 @@ public class Main {
                 d += 10
                 var x: String? = "test"
                 x?.length
+                x!!.length
                 val i: Float = 12.0f + 24.2f / 2
                 val z = 12f
                 const x: Int = 10 * 2
