@@ -13,11 +13,11 @@ public class BlockNode implements ASTNode {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        ASTNode.super.accept(visitor);
+    public <D> void accept(final ASTVisitor<D> visitor, final D data) {
+        ASTNode.super.accept(visitor, data);
 
         for (final ASTNode child : children) {
-            child.accept(visitor);
+            child.accept(visitor, data);
         }
     }
 

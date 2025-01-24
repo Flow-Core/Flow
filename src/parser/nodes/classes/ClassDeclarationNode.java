@@ -5,6 +5,7 @@ import parser.nodes.ASTVisitor;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.components.BlockNode;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ClassDeclarationNode implements ASTNode {
@@ -30,7 +31,7 @@ public class ClassDeclarationNode implements ASTNode {
         final BlockNode initBlock
     ) {
         this.name = name;
-        this.modifiers = modifiers;
+        this.modifiers = modifiers != null ? modifiers : new ArrayList<>();
         this.primaryConstructor = primaryConstructor;
         this.baseClasses = baseClasses;
         this.interfaces = interfaces;
@@ -41,34 +42,36 @@ public class ClassDeclarationNode implements ASTNode {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        ASTNode.super.accept(visitor);
+    public <D> void accept(final ASTVisitor<D> visitor, D data) {
+        ASTNode.super.accept(visitor, data);
 
         for (final FieldNode field : primaryConstructor) {
-            field.accept(visitor);
+            field.accept(visitor, data);
         }
 
         for (final BaseClassNode baseClass : baseClasses) {
-            baseClass.accept(visitor);
+            baseClass.accept(visitor, data);
         }
 
         for (final BaseInterfaceNode baseInterface : interfaces) {
-            baseInterface.accept(visitor);
+            baseInterface.accept(visitor, data);
         }
 
         for (final FieldNode field : fields) {
-            field.accept(visitor);
+            field.accept(visitor, data);
         }
 
         for (final FunctionDeclarationNode method : methods) {
-            method.accept(visitor);
+            method.accept(visitor, data);
         }
 
         for (final ConstructorNode constructorNode : constructors) {
-            constructorNode.accept(visitor);
+            constructorNode.accept(visitor, data);
         }
 
-        initBlock.accept(visitor);
+        if (initBlock != null) {
+            initBlock.accept(visitor, data);
+        }
     }
 
     @Override

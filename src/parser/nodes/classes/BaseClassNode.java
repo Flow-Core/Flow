@@ -16,11 +16,11 @@ public class BaseClassNode implements ASTNode {
     }
 
     @Override
-    public void accept(final ASTVisitor visitor) {
-        ASTNode.super.accept(visitor);
+    public <D> void accept(final ASTVisitor<D> visitor, final D data) {
+        ASTNode.super.accept(visitor, data);
 
         for (final ArgumentNode argument : arguments) {
-            argument.accept(visitor);
+            argument.accept(visitor, data);
         }
     }
 

@@ -16,11 +16,11 @@ public class ParameterNode implements ASTNode {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        ASTNode.super.accept(visitor);
+    public <D> void accept(final ASTVisitor<D> visitor, D data) {
+        ASTNode.super.accept(visitor, data);
 
         if (defaultValue != null) {
-            defaultValue.accept(visitor);
+            defaultValue.accept(visitor, data);
         }
     }
 

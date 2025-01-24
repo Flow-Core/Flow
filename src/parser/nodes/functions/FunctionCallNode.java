@@ -16,11 +16,11 @@ public class FunctionCallNode implements ExpressionNode {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        ExpressionNode.super.accept(visitor);
+    public <D> void accept(final ASTVisitor<D> visitor, final D data) {
+        ExpressionNode.super.accept(visitor, data);
 
         for (final ArgumentNode argument : arguments) {
-            argument.accept(visitor);
+            argument.accept(visitor, data);
         }
     }
 

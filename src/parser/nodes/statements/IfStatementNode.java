@@ -17,14 +17,14 @@ public class IfStatementNode implements ASTNode {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        ASTNode.super.accept(visitor);
+    public <D> void accept(final ASTVisitor<D> visitor, final D data) {
+        ASTNode.super.accept(visitor, data);
 
-        condition.accept(visitor);
+        condition.accept(visitor, data);
 
-        trueBranch.accept(visitor);
+        trueBranch.accept(visitor, data);
 
-        falseBranch.accept(visitor);
+        falseBranch.accept(visitor, data);
     }
 
     @Override

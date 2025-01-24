@@ -59,23 +59,23 @@ public class ClassTraverse {
     }
 
     public static SymbolTable traverseBlock(BlockNode root, Scope parent) {
-        SymbolTable currSymbols = new SymbolTable(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        SymbolTable currSymbols = new SymbolTable(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
 
         for (ASTNode node : root.children) {
             if (node instanceof ClassDeclarationNode classDeclaration) {
-                if (findSymbol(currSymbols, classDeclaration.name))
+                if (currSymbols.findSymbol(classDeclaration.name))
                     throw new SA_RedefinitionException(classDeclaration.name);
                 else
                     currSymbols.classes().add(classDeclaration);
             }
             if (node instanceof FunctionDeclarationNode functionDeclaration) {
-                if (findSymbol(currSymbols, functionDeclaration.name))
+                if (currSymbols.findSymbol(functionDeclaration.name))
                     throw new SA_RedefinitionException(functionDeclaration.name);
                 else
                     currSymbols.functions().add(functionDeclaration);
             }
             if (node instanceof FieldNode fieldDeclaration) {
-                if (findSymbol(currSymbols, fieldDeclaration.initialization.declaration.name))
+                if (currSymbols.findSymbol(fieldDeclaration.initialization.declaration.name))
                     throw new SA_RedefinitionException(fieldDeclaration.initialization.declaration.name);
                 else
                     currSymbols.fields().add(fieldDeclaration);
@@ -89,17 +89,5 @@ public class ClassTraverse {
         }
 
         return currSymbols;
-    }
-
-    public static boolean findSymbol(SymbolTable symbols, String symbol) {
-        return symbols.classes().stream().anyMatch(
-                existingClass -> existingClass.name.equals(symbol)
-            ) ||
-            symbols.functions().stream().anyMatch(
-                existingFunction -> existingFunction.name.equals(symbol)
-            ) ||
-            symbols.fields().stream().anyMatch(
-                existingField -> existingField.initialization.declaration.name.equals(symbol)
-            );
     }
 }

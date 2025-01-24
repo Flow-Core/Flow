@@ -1,7 +1,7 @@
 package parser.nodes;
 
 public interface ASTNode {
-    default void accept(final ASTVisitor visitor) {
-        visitor.visit(this);
+    default <D> void accept(final ASTVisitor<D> visitor, final D data) {
+        visitor.visit(this, data);
     }
 }

@@ -16,10 +16,10 @@ public class VariableAssignmentNode implements ASTNode {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        ASTNode.super.accept(visitor);
+    public <D> void accept(final ASTVisitor<D> visitor, final D data) {
+        ASTNode.super.accept(visitor, data);
 
-        value.accept(visitor);
+        value.accept(visitor, data);
     }
 
     @Override

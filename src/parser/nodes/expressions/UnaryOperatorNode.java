@@ -12,10 +12,10 @@ public class UnaryOperatorNode implements ExpressionNode {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        ExpressionNode.super.accept(visitor);
+    public <D> void accept(final ASTVisitor<D> visitor, final D data) {
+        ExpressionNode.super.accept(visitor, data);
 
-        operand.accept(visitor);
+        operand.accept(visitor, data);
     }
 
     @Override

@@ -1,7 +1,9 @@
 import lexer.Lexer;
 import lexer.token.Token;
 import parser.Parser;
-import parser.nodes.ASTNode;
+import parser.nodes.components.BlockNode;
+import semantic_analysis.SemanticAnalysis;
+import semantic_analysis.SymbolTable;
 
 import java.util.List;
 
@@ -13,7 +15,7 @@ public class Main {
             import flow.util
             import flow.*
             import flow.networking.http as http
-            \s
+            
             func main() {
                 for (x = 10, x < 15, x += 1)
                     print(x)
@@ -56,6 +58,7 @@ public class Main {
                 }
             }
             func test(x: Int) {
+                val y: C = C()
                 var x = 10
                 switch (x) {
                     case (10) {
@@ -93,8 +96,11 @@ public class Main {
         System.out.println(tokens);
 
         final Parser parser = new Parser(tokens);
-
-        ASTNode root = parser.parse();
+        final BlockNode root = parser.parse();
         parser.printTree(root);
+
+        final SemanticAnalysis semanticAnalysis = new SemanticAnalysis(root);
+        final SymbolTable symbolTable = semanticAnalysis.analyze();
+        System.out.println(symbolTable);
     }
 }

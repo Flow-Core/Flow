@@ -13,15 +13,15 @@ public class InitializedVariableNode implements ASTNode {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        ASTNode.super.accept(visitor);
+    public <D> void accept(final ASTVisitor<D> visitor, final D data) {
+        ASTNode.super.accept(visitor, data);
 
         if (declaration != null) {
-            declaration.accept(visitor);
+            declaration.accept(visitor, data);
         }
 
         if (assignment != null) {
-            assignment.accept(visitor);
+            assignment.accept(visitor, data);
         }
     }
 

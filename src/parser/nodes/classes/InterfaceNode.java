@@ -25,14 +25,14 @@ public class InterfaceNode implements ASTNode {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        ASTNode.super.accept(visitor);
+    public <D> void accept(final ASTVisitor<D> visitor, final D data) {
+        ASTNode.super.accept(visitor, data);
 
         for (final BaseInterfaceNode baseInterface : implementedInterfaces) {
-            baseInterface.accept(visitor);
+            baseInterface.accept(visitor, data);
         }
 
-        block.accept(visitor);
+        block.accept(visitor, data);
     }
 
     @Override

@@ -17,12 +17,12 @@ public class ForeachStatementNode implements ASTNode {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        ASTNode.super.accept(visitor);
+    public <D> void accept(final ASTVisitor<D> visitor, final D data) {
+        ASTNode.super.accept(visitor, data);
 
-        collection.accept(visitor);
+        collection.accept(visitor, data);
 
-        body.accept(visitor);
+        body.accept(visitor, data);
     }
 
     @Override

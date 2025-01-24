@@ -17,10 +17,10 @@ public class FieldNode implements ASTNode {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        ASTNode.super.accept(visitor);
+    public <D> void accept(final ASTVisitor<D> visitor, D data) {
+        ASTNode.super.accept(visitor, data);
 
-        initialization.accept(visitor);
+        initialization.accept(visitor, data);
     }
 
     @Override

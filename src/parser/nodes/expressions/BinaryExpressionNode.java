@@ -14,11 +14,11 @@ public class BinaryExpressionNode implements ExpressionNode {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        ExpressionNode.super.accept(visitor);
+    public <D> void accept(final ASTVisitor<D> visitor, D data) {
+        ExpressionNode.super.accept(visitor, data);
 
-        left.accept(visitor);
-        right.accept(visitor);
+        left.accept(visitor, data);
+        right.accept(visitor, data);
     }
 
     @Override

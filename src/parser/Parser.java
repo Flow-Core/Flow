@@ -6,6 +6,7 @@ import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.top.BlockAnalyzer;
 import parser.exceptions.PARSE_UnexpectedToken;
 import parser.nodes.ASTNode;
+import parser.nodes.components.BlockNode;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,7 +24,7 @@ public class Parser {
         currentToken = 0;
     }
 
-    public ASTNode parse() {
+    public BlockNode parse() {
         return BlockAnalyzer.parse(this, AnalyzerDeclarations.getTopLevelScope(), TokenType.EOF);
     }
 

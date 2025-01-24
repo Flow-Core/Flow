@@ -20,16 +20,16 @@ public class SwitchStatementNode implements ASTNode {
 
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        ASTNode.super.accept(visitor);
+    public <D> void accept(final ASTVisitor<D> visitor, final D data) {
+        ASTNode.super.accept(visitor, data);
 
-        condition.accept(visitor);
+        condition.accept(visitor, data);
 
         for (final CaseNode caseNode : cases) {
-            caseNode.accept(visitor);
+            caseNode.accept(visitor, data);
         }
 
-        defaultBlock.accept(visitor);
+        defaultBlock.accept(visitor, data);
     }
 
     @Override
