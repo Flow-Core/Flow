@@ -6,7 +6,7 @@ import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
 import parser.analyzers.top.BlockAnalyzer;
 import parser.analyzers.top.FieldAnalyzer;
-import parser.nodes.FunctionDeclarationNode;
+import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.classes.*;
 import parser.nodes.components.BlockNode;
 

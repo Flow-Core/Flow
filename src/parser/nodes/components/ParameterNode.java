@@ -1,7 +1,8 @@
 package parser.nodes.components;
 
 import parser.nodes.ASTNode;
-import parser.nodes.ExpressionNode;
+import parser.nodes.ASTVisitor;
+import parser.nodes.expressions.ExpressionNode;
 
 public class ParameterNode implements ASTNode {
     public String type;
@@ -12,6 +13,15 @@ public class ParameterNode implements ASTNode {
         this.type = type;
         this.name = name;
         this.defaultValue = defaultValue;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        ASTNode.super.accept(visitor);
+
+        if (defaultValue != null) {
+            defaultValue.accept(visitor);
+        }
     }
 
     @Override

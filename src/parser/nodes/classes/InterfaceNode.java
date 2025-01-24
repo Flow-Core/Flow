@@ -1,6 +1,7 @@
 package parser.nodes.classes;
 
 import parser.nodes.ASTNode;
+import parser.nodes.ASTVisitor;
 import parser.nodes.components.BlockNode;
 
 import java.util.List;
@@ -21,6 +22,17 @@ public class InterfaceNode implements ASTNode {
         this.modifiers = modifiers;
         this.implementedInterfaces = implementedInterfaces;
         this.block = block;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        ASTNode.super.accept(visitor);
+
+        for (final BaseInterfaceNode baseInterface : implementedInterfaces) {
+            baseInterface.accept(visitor);
+        }
+
+        block.accept(visitor);
     }
 
     @Override

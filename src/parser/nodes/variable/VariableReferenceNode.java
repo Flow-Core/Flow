@@ -1,6 +1,6 @@
 package parser.nodes.variable;
 
-import parser.nodes.ExpressionNode;
+import parser.nodes.expressions.ExpressionNode;
 
 public class VariableReferenceNode implements ExpressionNode {
     public String variable;

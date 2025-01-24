@@ -1,5 +1,5 @@
 package parser.nodes.literals;
 
-import parser.nodes.ExpressionNode;
+import parser.nodes.expressions.ExpressionNode;
 
 public class NullLiteral implements ExpressionNode { }

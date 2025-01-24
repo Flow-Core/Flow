@@ -1,4 +1,6 @@
-package parser.nodes;
+package parser.nodes.expressions;
+
+import parser.nodes.ASTVisitor;
 
 public class UnaryOperatorNode implements ExpressionNode {
     public ExpressionNode operand;
@@ -7,6 +9,13 @@ public class UnaryOperatorNode implements ExpressionNode {
     public UnaryOperatorNode(ExpressionNode operand, String operator) {
         this.operand = operand;
         this.operator = operator;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        ExpressionNode.super.accept(visitor);
+
+        operand.accept(visitor);
     }
 
     @Override

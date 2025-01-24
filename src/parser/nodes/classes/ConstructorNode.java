@@ -1,6 +1,7 @@
 package parser.nodes.classes;
 
 import parser.nodes.ASTNode;
+import parser.nodes.ASTVisitor;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.components.BlockNode;
 
@@ -15,6 +16,17 @@ public class ConstructorNode implements ASTNode {
         this.accessModifier = accessModifier;
         this.parameters = parameters;
         this.body = body;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        ASTNode.super.accept(visitor);
+
+        for (final ParameterNode parameter : parameters) {
+            parameter.accept(visitor);
+        }
+
+        body.accept(visitor);
     }
 
     @Override

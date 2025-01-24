@@ -1,6 +1,7 @@
 package parser.nodes.classes;
 
-import parser.nodes.ExpressionNode;
+import parser.nodes.ASTVisitor;
+import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.components.ArgumentNode;
 
 import java.util.List;
@@ -12,6 +13,15 @@ public class ObjectNode implements ExpressionNode {
     public ObjectNode(String className, List<ArgumentNode> arguments) {
         this.className = className;
         this.arguments = arguments;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        ExpressionNode.super.accept(visitor);
+
+        for (final ArgumentNode argument : arguments) {
+            argument.accept(visitor);
+        }
     }
 
     @Override

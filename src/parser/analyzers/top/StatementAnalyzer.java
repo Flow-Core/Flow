@@ -4,7 +4,7 @@ import lexer.token.TokenType;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
-import parser.nodes.ExpressionNode;
+import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.statements.*;
 import parser.nodes.variable.VariableAssignmentNode;

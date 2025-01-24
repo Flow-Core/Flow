@@ -1,6 +1,7 @@
 package parser.nodes.components;
 
 import parser.nodes.ASTNode;
+import parser.nodes.ASTVisitor;
 
 import java.util.List;
 
@@ -9,6 +10,15 @@ public class BlockNode implements ASTNode {
 
     public BlockNode(List<ASTNode> children) {
         this.children = children;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        ASTNode.super.accept(visitor);
+
+        for (final ASTNode child : children) {
+            child.accept(visitor);
+        }
     }
 
     @Override

@@ -1,6 +1,6 @@
 package semantic_analysis;
 
-import parser.nodes.FunctionDeclarationNode;
+import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.FieldNode;
 

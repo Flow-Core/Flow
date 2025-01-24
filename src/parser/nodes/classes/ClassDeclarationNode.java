@@ -1,7 +1,8 @@
 package parser.nodes.classes;
 
 import parser.nodes.ASTNode;
-import parser.nodes.FunctionDeclarationNode;
+import parser.nodes.ASTVisitor;
+import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.components.BlockNode;
 
 import java.util.List;
@@ -37,6 +38,37 @@ public class ClassDeclarationNode implements ASTNode {
         this.methods = methods;
         this.constructors = constructors;
         this.initBlock = initBlock;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        ASTNode.super.accept(visitor);
+
+        for (final FieldNode field : primaryConstructor) {
+            field.accept(visitor);
+        }
+
+        for (final BaseClassNode baseClass : baseClasses) {
+            baseClass.accept(visitor);
+        }
+
+        for (final BaseInterfaceNode baseInterface : interfaces) {
+            baseInterface.accept(visitor);
+        }
+
+        for (final FieldNode field : fields) {
+            field.accept(visitor);
+        }
+
+        for (final FunctionDeclarationNode method : methods) {
+            method.accept(visitor);
+        }
+
+        for (final ConstructorNode constructorNode : constructors) {
+            constructorNode.accept(visitor);
+        }
+
+        initBlock.accept(visitor);
     }
 
     @Override

@@ -1,8 +1,8 @@
 package semantic_analysis.visitors;
 
 import parser.nodes.ASTNode;
-import parser.nodes.ExpressionBaseNode;
-import parser.nodes.FunctionDeclarationNode;
+import parser.nodes.expressions.ExpressionBaseNode;
+import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.ConstructorNode;
 import parser.nodes.classes.FieldNode;

@@ -1,4 +1,6 @@
-package parser.nodes;
+package parser.nodes.expressions;
+
+import parser.nodes.ASTVisitor;
 
 public class BinaryExpressionNode implements ExpressionNode {
     public ExpressionNode left;
@@ -9,6 +11,14 @@ public class BinaryExpressionNode implements ExpressionNode {
         this.left = left;
         this.right = right;
         this.operator = operator;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        ExpressionNode.super.accept(visitor);
+
+        left.accept(visitor);
+        right.accept(visitor);
     }
 
     @Override

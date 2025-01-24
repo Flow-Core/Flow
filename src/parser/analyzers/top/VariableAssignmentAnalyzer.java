@@ -4,8 +4,8 @@ import lexer.token.Token;
 import lexer.token.TokenType;
 import parser.Parser;
 import parser.analyzers.TopAnalyzer;
-import parser.nodes.ExpressionBaseNode;
-import parser.nodes.ExpressionNode;
+import parser.nodes.expressions.ExpressionBaseNode;
+import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.variable.VariableAssignmentNode;
 
 public class VariableAssignmentAnalyzer extends TopAnalyzer {

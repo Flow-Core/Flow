@@ -85,8 +85,6 @@ public class Main {
             }
            \s""";
 
-        String smallCodeExample = "10 + 100 * 250 + (2 + 4)";
-
         final Lexer lexer = new Lexer(
             fullCodeExample
         );
@@ -97,7 +95,6 @@ public class Main {
         final Parser parser = new Parser(tokens);
 
         ASTNode root = parser.parse();
-
         parser.printTree(root);
     }
 }

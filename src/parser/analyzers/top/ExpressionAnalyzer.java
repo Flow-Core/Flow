@@ -6,9 +6,9 @@ import parser.Parser;
 import parser.analyzers.TopAnalyzer;
 import parser.analyzers.inline.IdentifierReferenceAnalyzer;
 import parser.analyzers.inline.PrimaryAnalyzer;
-import parser.nodes.BinaryExpressionNode;
-import parser.nodes.ExpressionNode;
-import parser.nodes.UnaryOperatorNode;
+import parser.nodes.expressions.BinaryExpressionNode;
+import parser.nodes.expressions.ExpressionNode;
+import parser.nodes.expressions.UnaryOperatorNode;
 
 import java.util.HashMap;
 
@@ -45,7 +45,7 @@ public class ExpressionAnalyzer extends TopAnalyzer {
             } else {
                 parser.consume(TokenType.BINARY_OPERATOR, TokenType.POLARITY_OPERATOR);
 
-                rhs = parseValue(parser);;
+                rhs = parseValue(parser);
             }
 
             if (rhs == null) return null;

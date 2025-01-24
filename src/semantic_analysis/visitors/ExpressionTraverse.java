@@ -1,9 +1,13 @@
 package semantic_analysis.visitors;
 
-import parser.nodes.*;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.ObjectNode;
 import parser.nodes.components.ArgumentNode;
+import parser.nodes.expressions.BinaryExpressionNode;
+import parser.nodes.expressions.ExpressionBaseNode;
+import parser.nodes.expressions.ExpressionNode;
+import parser.nodes.functions.FunctionCallNode;
+import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.literals.LiteralNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.SymbolTable;

@@ -4,8 +4,8 @@ import lexer.token.Token;
 import lexer.token.TokenType;
 import parser.Parser;
 import parser.analyzers.top.ExpressionAnalyzer;
-import parser.nodes.ExpressionNode;
-import parser.nodes.FunctionCallNode;
+import parser.nodes.expressions.ExpressionNode;
+import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.variable.VariableReferenceNode;
 

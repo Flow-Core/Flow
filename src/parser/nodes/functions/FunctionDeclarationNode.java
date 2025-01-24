@@ -1,5 +1,7 @@
-package parser.nodes;
+package parser.nodes.functions;
 
+import parser.nodes.ASTNode;
+import parser.nodes.ASTVisitor;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.components.BlockNode;
 
@@ -18,6 +20,19 @@ public class FunctionDeclarationNode implements ASTNode {
         this.modifiers = modifiers;
         this.parameters = parameters;
         this.block = block;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        ASTNode.super.accept(visitor);
+
+        for (final ParameterNode parameter : parameters) {
+            parameter.accept(visitor);
+        }
+
+        if (block != null) {
+            block.accept(visitor);
+        }
     }
 
     @Override
