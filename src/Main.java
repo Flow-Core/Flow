@@ -15,11 +15,11 @@ public class Main {
             import flow.util
             import flow.*
             import flow.networking.http as http
-            
+            \s
             func main() {
                 for (x = 10, x < 15, x += 1)
                     print(x)
-            
+            \s
                 val x = 10
                 var ip: Ip = 127.0.0.1
                 var d: Double = 124.5215
@@ -35,8 +35,8 @@ public class Main {
                 const x: Int = 10 * 2
                 val y: String = "Hello, world!"
                 const multiLine: String = "
-                safasfasf
-                sfsaf
+                hello,
+                world!
                 "
                 val d: Int = ip.toAddress().toString().length
                 var NEW: Object = new Object();
