@@ -5,7 +5,6 @@ import parser.nodes.components.BlockNode;
 import semantic_analysis.FileMapper;
 import semantic_analysis.FileWrapper;
 import semantic_analysis.SemanticAnalysis;
-import semantic_analysis.SymbolTable;
 
 import java.util.List;
 
@@ -104,9 +103,8 @@ public class Main {
         final BlockNode file2Root = getFileAST(file2);
         final List<FileWrapper> files = FileMapper.map(List.of(file1Root, file2Root));
 
-        final SemanticAnalysis semanticAnalysis = new SemanticAnalysis(file1Root);
-        final SymbolTable symbolTable = semanticAnalysis.analyze();
-        System.out.println(symbolTable);
+        final SemanticAnalysis semanticAnalysis = new SemanticAnalysis(files);
+        semanticAnalysis.analyze();
     }
 
     private static BlockNode getFileAST(final String file) {

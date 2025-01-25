@@ -1,21 +1,19 @@
 package semantic_analysis;
 
-import parser.nodes.components.BlockNode;
-import semantic_analysis.visitors.ClassLoaderVisitor;
 import semantic_analysis.visitors.ClassSignatureVisitor;
 
-public class SemanticAnalysis {
-    final BlockNode root;
-    final SymbolTable currSymbols = SymbolTable.getEmptySymbolTable();
+import java.util.List;
 
-    public SemanticAnalysis(final BlockNode root) {
-        this.root = root;
+public class SemanticAnalysis {
+    final List<FileWrapper> files;
+
+    public SemanticAnalysis(final List<FileWrapper> files) {
+        this.files = files;
     }
 
-    public SymbolTable analyze() {
-        root.accept(new ClassSignatureVisitor(), currSymbols);
-        root.accept(new ClassLoaderVisitor(), currSymbols);
-
-        return currSymbols;
+    public void analyze() {
+        for (final FileWrapper file : files) {
+            file.root().accept(new ClassSignatureVisitor(), file.symbolTable());
+        }
     }
 }
