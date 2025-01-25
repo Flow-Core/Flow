@@ -5,6 +5,7 @@ import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.InterfaceNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public record SymbolTable(
@@ -13,6 +14,10 @@ public record SymbolTable(
     List<FunctionDeclarationNode> functions,
     List<FieldNode> fields
 ) {
+    public static SymbolTable getEmptySymbolTable() {
+        return new SymbolTable(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+    }
+
     public boolean findSymbol(String symbol) {
         return findInterface(symbol) || findClass(symbol) || findFunction(symbol) || findField(symbol);
     }

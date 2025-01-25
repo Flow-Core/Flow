@@ -2,6 +2,8 @@ import lexer.Lexer;
 import lexer.token.Token;
 import parser.Parser;
 import parser.nodes.components.BlockNode;
+import semantic_analysis.FileMapper;
+import semantic_analysis.FileWrapper;
 import semantic_analysis.SemanticAnalysis;
 import semantic_analysis.SymbolTable;
 
@@ -9,8 +11,8 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        String fullCodeExample = """
-            package first.main
+        final String file1 = """
+            package main.first
             \s
             import flow.util
             import flow.*
@@ -88,19 +90,33 @@ public class Main {
             }
            \s""";
 
-        final Lexer lexer = new Lexer(
-            fullCodeExample
-        );
+        final String file2 = """
+        package main.second
+        
+        import main.first.B
+        
+        func test() {
+            val b: B = new B();
+        }
+        """;
 
+        final BlockNode file1Root = getFileAST(file1);
+        final BlockNode file2Root = getFileAST(file2);
+        final List<FileWrapper> files = FileMapper.map(List.of(file1Root, file2Root));
+
+        final SemanticAnalysis semanticAnalysis = new SemanticAnalysis(file1Root);
+        final SymbolTable symbolTable = semanticAnalysis.analyze();
+        System.out.println(symbolTable);
+    }
+
+    private static BlockNode getFileAST(final String file) {
+        final Lexer lexer = new Lexer(file);
         final List<Token> tokens = lexer.tokenize();
-        System.out.println(tokens);
 
         final Parser parser = new Parser(tokens);
         final BlockNode root = parser.parse();
         parser.printTree(root);
 
-        final SemanticAnalysis semanticAnalysis = new SemanticAnalysis(root);
-        final SymbolTable symbolTable = semanticAnalysis.analyze();
-        System.out.println(symbolTable);
+        return root;
     }
 }
