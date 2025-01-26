@@ -2,8 +2,10 @@ package semantic_analysis;
 
 import parser.nodes.components.BlockNode;
 
-public record FileWrapper(
+import java.util.List;
+
+public record Package(
     String path,
-    BlockNode root,
+    List<BlockNode> files,
     SymbolTable symbolTable
 ) { }

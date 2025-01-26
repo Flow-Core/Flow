@@ -5,11 +5,13 @@ import parser.nodes.components.BlockNode;
 import parser.nodes.packages.PackageNode;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class FileMapper {
-    public static List<FileWrapper> map(final List<BlockNode> roots) {
-        final List<FileWrapper> files = new ArrayList<>();
+public class PackageMapper {
+    public static Map<String, Package> map(final List<BlockNode> roots) {
+        final Map<String, Package> packages = new HashMap<>();
 
         for (BlockNode root : roots) {
             if (root.children.isEmpty()) {
@@ -21,9 +23,13 @@ public class FileMapper {
             if (firstNode instanceof PackageNode packageNode) {
                 packagePath = packageNode.packagePath;
             }
-            files.add(new FileWrapper(packagePath, root, SymbolTable.getEmptySymbolTable()));
+
+            packages.computeIfAbsent(
+                packagePath,
+                path -> new Package(path, new ArrayList<>(), SymbolTable.getEmptySymbolTable())
+            ).files().add(root);
         }
 
-        return files;
+        return packages;
     }
 }

@@ -2,11 +2,12 @@ import lexer.Lexer;
 import lexer.token.Token;
 import parser.Parser;
 import parser.nodes.components.BlockNode;
-import semantic_analysis.FileMapper;
-import semantic_analysis.FileWrapper;
+import semantic_analysis.PackageMapper;
+import semantic_analysis.Package;
 import semantic_analysis.SemanticAnalysis;
 
 import java.util.List;
+import java.util.Map;
 
 public class Main {
     public static void main(String[] args) {
@@ -101,7 +102,7 @@ public class Main {
 
         final BlockNode file1Root = getFileAST(file1);
         final BlockNode file2Root = getFileAST(file2);
-        final List<FileWrapper> files = FileMapper.map(List.of(file1Root, file2Root));
+        final Map<String, Package> files = PackageMapper.map(List.of(file1Root, file2Root));
 
         final SemanticAnalysis semanticAnalysis = new SemanticAnalysis(files);
         semanticAnalysis.analyze();
