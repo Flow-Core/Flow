@@ -1,11 +1,9 @@
 package semantic_analysis;
 
-import parser.nodes.components.BlockNode;
-
 import java.util.List;
 
-public record Package(
+public record PackageWrapper(
     String path,
-    List<BlockNode> files,
+    List<FileWrapper> files,
     SymbolTable symbolTable
 ) { }

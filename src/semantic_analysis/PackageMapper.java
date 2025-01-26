@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 public class PackageMapper {
-    public static Map<String, Package> map(final List<BlockNode> roots) {
-        final Map<String, Package> packages = new HashMap<>();
+    public static Map<String, PackageWrapper> map(final List<BlockNode> roots) {
+        final Map<String, PackageWrapper> packages = new HashMap<>();
 
         for (BlockNode root : roots) {
             if (root.children.isEmpty()) {
@@ -24,10 +24,11 @@ public class PackageMapper {
                 packagePath = packageNode.packagePath;
             }
 
+            FileWrapper fileWrapper = new FileWrapper(root, SymbolTable.getEmptySymbolTable());
             packages.computeIfAbsent(
                 packagePath,
-                path -> new Package(path, new ArrayList<>(), SymbolTable.getEmptySymbolTable())
-            ).files().add(root);
+                path -> new PackageWrapper(path, new ArrayList<>(), SymbolTable.getEmptySymbolTable())
+            ).files().add(fileWrapper);
         }
 
         return packages;

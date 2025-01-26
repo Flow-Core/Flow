@@ -3,7 +3,7 @@ import lexer.token.Token;
 import parser.Parser;
 import parser.nodes.components.BlockNode;
 import semantic_analysis.PackageMapper;
-import semantic_analysis.Package;
+import semantic_analysis.PackageWrapper;
 import semantic_analysis.SemanticAnalysis;
 
 import java.util.List;
@@ -14,9 +14,6 @@ public class Main {
         final String file1 = """
             package main.first
             \s
-            import flow.util
-            import flow.*
-            import flow.networking.http as http
             \s
             func main() {
                 for (x = 10, x < 15, x += 1)
@@ -102,7 +99,7 @@ public class Main {
 
         final BlockNode file1Root = getFileAST(file1);
         final BlockNode file2Root = getFileAST(file2);
-        final Map<String, Package> files = PackageMapper.map(List.of(file1Root, file2Root));
+        final Map<String, PackageWrapper> files = PackageMapper.map(List.of(file1Root, file2Root));
 
         final SemanticAnalysis semanticAnalysis = new SemanticAnalysis(files);
         semanticAnalysis.analyze();

@@ -8,28 +8,50 @@ import semantic_analysis.SymbolTable;
 import semantic_analysis.exceptions.SA_RedefinitionException;
 
 public class ClassSignatureVisitor implements ASTVisitor<SymbolTable> {
+    private final SymbolTable packageLevel;
+
+    public ClassSignatureVisitor(SymbolTable packageLevel) {
+        this.packageLevel = packageLevel;
+    }
+
     @Override
-    public void visit(final ASTNode node, final SymbolTable data) {
+    public void visit(final ASTNode node, final SymbolTable fileLevel) {
         if (node instanceof ClassDeclarationNode) {
-            handleClass((ClassDeclarationNode) node, data);
+            handleClass((ClassDeclarationNode) node, fileLevel);
         } else if (node instanceof InterfaceNode) {
-            handleInterface((InterfaceNode) node, data);
+            handleInterface((InterfaceNode) node, fileLevel);
         }
     }
 
-    private void handleClass(final ClassDeclarationNode classDeclaration, final SymbolTable data) {
-        if (data.classes().stream().anyMatch(currentClass -> currentClass.name.equals(classDeclaration.name))) {
-            throw new SA_RedefinitionException(classDeclaration.name);
-        }
+    private void handleClass(final ClassDeclarationNode classDeclaration, final SymbolTable fileLevel) {
+        boolean isPublic = classDeclaration.modifiers.contains("public") || classDeclaration.modifiers.isEmpty();
 
-        data.classes().add(classDeclaration);
+        if (isPublic) {
+            if (packageLevel.classes().stream().anyMatch(currentClass -> currentClass.name.equals(classDeclaration.name))) {
+                throw new SA_RedefinitionException(classDeclaration.name);
+            }
+            packageLevel.classes().add(classDeclaration);
+        } else {
+            if (fileLevel.classes().stream().anyMatch(currentClass -> currentClass.name.equals(classDeclaration.name))) {
+                throw new SA_RedefinitionException(classDeclaration.name);
+            }
+            fileLevel.classes().add(classDeclaration);
+        }
     }
 
-    private void handleInterface(final InterfaceNode interfaceDeclaration, final SymbolTable data) {
-        if (data.classes().stream().anyMatch(currentClass -> currentClass.name.equals(interfaceDeclaration.name))) {
-            throw new SA_RedefinitionException(interfaceDeclaration.name);
-        }
+    private void handleInterface(final InterfaceNode interfaceDeclaration, final SymbolTable fileLevel) {
+        boolean isPublic = interfaceDeclaration.modifiers.contains("public") || interfaceDeclaration.modifiers.isEmpty();
 
-        data.interfaces().add(interfaceDeclaration);
+        if (isPublic) {
+            if (packageLevel.interfaces().stream().anyMatch(currentInterface -> currentInterface.name.equals(interfaceDeclaration.name))) {
+                throw new SA_RedefinitionException(interfaceDeclaration.name);
+            }
+            packageLevel.interfaces().add(interfaceDeclaration);
+        } else {
+            if (fileLevel.interfaces().stream().anyMatch(currentInterface -> currentInterface.name.equals(interfaceDeclaration.name))) {
+                throw new SA_RedefinitionException(interfaceDeclaration.name);
+            }
+            fileLevel.interfaces().add(interfaceDeclaration);
+        }
     }
 }
