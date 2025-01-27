@@ -61,10 +61,6 @@ public class SignatureLoader {
     private static void handleFunction(final FunctionDeclarationNode functionDeclarationNode, final SymbolTable fileLevel, final PackageWrapper packageWrapper) {
         boolean isPublic = !functionDeclarationNode.modifiers.contains("private") && !functionDeclarationNode.modifiers.contains("protected");
 
-        if (packageWrapper.symbolTable().findSymbol(functionDeclarationNode.name)) {
-            throw new SA_RedefinitionException(functionDeclarationNode.name);
-        }
-
         if (isPublic) {
             packageWrapper.symbolTable().functions().add(functionDeclarationNode);
             packageWrapper.symbolTable().bindingContext().put(functionDeclarationNode, joinPath(packageWrapper.path(), functionDeclarationNode.name));
