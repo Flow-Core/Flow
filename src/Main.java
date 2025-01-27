@@ -89,16 +89,26 @@ public class Main {
         final String file2 = """
         package main.second
         
-        import main.first.B
+        import main.third.C
         
         func test() {
-            val b: B = new B();
+            val c: C = new C();
+            c.test()
         }
+        """;
+
+        final String file3 = """
+        package main.third
+        
+        import main.first.B
+        
+        class C: B { }
         """;
 
         final BlockNode file1Root = getFileAST(file1);
         final BlockNode file2Root = getFileAST(file2);
-        final Map<String, PackageWrapper> files = PackageMapper.map(List.of(file1Root, file2Root));
+        final BlockNode file3Root = getFileAST(file3);
+        final Map<String, PackageWrapper> files = PackageMapper.map(List.of(file1Root, file2Root, file3Root));
 
         final SemanticAnalysis semanticAnalysis = new SemanticAnalysis(files);
         semanticAnalysis.analyze();
