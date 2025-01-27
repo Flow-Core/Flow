@@ -14,7 +14,6 @@ public class Main {
         final String file1 = """
             package main.first
             \s
-            \s
             func main() {
                 for (x = 10, x < 15, x += 1)
                     print(x)

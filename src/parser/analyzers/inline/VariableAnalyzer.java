@@ -11,6 +11,8 @@ import parser.nodes.variable.InitializedVariableNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableDeclarationNode;
 
+import static parser.analyzers.top.PackageAnalyzer.parseModulePath;
+
 public class VariableAnalyzer {
     public static InitializedVariableNode parseInitialization(final Parser parser) {
         final Token modifier = TopAnalyzer.testFor(parser, TokenType.VAR, TokenType.VAL, TokenType.CONST);
@@ -29,7 +31,7 @@ public class VariableAnalyzer {
             return new InitializedVariableNode(declaration, assignment);
         } else if (parser.check(TokenType.COLON_OPERATOR)) {
             parser.advance();
-            final Token type = parser.consume(TokenType.IDENTIFIER);
+            final String type = parseModulePath(parser);
 
             boolean isNullable = false;
             if (parser.check(TokenType.NULLABLE)) {
@@ -39,7 +41,7 @@ public class VariableAnalyzer {
 
             VariableDeclarationNode variableDeclarationNode = new VariableDeclarationNode(
                 modifier.value(),
-                type.value(),
+                type,
                 name.value(),
                 isNullable
             );

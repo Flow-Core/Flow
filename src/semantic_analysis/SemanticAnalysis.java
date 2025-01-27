@@ -1,6 +1,6 @@
 package semantic_analysis;
 
-import semantic_analysis.visitors.ClassSignatureVisitor;
+import semantic_analysis.visitors.SignatureLoader;
 import semantic_analysis.visitors.ImportVisitor;
 
 import java.util.Map;
@@ -15,7 +15,7 @@ public class SemanticAnalysis {
     public void analyze() {
         for (final PackageWrapper currentPackageWrapper : packages.values()) {
             for (final FileWrapper file : currentPackageWrapper.files()) {
-                file.root().accept(new ClassSignatureVisitor(currentPackageWrapper.symbolTable()), file.symbolTable());
+                SignatureLoader.load(file.root().children, file.symbolTable(), currentPackageWrapper);
             }
         }
 

@@ -37,9 +37,12 @@ public class ImportVisitor implements ASTVisitor<SymbolTable> {
 
         final SymbolTable importedSymbols = globalPackages.get(packagePath).symbolTable();
         if (importNode.isWildcard) {
-            // Add all classes and interfaces from the imported package
-            data.classes().addAll(importedSymbols.classes());
-            data.interfaces().addAll(importedSymbols.interfaces());
+            if (!importNode.alias.equals("*")) {
+                throw new SA_SemanticError("Cannot rename all imported items to one identifier");
+            }
+
+            data.recognizeSymbolTable(importedSymbols);
+            data.addToBindingContext(importedSymbols, packagePath);
         } else {
             // Add only the needed module
             var optionalClass = importedSymbols.classes().stream()
@@ -48,6 +51,7 @@ public class ImportVisitor implements ASTVisitor<SymbolTable> {
 
             if (optionalClass.isPresent()) {
                 data.classes().add(optionalClass.get());
+                data.bindingContext().put(optionalClass.get(), importNode.module);
                 return;
             }
 
@@ -57,6 +61,27 @@ public class ImportVisitor implements ASTVisitor<SymbolTable> {
 
             if (optionalInterface.isPresent()) {
                 data.interfaces().add(optionalInterface.get());
+                data.bindingContext().put(optionalInterface.get(), importNode.module);
+                return;
+            }
+
+            var optionalFunction = importedSymbols.functions().stream()
+                .filter(currentFunction -> currentFunction.name.equals(module))
+                .findFirst();
+
+            if (optionalFunction.isPresent()) {
+                data.functions().add(optionalFunction.get());
+                data.bindingContext().put(optionalFunction.get(), importNode.module);
+                return;
+            }
+
+            var optionalField = importedSymbols.fields().stream()
+                .filter(currentField -> currentField.initialization.declaration.name.equals(module))
+                .findFirst();
+
+            if (optionalField.isPresent()) {
+                data.fields().add(optionalField.get());
+                data.bindingContext().put(optionalField.get(), importNode.module);
                 return;
             }
 

@@ -1,21 +1,46 @@
 package semantic_analysis;
 
+import parser.nodes.ASTNode;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.InterfaceNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public record SymbolTable(
     List<InterfaceNode> interfaces,
     List<ClassDeclarationNode> classes,
     List<FunctionDeclarationNode> functions,
-    List<FieldNode> fields
+    List<FieldNode> fields,
+    Map<ASTNode, String> bindingContext
 ) {
     public static SymbolTable getEmptySymbolTable() {
-        return new SymbolTable(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        return new SymbolTable(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new HashMap<>());
+    }
+
+    public void recognizeSymbolTable(SymbolTable other) {
+        classes().addAll(other.classes());
+        interfaces().addAll(other.interfaces());
+        functions().addAll(other.functions());
+        fields().addAll(other.fields());
+        bindingContext.putAll(other.bindingContext);
+    }
+
+    public void addToBindingContext(SymbolTable other, String modulePath) {
+        // bindingContext.putAll(other.bindingContext);
+
+        other.classes().forEach(classDeclarationNode -> bindingContext.put(classDeclarationNode, joinPath(modulePath, classDeclarationNode.name)));
+        other.interfaces().forEach(interfaceNode -> bindingContext.put(interfaceNode, joinPath(modulePath, interfaceNode.name)));
+        other.functions().forEach(functionDeclarationNode -> bindingContext.put(functionDeclarationNode, joinPath(modulePath,functionDeclarationNode.name)));
+        other.fields().forEach(fieldNode -> bindingContext.put(fieldNode, joinPath(modulePath, fieldNode.initialization.declaration.name)));
+    }
+
+    public static String joinPath(String modulePath, String moduleName) {
+        return modulePath + "." + moduleName;
     }
 
     public boolean findSymbol(String symbol) {

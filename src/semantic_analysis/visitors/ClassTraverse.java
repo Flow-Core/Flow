@@ -59,7 +59,7 @@ public class ClassTraverse {
     }
 
     public static SymbolTable traverseBlock(BlockNode root, Scope parent) {
-        SymbolTable currSymbols = new SymbolTable(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        SymbolTable currSymbols = SymbolTable.getEmptySymbolTable();
 
         for (ASTNode node : root.children) {
             if (node instanceof ClassDeclarationNode classDeclaration) {
