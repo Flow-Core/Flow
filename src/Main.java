@@ -101,8 +101,10 @@ public class Main {
         package main.third
         
         import main.first.B
+
+        class C: B() {
         
-        class C: B { }
+        }
         """;
 
         final BlockNode file1Root = getFileAST(file1);

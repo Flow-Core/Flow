@@ -18,6 +18,7 @@ public class ClassDeclarationNode implements ASTNode {
     public List<FunctionDeclarationNode> methods;
     public List<ConstructorNode> constructors;
     public BlockNode initBlock;
+    public BlockNode classBlock;
 
     public ClassDeclarationNode(
         final String name,
@@ -28,7 +29,8 @@ public class ClassDeclarationNode implements ASTNode {
         final List<FieldNode> fields,
         final List<FunctionDeclarationNode> methods,
         final List<ConstructorNode> constructors,
-        final BlockNode initBlock
+        final BlockNode initBlock,
+        final BlockNode classBlock
     ) {
         this.name = name;
         this.modifiers = modifiers != null ? modifiers : new ArrayList<>();
@@ -39,6 +41,7 @@ public class ClassDeclarationNode implements ASTNode {
         this.methods = methods;
         this.constructors = constructors;
         this.initBlock = initBlock;
+        this.classBlock = classBlock;
     }
 
     @Override
@@ -72,6 +75,8 @@ public class ClassDeclarationNode implements ASTNode {
         if (initBlock != null) {
             initBlock.accept(visitor, data);
         }
+
+        classBlock.accept(visitor, data);
     }
 
     @Override
@@ -86,6 +91,7 @@ public class ClassDeclarationNode implements ASTNode {
             ", methods=" + methods +
             ", constructors=" + constructors +
             ", initBlock=" + initBlock +
+            ", classBlock=" + classBlock +
             '}';
     }
 }

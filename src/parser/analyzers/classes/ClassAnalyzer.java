@@ -40,7 +40,7 @@ public class ClassAnalyzer extends TopAnalyzer {
         final BlockNode block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getClassScope(), TokenType.CLOSE_BRACES);
         parser.consume(TokenType.CLOSE_BRACES);
 
-        return new AnalyzerResult(
+        final AnalyzerResult analyzerResult = new AnalyzerResult(
             new ClassDeclarationNode(
                 name,
                 modifiers,
@@ -63,9 +63,19 @@ public class ClassAnalyzer extends TopAnalyzer {
                     .filter(child -> child instanceof BlockNode)
                     .map(child -> (BlockNode) child)
                     .findFirst()
-                    .orElse(null)),
+                    .orElse(null),
+                null
+            ),
             TerminationStatus.NO_TERMINATION
         );
+
+        block.children.removeAll(((ClassDeclarationNode) analyzerResult.node()).fields);
+        block.children.removeAll(((ClassDeclarationNode) analyzerResult.node()).methods);
+        block.children.removeAll(((ClassDeclarationNode) analyzerResult.node()).constructors);
+        block.children.remove(((ClassDeclarationNode) analyzerResult.node()).initBlock);
+        ((ClassDeclarationNode) analyzerResult.node()).classBlock = block;
+
+        return analyzerResult;
     }
 
     private Supertypes parseInheritance(final Parser parser) {

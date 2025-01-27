@@ -9,6 +9,7 @@ import parser.analyzers.top.BlockAnalyzer;
 import parser.nodes.classes.BaseInterfaceNode;
 import parser.nodes.classes.InterfaceNode;
 import parser.nodes.components.BlockNode;
+import parser.nodes.functions.FunctionDeclarationNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,8 +30,14 @@ public class InterfaceAnalyzer extends TopAnalyzer {
         final BlockNode block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getInterfaceScope(), TokenType.CLOSE_BRACES);
         parser.consume(TokenType.CLOSE_BRACES);
 
+        final List<FunctionDeclarationNode> methods = block.children.stream()
+            .filter(child -> child instanceof FunctionDeclarationNode)
+            .map(child -> (FunctionDeclarationNode) child)
+            .toList();
+        block.children.removeAll(methods);
+
         return new AnalyzerResult(
-            new InterfaceNode(name, modifiers, implementedInterfaces, block),
+            new InterfaceNode(name, modifiers, implementedInterfaces, methods, block),
             TerminationStatus.NO_TERMINATION
         );
     }
