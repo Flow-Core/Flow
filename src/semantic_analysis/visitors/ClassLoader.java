@@ -87,7 +87,9 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
         );
 
         for (FunctionDeclarationNode functionDeclarationNode : classDeclaration.methods) {
-            functionDeclarationNode.parameters.add(0, new ParameterNode(classDeclaration.name, "this", null));
+            if (!functionDeclarationNode.modifiers.contains("static")) {
+                functionDeclarationNode.parameters.add(0, new ParameterNode(classDeclaration.name, "this", null));
+            }
         }
     }
 
@@ -99,7 +101,9 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
         }
 
         for (FunctionDeclarationNode functionDeclarationNode : interfaceNode.methods) {
-            functionDeclarationNode.parameters.add(0, new ParameterNode(interfaceNode.name, "this", null));
+            if (!functionDeclarationNode.modifiers.contains("static")) {
+                functionDeclarationNode.parameters.add(0, new ParameterNode(interfaceNode.name, "this", null));
+            }
         }
     }
 }
