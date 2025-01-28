@@ -22,7 +22,7 @@ public class SemanticAnalysis {
 
         for (final PackageWrapper currentPackageWrapper : packages.values()) {
             for (final FileWrapper file : currentPackageWrapper.files()) {
-                file.root().accept(new ImportVisitor(packages), file.symbolTable());
+                new ImportVisitor().visit(file.root(), file.symbolTable(), packages);
             }
         }
 

@@ -1,7 +1,7 @@
 package semantic_analysis.visitors;
 
 import parser.nodes.ASTNode;
-import parser.nodes.ASTVisitor;
+import parser.nodes.components.BlockNode;
 import parser.nodes.packages.ImportNode;
 import semantic_analysis.PackageWrapper;
 import semantic_analysis.SymbolTable;
@@ -10,21 +10,17 @@ import semantic_analysis.exceptions.SA_UnresolvedPackageException;
 
 import java.util.Map;
 
-public class ImportVisitor implements ASTVisitor<SymbolTable> {
-    private final Map<String, PackageWrapper> globalPackages;
+public class ImportVisitor {
 
-    public ImportVisitor(Map<String, PackageWrapper> globalPackages) {
-        this.globalPackages = globalPackages;
-    }
-
-    @Override
-    public void visit(final ASTNode node, final SymbolTable data) {
-        if (node instanceof ImportNode importNode) {
-            validateImport(importNode, data);
+    public void visit(final BlockNode root, final SymbolTable data, final Map<String, PackageWrapper> globalPackages) {
+        for (final ASTNode node : root.children) {
+            if (node instanceof ImportNode importNode) {
+                validateImport(importNode, data, globalPackages);
+            }
         }
     }
 
-    private void validateImport(final ImportNode importNode, final SymbolTable data) {
+    private void validateImport(final ImportNode importNode, final SymbolTable data, final Map<String, PackageWrapper> globalPackages) {
         final String modulePath = importNode.module;
 
         final int lastDotIndex = modulePath.lastIndexOf(".");
