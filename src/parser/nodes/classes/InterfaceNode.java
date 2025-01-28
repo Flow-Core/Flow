@@ -1,17 +1,15 @@
 package parser.nodes.classes;
 
-import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
 import parser.nodes.components.BlockNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 
 import java.util.List;
 
-public class InterfaceNode implements ASTNode {
+public class InterfaceNode extends TypeDeclarationNode {
     public String name;
     public List<String> modifiers;
     public List<BaseInterfaceNode> implementedInterfaces;
-    public List<FunctionDeclarationNode> methods;
     public BlockNode block;
 
     public InterfaceNode(
@@ -30,7 +28,7 @@ public class InterfaceNode implements ASTNode {
 
     @Override
     public <D> void accept(final ASTVisitor<D> visitor, final D data) {
-        ASTNode.super.accept(visitor, data);
+        super.accept(visitor, data);
 
         for (final BaseInterfaceNode baseInterface : implementedInterfaces) {
             baseInterface.accept(visitor, data);
