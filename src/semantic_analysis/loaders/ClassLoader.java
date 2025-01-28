@@ -1,5 +1,8 @@
 package semantic_analysis.loaders;
 
+import logger.Logger;
+import logger.LoggerFacade;
+import parser.ASTMetaDataStore;
 import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
 import parser.nodes.classes.*;
@@ -11,7 +14,6 @@ import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.SymbolTable;
-import semantic_analysis.exceptions.SA_SemanticError;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -45,24 +47,43 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     private void validateBaseClass(ClassDeclarationNode classDeclaration, SymbolTable data) {
         if (!classDeclaration.baseClasses.isEmpty()) {
             if (classDeclaration.baseClasses.size() > 1) {
-                throw new SA_SemanticError("Class '" + classDeclaration.name + "' cannot extend more than one class.");
+                LoggerFacade.getLogger().log(
+                    Logger.Severity.ERROR,
+                    "Class '" + classDeclaration.name + "' cannot extend more than one class",
+                    ASTMetaDataStore.getInstance().getLine(classDeclaration),
+                    ASTMetaDataStore.getInstance().getFile(classDeclaration)
+                );
             }
 
             final String baseClassName = classDeclaration.baseClasses.get(0).name;
             final ClassDeclarationNode fileLevelBaseClass = data.getClass(baseClassName);
             final ClassDeclarationNode baseClass = getClassDeclarationNode(classDeclaration, baseClassName, fileLevelBaseClass);
-            checkCircularInheritance(classDeclaration.name, baseClass, new HashSet<>(), data);
+
+            if (baseClass != null) {
+                checkCircularInheritance(classDeclaration.name, baseClass, new HashSet<>(), data);
+            }
         }
     }
 
     private ClassDeclarationNode getClassDeclarationNode(ClassDeclarationNode classDeclaration, String baseClassName, ClassDeclarationNode fileLevelBaseClass) {
         final ClassDeclarationNode packageLevelBaseClass = packageLevel.getClass(baseClassName);
         if (fileLevelBaseClass == null && packageLevelBaseClass == null) {
-            throw new SA_SemanticError("Base class '" + baseClassName + "' for class '" + classDeclaration.name + "' was not found.");
+            LoggerFacade.getLogger().log(
+                Logger.Severity.ERROR,
+                "Base class '" + baseClassName + "' for class '" + classDeclaration.name + "' was not found.",
+                ASTMetaDataStore.getInstance().getLine(classDeclaration),
+                ASTMetaDataStore.getInstance().getFile(classDeclaration)
+            );
         }
 
         if (classDeclaration.name.equals(baseClassName)) {
-            throw new SA_SemanticError("Class cannot extend itself: " + classDeclaration.name);
+            LoggerFacade.getLogger().log(
+                Logger.Severity.ERROR,
+                "Class cannot extend itself: " + classDeclaration.name,
+                ASTMetaDataStore.getInstance().getLine(classDeclaration),
+                ASTMetaDataStore.getInstance().getFile(classDeclaration)
+            );
+            return null;
         }
 
         return fileLevelBaseClass == null ? packageLevelBaseClass : fileLevelBaseClass;
@@ -75,9 +96,13 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
         SymbolTable data
     ) {
         if (visited.contains(currentClass.name)) {
-            throw new SA_SemanticError(
-                "Circular inheritance detected: " + originalClass + " -> " + currentClass.name
+            LoggerFacade.getLogger().log(
+                Logger.Severity.ERROR,
+                "Circular inheritance detected: " + originalClass + " -> " + currentClass.name,
+                ASTMetaDataStore.getInstance().getLine(currentClass),
+                ASTMetaDataStore.getInstance().getFile(currentClass)
             );
+            return;
         }
 
         visited.add(currentClass.name);
@@ -98,7 +123,13 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     private void validateInterfaces(List<BaseInterfaceNode> interfaces, SymbolTable data) {
         for (final BaseInterfaceNode interfaceNode : interfaces) {
             if (data.getInterface(interfaceNode.name) == null && packageLevel.getInterface(interfaceNode.name) == null) {
-                throw new SA_SemanticError("Interface '" + interfaceNode.name + "' was not found.");
+                LoggerFacade.getLogger().log(
+                    Logger.Severity.ERROR,
+                    "Interface '" + interfaceNode.name + "' was not found.",
+                    ASTMetaDataStore.getInstance().getLine(interfaceNode),
+                    ASTMetaDataStore.getInstance().getFile(interfaceNode)
+                );
+                return;
             }
         }
     }
@@ -110,9 +141,13 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
         SymbolTable data
     ) {
         if (visited.contains(currentInterface.name)) {
-            throw new SA_SemanticError(
-                "Circular inheritance detected: " + currentInterface.name + " -> " + originalInterface
+            LoggerFacade.getLogger().log(
+                Logger.Severity.ERROR,
+                "Circular inheritance detected: " + currentInterface.name + " -> " + originalInterface,
+                ASTMetaDataStore.getInstance().getLine(currentInterface),
+                ASTMetaDataStore.getInstance().getFile(currentInterface)
             );
+            return;
         }
 
         visited.add(currentInterface.name);
@@ -133,11 +168,23 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     private void validateInterfaces(InterfaceNode interfaceNode, SymbolTable data) {
         for (final BaseInterfaceNode currentInterface : interfaceNode.implementedInterfaces) {
             if (data.getInterface(currentInterface.name) == null && packageLevel.getInterface(currentInterface.name) == null) {
-                throw new SA_SemanticError("Interface '" + currentInterface.name + "' was not found.");
+                LoggerFacade.getLogger().log(
+                    Logger.Severity.ERROR,
+                    "Interface '" + currentInterface.name + "' was not found.",
+                    ASTMetaDataStore.getInstance().getLine(currentInterface),
+                    ASTMetaDataStore.getInstance().getFile(currentInterface)
+                );
+                return;
             }
 
             if (currentInterface.name.equals(interfaceNode.name)) {
-                throw new SA_SemanticError("Interface cannot extend itself: " + interfaceNode.name);
+                LoggerFacade.getLogger().log(
+                    Logger.Severity.ERROR,
+                    "Interface cannot extend itself: " + interfaceNode.name,
+                    ASTMetaDataStore.getInstance().getLine(interfaceNode),
+                    ASTMetaDataStore.getInstance().getFile(interfaceNode)
+                );
+                return;
             }
 
             checkCircularInterfaceInheritance(interfaceNode.name, interfaceNode, new HashSet<>(), data);

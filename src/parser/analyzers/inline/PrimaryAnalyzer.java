@@ -2,6 +2,7 @@ package parser.analyzers.inline;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
+import parser.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.top.ExpressionAnalyzer;
 import parser.nodes.classes.ObjectNode;
@@ -18,6 +19,7 @@ import static parser.analyzers.inline.IdentifierReferenceAnalyzer.parseArguments
 public class PrimaryAnalyzer {
     public static ExpressionNode parse(final Parser parser) {
         final Token token = parser.advance();
+        final int line = token.line();
 
         return switch (token.type()) {
             case NULL -> new NullLiteral();
@@ -36,14 +38,14 @@ public class PrimaryAnalyzer {
                 final List<ArgumentNode> args = parseArguments(parser);
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
-                yield new ObjectNode(identifier.value(), args);
+                yield (ExpressionNode) ASTMetaDataStore.getInstance().addMetadata(new ObjectNode(identifier.value(), args), line, parser.file);
             }
             case OPEN_PARENTHESES -> {
                 ExpressionNode expr = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
 
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
-                yield expr;
+                yield (ExpressionNode) ASTMetaDataStore.getInstance().addMetadata(expr, line, parser.file);
             }
             default -> null;
         };

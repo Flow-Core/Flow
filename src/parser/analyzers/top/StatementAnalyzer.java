@@ -1,6 +1,8 @@
 package parser.analyzers.top;
 
+import lexer.token.Token;
 import lexer.token.TokenType;
+import parser.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
@@ -12,7 +14,9 @@ import parser.nodes.variable.VariableAssignmentNode;
 public class StatementAnalyzer extends TopAnalyzer {
     @Override
     public TopAnalyzer.AnalyzerResult parse(final Parser parser) {
-        switch (parser.advance().type()) {
+        final Token currentToken = parser.advance();
+        final int line = currentToken.line();
+        switch (currentToken.type()) {
             case IF:
                 parser.consume(TokenType.OPEN_PARENTHESES);
                 final ExpressionNode ifCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
@@ -31,10 +35,14 @@ public class StatementAnalyzer extends TopAnalyzer {
                 }
 
                 return new AnalyzerResult(
-                    new IfStatementNode(
-                        ifCondition,
-                        trueBranch,
-                        falseBranch
+                    ASTMetaDataStore.getInstance().addMetadata(
+                        new IfStatementNode(
+                            ifCondition,
+                            trueBranch,
+                            falseBranch
+                        ),
+                        line,
+                        parser.file
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
@@ -56,11 +64,15 @@ public class StatementAnalyzer extends TopAnalyzer {
                 final BlockNode forBlock = getBlock(parser);
 
                 return new AnalyzerResult(
-                    new ForStatementNode(
-                        loopVariable,
-                        forCondition,
-                        loopUpdate,
-                        forBlock
+                    ASTMetaDataStore.getInstance().addMetadata(
+                        new ForStatementNode(
+                            loopVariable,
+                            forCondition,
+                            loopUpdate,
+                            forBlock
+                        ),
+                        line,
+                        parser.file
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
@@ -76,10 +88,14 @@ public class StatementAnalyzer extends TopAnalyzer {
                 final BlockNode foreachBlock = getBlock(parser);
 
                 return new AnalyzerResult(
-                    new ForeachStatementNode(
-                        foreachVariable,
-                        foreachCollection,
-                        foreachBlock
+                    ASTMetaDataStore.getInstance().addMetadata(
+                        new ForeachStatementNode(
+                            foreachVariable,
+                            foreachCollection,
+                            foreachBlock
+                        ),
+                        line,
+                        parser.file
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
@@ -91,8 +107,12 @@ public class StatementAnalyzer extends TopAnalyzer {
                 final BlockNode whileBlock = getBlock(parser);
 
                 return new AnalyzerResult(
-                    new WhileStatementNode(
-                        whileCondition, whileBlock
+                    ASTMetaDataStore.getInstance().addMetadata(
+                        new WhileStatementNode(
+                            whileCondition, whileBlock
+                        ),
+                        line,
+                        parser.file
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
@@ -106,19 +126,23 @@ public class StatementAnalyzer extends TopAnalyzer {
                 parser.consume(TokenType.CLOSE_BRACES);
 
                 return new AnalyzerResult(
-                    new SwitchStatementNode(
-                        switchCondition,
-                        switchBlock.children
-                            .stream()
-                            .filter(node -> node instanceof CaseNode)
-                            .map(node -> (CaseNode) node)
-                            .toList(),
-                        switchBlock.children
-                            .stream()
-                            .filter(node -> node instanceof BlockNode)
-                            .map(node -> (BlockNode) node)
-                            .findFirst()
-                            .orElse(null)
+                    ASTMetaDataStore.getInstance().addMetadata(
+                        new SwitchStatementNode(
+                            switchCondition,
+                            switchBlock.children
+                                .stream()
+                                .filter(node -> node instanceof CaseNode)
+                                .map(node -> (CaseNode) node)
+                                .toList(),
+                            switchBlock.children
+                                .stream()
+                                .filter(node -> node instanceof BlockNode)
+                                .map(node -> (BlockNode) node)
+                                .findFirst()
+                                .orElse(null)
+                        ),
+                        line,
+                        parser.file
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );

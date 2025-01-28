@@ -1,12 +1,13 @@
 package semantic_analysis.loaders;
 
+import logger.Logger;
+import logger.LoggerFacade;
+import parser.ASTMetaDataStore;
 import parser.nodes.ASTNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.packages.ImportNode;
 import semantic_analysis.PackageWrapper;
 import semantic_analysis.SymbolTable;
-import semantic_analysis.exceptions.SA_SemanticError;
-import semantic_analysis.exceptions.SA_UnresolvedPackageException;
 
 import java.util.Map;
 
@@ -27,13 +28,24 @@ public class ImportLoader {
         final String module = modulePath.substring(lastDotIndex + 1);
 
         if (!globalPackages.containsKey(packagePath)) {
-            throw new SA_UnresolvedPackageException(packagePath);
+            LoggerFacade.getLogger().log(
+                Logger.Severity.ERROR,
+                "Package not found: '" + packagePath + "'",
+                ASTMetaDataStore.getInstance().getLine(importNode),
+                ASTMetaDataStore.getInstance().getFile(importNode)
+            );
+            return;
         }
 
         final SymbolTable importedSymbols = globalPackages.get(packagePath).symbolTable();
         if (importNode.isWildcard) {
             if (!importNode.alias.equals("*")) {
-                throw new SA_SemanticError("Cannot rename all imported items to one identifier");
+                LoggerFacade.getLogger().log(
+                    Logger.Severity.ERROR,
+                    "Cannot rename all imported items to one identifier",
+                    ASTMetaDataStore.getInstance().getLine(importNode),
+                    ASTMetaDataStore.getInstance().getFile(importNode)
+                );
             }
 
             data.recognizeSymbolTable(importedSymbols);
@@ -80,7 +92,12 @@ public class ImportLoader {
                 return;
             }
 
-            throw new SA_SemanticError("Symbol not found in package: " + module);
+            LoggerFacade.getLogger().log(
+                Logger.Severity.ERROR,
+                "Symbol not found in package: " + module,
+                ASTMetaDataStore.getInstance().getLine(importNode),
+                ASTMetaDataStore.getInstance().getFile(importNode)
+            );
         }
     }
 }

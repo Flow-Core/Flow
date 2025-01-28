@@ -1,6 +1,7 @@
 package parser.analyzers.classes;
 
 import lexer.token.TokenType;
+import parser.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
@@ -21,6 +22,7 @@ public class ClassAnalyzer extends TopAnalyzer {
     @Override
     public AnalyzerResult parse(final Parser parser) {
         final List<String> modifiers = parseModifiers(parser);
+        final int line = parser.peek().line();
 
         TopAnalyzer.testFor(parser, TokenType.CLASS);
         final String name = parser.consume(TokenType.IDENTIFIER).value();
@@ -41,30 +43,34 @@ public class ClassAnalyzer extends TopAnalyzer {
         parser.consume(TokenType.CLOSE_BRACES);
 
         final AnalyzerResult analyzerResult = new AnalyzerResult(
-            new ClassDeclarationNode(
-                name,
-                modifiers,
-                classArgs,
-                supertypes.implementedClasses,
-                supertypes.implementedInterfaces,
-                block.children.stream()
-                    .filter(child -> child instanceof FieldNode)
-                    .map(child -> (FieldNode) child)
-                    .collect(Collectors.toList()),
-                block.children.stream()
-                    .filter(child -> child instanceof FunctionDeclarationNode)
-                    .map(child -> (FunctionDeclarationNode) child)
-                    .collect(Collectors.toList()),
-                block.children.stream()
-                    .filter(child -> child instanceof ConstructorNode)
-                    .map(child -> (ConstructorNode) child)
-                    .collect(Collectors.toList()),
-                block.children.stream()
-                    .filter(child -> child instanceof BlockNode)
-                    .map(child -> (BlockNode) child)
-                    .findFirst()
-                    .orElse(null),
-                null
+            ASTMetaDataStore.getInstance().addMetadata(
+                new ClassDeclarationNode(
+                    name,
+                    modifiers,
+                    classArgs,
+                    supertypes.implementedClasses,
+                    supertypes.implementedInterfaces,
+                    block.children.stream()
+                        .filter(child -> child instanceof FieldNode)
+                        .map(child -> (FieldNode) child)
+                        .collect(Collectors.toList()),
+                    block.children.stream()
+                        .filter(child -> child instanceof FunctionDeclarationNode)
+                        .map(child -> (FunctionDeclarationNode) child)
+                        .collect(Collectors.toList()),
+                    block.children.stream()
+                        .filter(child -> child instanceof ConstructorNode)
+                        .map(child -> (ConstructorNode) child)
+                        .collect(Collectors.toList()),
+                    block.children.stream()
+                        .filter(child -> child instanceof BlockNode)
+                        .map(child -> (BlockNode) child)
+                        .findFirst()
+                        .orElse(null),
+                    null
+                ),
+                line,
+                parser.file
             ),
             TerminationStatus.NO_TERMINATION
         );

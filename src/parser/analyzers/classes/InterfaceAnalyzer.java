@@ -2,6 +2,7 @@ package parser.analyzers.classes;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
+import parser.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
@@ -19,6 +20,7 @@ import static parser.analyzers.top.FunctionDeclarationAnalyzer.parseModifiers;
 public class InterfaceAnalyzer extends TopAnalyzer {
     public AnalyzerResult parse(final Parser parser) {
         List<String> modifiers = parseModifiers(parser);
+        final int line = parser.peek().line();
 
         TopAnalyzer.testFor(parser, TokenType.INTERFACE);
 
@@ -37,7 +39,7 @@ public class InterfaceAnalyzer extends TopAnalyzer {
         block.children.removeAll(methods);
 
         return new AnalyzerResult(
-            new InterfaceNode(name, modifiers, implementedInterfaces, methods, block),
+            ASTMetaDataStore.getInstance().addMetadata(new InterfaceNode(name, modifiers, implementedInterfaces, methods, block), line, parser.file),
             TerminationStatus.NO_TERMINATION
         );
     }

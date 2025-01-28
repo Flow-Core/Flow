@@ -1,5 +1,8 @@
 package semantic_analysis.loaders;
 
+import logger.Logger;
+import logger.LoggerFacade;
+import parser.ASTMetaDataStore;
 import parser.nodes.ASTNode;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.FieldNode;
@@ -7,7 +10,6 @@ import parser.nodes.classes.InterfaceNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.PackageWrapper;
 import semantic_analysis.SymbolTable;
-import semantic_analysis.exceptions.SA_RedefinitionException;
 
 import java.util.List;
 
@@ -32,7 +34,12 @@ public class SignatureLoader {
         boolean isPublic = !classDeclaration.modifiers.contains("private") && !classDeclaration.modifiers.contains("protected");
 
         if (packageWrapper.symbolTable().findSymbol(classDeclaration.name)) {
-            throw new SA_RedefinitionException(classDeclaration.name);
+            LoggerFacade.getLogger().log(
+                Logger.Severity.ERROR,
+                "Symbol '" + classDeclaration.name + "' redefined",
+                ASTMetaDataStore.getInstance().getLine(classDeclaration),
+                ASTMetaDataStore.getInstance().getFile(classDeclaration)
+            );
         }
 
         if (isPublic) {
@@ -47,7 +54,12 @@ public class SignatureLoader {
         boolean isPublic = !interfaceDeclaration.modifiers.contains("private") && !interfaceDeclaration.modifiers.contains("protected");
 
         if (packageWrapper.symbolTable().findSymbol(interfaceDeclaration.name)) {
-            throw new SA_RedefinitionException(interfaceDeclaration.name);
+            LoggerFacade.getLogger().log(
+                Logger.Severity.ERROR,
+                "Symbol '" + interfaceDeclaration.name + "' redefined",
+                ASTMetaDataStore.getInstance().getLine(interfaceDeclaration),
+                ASTMetaDataStore.getInstance().getFile(interfaceDeclaration)
+            );
         }
 
         if (isPublic) {
@@ -74,7 +86,12 @@ public class SignatureLoader {
 
         final String name = fieldNode.initialization.declaration.name;
         if (packageWrapper.symbolTable().findSymbol(name)) {
-            throw new SA_RedefinitionException(name);
+            LoggerFacade.getLogger().log(
+                Logger.Severity.ERROR,
+                "Symbol '" + fieldNode.initialization.declaration.name + "' redefined",
+                ASTMetaDataStore.getInstance().getLine(fieldNode.initialization),
+                ASTMetaDataStore.getInstance().getFile(fieldNode.initialization)
+            );
         }
 
         if (isPublic) {

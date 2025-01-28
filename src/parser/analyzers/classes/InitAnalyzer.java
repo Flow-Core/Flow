@@ -1,6 +1,7 @@
 package parser.analyzers.classes;
 
 import lexer.token.TokenType;
+import parser.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
@@ -10,6 +11,7 @@ import parser.nodes.components.BlockNode;
 public class InitAnalyzer extends TopAnalyzer {
     @Override
     public AnalyzerResult parse(final Parser parser) {
+        final int line = parser.peek().line();
         TopAnalyzer.testFor(parser, TokenType.INIT);
 
         parser.consume(TokenType.OPEN_BRACES);
@@ -21,7 +23,7 @@ public class InitAnalyzer extends TopAnalyzer {
         parser.consume(TokenType.CLOSE_BRACES);
 
         return new AnalyzerResult(
-            block,
+            ASTMetaDataStore.getInstance().addMetadata(block, line, parser.file),
             TerminationStatus.NO_TERMINATION
         );
     }

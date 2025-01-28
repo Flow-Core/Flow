@@ -1,6 +1,7 @@
 package parser.analyzers.switches;
 
 import lexer.token.TokenType;
+import parser.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
@@ -14,6 +15,7 @@ public class CaseAnalyzer extends TopAnalyzer {
     @Override
     public AnalyzerResult parse(final Parser parser) {
         TopAnalyzer.testFor(parser, TokenType.CASE);
+        final int line = parser.peek().line();
 
         parser.consume(TokenType.OPEN_PARENTHESES);
         final ExpressionNode expression = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
@@ -24,10 +26,7 @@ public class CaseAnalyzer extends TopAnalyzer {
         parser.consume(TokenType.CLOSE_BRACES);
 
         return new AnalyzerResult(
-            new CaseNode(
-                expression,
-                block
-            ),
+            ASTMetaDataStore.getInstance().addMetadata(new CaseNode(expression, block), line, parser.file),
             parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
         );
     }

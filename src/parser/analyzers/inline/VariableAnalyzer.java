@@ -2,6 +2,7 @@ package parser.analyzers.inline;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
+import parser.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.TopAnalyzer;
 import parser.analyzers.top.ExpressionAnalyzer;
@@ -17,6 +18,7 @@ public class VariableAnalyzer {
     public static InitializedVariableNode parseInitialization(final Parser parser) {
         final Token modifier = TopAnalyzer.testFor(parser, TokenType.VAR, TokenType.VAL, TokenType.CONST);
         final Token name = parser.consume(TokenType.IDENTIFIER);
+        final int line = name.line();
 
         // Check for type specification
         if (parser.check(TokenType.EQUAL_OPERATOR)) {
@@ -26,9 +28,10 @@ public class VariableAnalyzer {
             final VariableAssignmentNode assignment = new VariableAssignmentNode(
                 name.value(),
                 "=",
-                new ExpressionBaseNode(expr));
+                new ExpressionBaseNode(expr)
+            );
 
-            return new InitializedVariableNode(declaration, assignment);
+            return (InitializedVariableNode) ASTMetaDataStore.getInstance().addMetadata(new InitializedVariableNode(declaration, assignment), line, parser.file);
         } else if (parser.check(TokenType.COLON_OPERATOR)) {
             parser.advance();
             final String type = parseModulePath(parser);
@@ -56,7 +59,14 @@ public class VariableAnalyzer {
                 "=",
                 new ExpressionBaseNode(expr));
 
-            return new InitializedVariableNode(variableDeclarationNode, assignment);
+            return (InitializedVariableNode) ASTMetaDataStore.getInstance().addMetadata(
+                new InitializedVariableNode(
+                    variableDeclarationNode,
+                    assignment
+                ),
+                line,
+                parser.file
+            );
         }
 
         return null;

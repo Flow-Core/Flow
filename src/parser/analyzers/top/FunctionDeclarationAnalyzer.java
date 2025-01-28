@@ -2,6 +2,7 @@ package parser.analyzers.top;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
+import parser.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
@@ -17,6 +18,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
     @Override
     public TopAnalyzer.AnalyzerResult parse(final Parser parser) {
         final FunctionDeclarationNode functionDeclaration = parseFunctionSignature(parser);
+        final int line = parser.peek().line();
 
         if (parser.check(TokenType.OPEN_BRACES)) {
             parser.advance();
@@ -28,7 +30,10 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
             functionDeclaration.block = block;
         }
 
-        return new AnalyzerResult(functionDeclaration, TerminationStatus.NO_TERMINATION);
+        return new AnalyzerResult(
+            ASTMetaDataStore.getInstance().addMetadata(functionDeclaration, line, parser.file),
+            TerminationStatus.NO_TERMINATION
+        );
     }
 
     public static List<String> parseModifiers(final Parser parser) {
