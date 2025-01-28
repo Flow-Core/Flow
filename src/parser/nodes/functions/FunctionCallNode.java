@@ -7,10 +7,18 @@ import parser.nodes.expressions.ExpressionNode;
 import java.util.List;
 
 public class FunctionCallNode implements ExpressionNode {
+    public String callerType;
     public String name;
     public List<ArgumentNode> arguments;
 
     public FunctionCallNode(String name, List<ArgumentNode> arguments) {
+        this.name = name;
+        this.arguments = arguments;
+        this.callerType = null;
+    }
+
+    public FunctionCallNode(String callerType, String name, List<ArgumentNode> arguments) {
+        this.callerType = callerType;
         this.name = name;
         this.arguments = arguments;
     }
