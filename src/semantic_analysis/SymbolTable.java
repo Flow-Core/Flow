@@ -4,6 +4,7 @@ import parser.nodes.ASTNode;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.InterfaceNode;
+import parser.nodes.classes.TypeDeclarationNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 
 import java.util.ArrayList;
@@ -57,6 +58,16 @@ public record SymbolTable(
         ).findFirst().orElse(null);
     }
 
+    public TypeDeclarationNode getTypeDeclaration(String symbol) {
+        TypeDeclarationNode type = getClass(symbol);
+
+        if (type == null) {
+            type = getInterface(symbol);
+        }
+
+        return type;
+    }
+
     public FunctionDeclarationNode getFunction(String symbol) {
         return functions().stream().filter(
             interfaceNode -> interfaceNode.name.equals(symbol)
@@ -79,6 +90,10 @@ public record SymbolTable(
         return interfaces().stream().anyMatch(
             existingInterface -> existingInterface.name.equals(symbol)
         );
+    }
+
+    public boolean findTypeDeclaration(String symbol) {
+        return findClass(symbol) || findInterface(symbol);
     }
 
     public boolean findFunction(String symbol) {
