@@ -1,8 +1,11 @@
-package semantic_analysis;
+package semantic_analysis.loaders;
 
 import parser.nodes.ASTNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.packages.PackageNode;
+import semantic_analysis.FileWrapper;
+import semantic_analysis.PackageWrapper;
+import semantic_analysis.SymbolTable;
 
 import java.util.ArrayList;
 import java.util.HashMap;

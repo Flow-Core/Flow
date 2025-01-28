@@ -1,4 +1,4 @@
-package semantic_analysis.visitors;
+package semantic_analysis.loaders;
 
 import parser.nodes.ASTNode;
 import parser.nodes.components.BlockNode;
@@ -10,8 +10,8 @@ import semantic_analysis.exceptions.SA_UnresolvedPackageException;
 
 import java.util.Map;
 
-public class ImportVisitor {
-    public void visit(final BlockNode root, final SymbolTable data, final Map<String, PackageWrapper> globalPackages) {
+public class ImportLoader {
+    public void load(final BlockNode root, final SymbolTable data, final Map<String, PackageWrapper> globalPackages) {
         for (final ASTNode node : root.children) {
             if (node instanceof ImportNode importNode) {
                 validateImport(importNode, data, globalPackages);

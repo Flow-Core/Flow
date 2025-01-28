@@ -1,4 +1,4 @@
-package semantic_analysis.visitors;
+package semantic_analysis.loaders;
 
 import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;

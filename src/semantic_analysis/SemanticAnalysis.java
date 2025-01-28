@@ -1,8 +1,8 @@
 package semantic_analysis;
 
-import semantic_analysis.visitors.ClassLoader;
-import semantic_analysis.visitors.SignatureLoader;
-import semantic_analysis.visitors.ImportVisitor;
+import semantic_analysis.loaders.ClassLoader;
+import semantic_analysis.loaders.SignatureLoader;
+import semantic_analysis.loaders.ImportLoader;
 
 import java.util.Map;
 
@@ -22,7 +22,7 @@ public class SemanticAnalysis {
 
         for (final PackageWrapper currentPackageWrapper : packages.values()) {
             for (final FileWrapper file : currentPackageWrapper.files()) {
-                new ImportVisitor().visit(file.root(), file.symbolTable(), packages);
+                new ImportLoader().load(file.root(), file.symbolTable(), packages);
             }
         }
 

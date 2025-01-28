@@ -2,7 +2,7 @@ import lexer.Lexer;
 import lexer.token.Token;
 import parser.Parser;
 import parser.nodes.components.BlockNode;
-import semantic_analysis.PackageMapper;
+import semantic_analysis.loaders.PackageMapper;
 import semantic_analysis.PackageWrapper;
 import semantic_analysis.SemanticAnalysis;
 
