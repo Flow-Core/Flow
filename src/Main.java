@@ -21,8 +21,6 @@ public class Main {
                 val x = 10
                 var ip: Ip = 127.0.0.1
                 var d: Double = 124.5215
-                d = 12.9++
-                d += !10
                 d = 12.9
                 d += 10
                 var x: String? = "test"

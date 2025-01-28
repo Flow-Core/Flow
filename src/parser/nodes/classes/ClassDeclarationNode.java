@@ -12,7 +12,6 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
     public List<String> modifiers;
     public List<FieldNode> primaryConstructor;
     public List<BaseClassNode> baseClasses;
-    public List<BaseInterfaceNode> interfaces;
     public List<FieldNode> fields;
     public List<ConstructorNode> constructors;
     public BlockNode initBlock;
@@ -23,7 +22,7 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
         final List<String> modifiers,
         final List<FieldNode> primaryConstructor,
         final List<BaseClassNode> baseClasses,
-        final List<BaseInterfaceNode> interfaces,
+        final List<BaseInterfaceNode> implementedInterfaces,
         final List<FieldNode> fields,
         final List<FunctionDeclarationNode> methods,
         final List<ConstructorNode> constructors,
@@ -34,7 +33,7 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
         this.modifiers = modifiers != null ? modifiers : new ArrayList<>();
         this.primaryConstructor = primaryConstructor;
         this.baseClasses = baseClasses;
-        this.interfaces = interfaces;
+        this.implementedInterfaces = implementedInterfaces;
         this.fields = fields;
         this.methods = methods;
         this.constructors = constructors;
@@ -54,7 +53,7 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
             baseClass.accept(visitor, data);
         }
 
-        for (final BaseInterfaceNode baseInterface : interfaces) {
+        for (final BaseInterfaceNode baseInterface : implementedInterfaces) {
             baseInterface.accept(visitor, data);
         }
 
@@ -84,7 +83,7 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
             ", modifiers=" + modifiers +
             ", primaryConstructor=" + primaryConstructor +
             ", baseClasses=" + baseClasses +
-            ", interfaces=" + interfaces +
+            ", interfaces=" + implementedInterfaces +
             ", fields=" + fields +
             ", methods=" + methods +
             ", constructors=" + constructors +

@@ -9,7 +9,6 @@ import java.util.List;
 public class InterfaceNode extends TypeDeclarationNode {
     public String name;
     public List<String> modifiers;
-    public List<BaseInterfaceNode> implementedInterfaces;
     public BlockNode block;
 
     public InterfaceNode(

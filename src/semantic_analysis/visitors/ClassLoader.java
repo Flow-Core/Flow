@@ -14,7 +14,9 @@ import semantic_analysis.SymbolTable;
 import semantic_analysis.exceptions.SA_SemanticError;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ClassLoader implements ASTVisitor<SymbolTable> {
     private final SymbolTable packageLevel;
@@ -28,29 +30,124 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
         if (node instanceof ClassDeclarationNode classDeclaration) {
             handleClass(classDeclaration, data);
         } else if (node instanceof InterfaceNode interfaceDeclaration) {
-            interfaceHandler(interfaceDeclaration, data);
+            handleInterface(interfaceDeclaration, data);
         }
     }
 
     private void handleClass(final ClassDeclarationNode classDeclaration, final SymbolTable data) {
+        validateBaseClass(classDeclaration, data);
+        validateInterfaces(classDeclaration.implementedInterfaces, data);
+
+        addPrimaryConstructor(classDeclaration);
+        addThisParameterToInstanceMethods(classDeclaration);
+    }
+
+    private void validateBaseClass(ClassDeclarationNode classDeclaration, SymbolTable data) {
         if (!classDeclaration.baseClasses.isEmpty()) {
             if (classDeclaration.baseClasses.size() > 1) {
-                throw new SA_SemanticError("Only one class can appear in a supertype list");
+                throw new SA_SemanticError("Class '" + classDeclaration.name + "' cannot extend more than one class.");
             }
-            if (!data.findClass(classDeclaration.baseClasses.get(0).name) && !packageLevel.findClass(classDeclaration.baseClasses.get(0).name)) {
-                throw new SA_SemanticError("Class '" + classDeclaration.baseClasses.get(0).name + "' was not found");
-            }
+
+            final String baseClassName = classDeclaration.baseClasses.get(0).name;
+            final ClassDeclarationNode fileLevelBaseClass = data.getClass(baseClassName);
+            final ClassDeclarationNode baseClass = getClassDeclarationNode(classDeclaration, baseClassName, fileLevelBaseClass);
+            checkCircularInheritance(classDeclaration.name, baseClass, new HashSet<>(), data);
         }
-        for (final BaseInterfaceNode interfaceNode : classDeclaration.interfaces) {
-            if (!data.findInterface(interfaceNode.name) && !packageLevel.findInterface(interfaceNode.name)) {
-                throw new SA_SemanticError("Interface '" + interfaceNode.name + "' was not found");
-            }
+    }
+
+    private ClassDeclarationNode getClassDeclarationNode(ClassDeclarationNode classDeclaration, String baseClassName, ClassDeclarationNode fileLevelBaseClass) {
+        final ClassDeclarationNode packageLevelBaseClass = packageLevel.getClass(baseClassName);
+        if (fileLevelBaseClass == null && packageLevelBaseClass == null) {
+            throw new SA_SemanticError("Base class '" + baseClassName + "' for class '" + classDeclaration.name + "' was not found.");
         }
 
+        if (classDeclaration.name.equals(baseClassName)) {
+            throw new SA_SemanticError("Class cannot extend itself: " + classDeclaration.name);
+        }
+
+        return fileLevelBaseClass == null ? packageLevelBaseClass : fileLevelBaseClass;
+    }
+
+    private void checkCircularInheritance(
+        String originalClass,
+        ClassDeclarationNode currentClass,
+        Set<String> visited,
+        SymbolTable data
+    ) {
+        if (visited.contains(currentClass.name)) {
+            throw new SA_SemanticError(
+                "Circular inheritance detected: " + originalClass + " -> " + currentClass.name
+            );
+        }
+
+        visited.add(currentClass.name);
+
+        for (BaseClassNode base : currentClass.baseClasses) {
+            ClassDeclarationNode nextBase = resolveClass(base.name, data);
+            if (nextBase != null) {
+                checkCircularInheritance(originalClass, nextBase, new HashSet<>(visited), data);
+            }
+        }
+    }
+
+    private ClassDeclarationNode resolveClass(String className, SymbolTable data) {
+        ClassDeclarationNode cls = data.getClass(className);
+        return (cls != null) ? cls : packageLevel.getClass(className);
+    }
+
+    private void validateInterfaces(List<BaseInterfaceNode> interfaces, SymbolTable data) {
+        for (final BaseInterfaceNode interfaceNode : interfaces) {
+            if (data.getInterface(interfaceNode.name) == null && packageLevel.getInterface(interfaceNode.name) == null) {
+                throw new SA_SemanticError("Interface '" + interfaceNode.name + "' was not found.");
+            }
+        }
+    }
+
+    private void checkCircularInterfaceInheritance(
+        String originalInterface,
+        InterfaceNode currentInterface,
+        Set<String> visited,
+        SymbolTable data
+    ) {
+        if (visited.contains(currentInterface.name)) {
+            throw new SA_SemanticError(
+                "Circular inheritance detected: " + currentInterface.name + " -> " + originalInterface
+            );
+        }
+
+        visited.add(currentInterface.name);
+
+        for (BaseInterfaceNode base : currentInterface.implementedInterfaces) {
+            InterfaceNode nextInterface = resolveInterface(base.name, data);
+            if (nextInterface != null) {
+                checkCircularInterfaceInheritance(currentInterface.name, nextInterface, new HashSet<>(visited), data);
+            }
+        }
+    }
+
+    private InterfaceNode resolveInterface(String name, SymbolTable data) {
+        InterfaceNode iface = data.getInterface(name);
+        return (iface != null) ? iface : packageLevel.getInterface(name);
+    }
+
+    private void validateInterfaces(InterfaceNode interfaceNode, SymbolTable data) {
+        for (final BaseInterfaceNode currentInterface : interfaceNode.implementedInterfaces) {
+            if (data.getInterface(currentInterface.name) == null && packageLevel.getInterface(currentInterface.name) == null) {
+                throw new SA_SemanticError("Interface '" + currentInterface.name + "' was not found.");
+            }
+
+            if (currentInterface.name.equals(interfaceNode.name)) {
+                throw new SA_SemanticError("Interface cannot extend itself: " + interfaceNode.name);
+            }
+
+            checkCircularInterfaceInheritance(interfaceNode.name, interfaceNode, new HashSet<>(), data);
+        }
+    }
+
+    private void addPrimaryConstructor(ClassDeclarationNode classDeclaration) {
         List<ParameterNode> primaryParameters = new ArrayList<>();
         List<ASTNode> assignments = new ArrayList<>();
 
-        // Add the primary constructor fields
         for (FieldNode field : classDeclaration.primaryConstructor) {
             primaryParameters.add(
                 new ParameterNode(
@@ -76,33 +173,29 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
             );
         }
 
-        classDeclaration.constructors.add(
-            new ConstructorNode(
-                "public",
-                primaryParameters,
-                new BlockNode(
-                    assignments
-                )
-            )
+        ConstructorNode primaryConstructor = new ConstructorNode(
+            "public",
+            primaryParameters,
+            new BlockNode(assignments)
         );
 
-        for (FunctionDeclarationNode functionDeclarationNode : classDeclaration.methods) {
-            if (!functionDeclarationNode.modifiers.contains("static")) {
-                functionDeclarationNode.parameters.add(0, new ParameterNode(classDeclaration.name, "this", null));
+        classDeclaration.constructors.add(primaryConstructor);
+    }
+
+    private void addThisParameterToInstanceMethods(ClassDeclarationNode classDeclaration) {
+        for (FunctionDeclarationNode functionDeclaration : classDeclaration.methods) {
+            if (!functionDeclaration.modifiers.contains("static")) {
+                functionDeclaration.parameters.add(0, new ParameterNode(classDeclaration.name, "this", null));
             }
         }
     }
 
-    private void interfaceHandler(final InterfaceNode interfaceNode, final SymbolTable data) {
-        for (final BaseInterfaceNode baseInterfaceNode : interfaceNode.implementedInterfaces) {
-            if (!data.findInterface(interfaceNode.name) && !packageLevel.findInterface(interfaceNode.name)) {
-                throw new SA_SemanticError("Interface '" + baseInterfaceNode.name + "' was not found");
-            }
-        }
+    private void handleInterface(final InterfaceNode interfaceDeclaration, final SymbolTable data) {
+        validateInterfaces(interfaceDeclaration, data);
 
-        for (FunctionDeclarationNode functionDeclarationNode : interfaceNode.methods) {
-            if (!functionDeclarationNode.modifiers.contains("static")) {
-                functionDeclarationNode.parameters.add(0, new ParameterNode(interfaceNode.name, "this", null));
+        for (FunctionDeclarationNode functionDeclaration : interfaceDeclaration.methods) {
+            if (!functionDeclaration.modifiers.contains("static")) {
+                functionDeclaration.parameters.add(0, new ParameterNode(interfaceDeclaration.name, "this", null));
             }
         }
     }
