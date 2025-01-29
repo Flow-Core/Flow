@@ -174,7 +174,13 @@ public class ExpressionTraverse {
             throw new SA_UnresolvedSymbolException(variable.variable); // LOG
         }
         if (expression instanceof FunctionCallNode functionCall) {
-            FunctionDeclarationNode function = scope.getFunction(functionCall.name);
+            FunctionDeclarationNode function = findMethodWithParameters(
+                scope,
+                functionCall.name,
+                functionCall.arguments.stream().map(
+                    argument -> determineType(argument.value, scope)
+                ).toList()
+            );
 
             if (function != null) {
                 return function.returnType;
@@ -207,6 +213,22 @@ public class ExpressionTraverse {
             .filter(method -> method.name.equals(name))
             .filter(method -> compareParameterTypes(method.parameters, parameterTypes))
             .findFirst().orElse(null);
+    }
+
+    private static FunctionDeclarationNode findMethodWithParameters(
+        Scope scope,
+        String name,
+        List<String> parameterTypes
+    ) {
+        FunctionDeclarationNode declaration = null;
+
+        while (declaration == null && scope != null && scope.parent() != null) {
+            declaration = findMethodWithParameters(scope.symbols().functions(), name, parameterTypes);
+
+            scope = scope.parent();
+        }
+
+        return declaration;
     }
 
     private static boolean compareParameterTypes(
