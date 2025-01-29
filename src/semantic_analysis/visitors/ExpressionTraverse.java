@@ -8,13 +8,14 @@ import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.BinaryExpressionNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
+import parser.nodes.expressions.UnaryOperatorNode;
 import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.literals.LiteralNode;
+import parser.nodes.literals.NullLiteral;
 import parser.nodes.variable.FieldReferenceNode;
 import parser.nodes.variable.VariableReferenceNode;
-import semantic_analysis.Scope;
-import semantic_analysis.SymbolTable;
+import semantic_analysis.scopes.Scope;
 import semantic_analysis.exceptions.SA_SemanticError;
 import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 import semantic_analysis.transformers.LiteralTransformer;
@@ -25,27 +26,30 @@ public class ExpressionTraverse {
     public String traverse(ExpressionBaseNode root, Scope scope) {
         ExpressionNode expression = root.expression;
 
-        root.expression = transformValue(expression, scope.symbols());
+        root.expression = transformValue(expression, scope);
 
-        return determineType(expression, scope.symbols());
+        return determineType(expression, scope);
     }
 
-    private static ExpressionNode transformValue(ExpressionNode expression, SymbolTable symbolTable) {
+    private static ExpressionNode transformValue(ExpressionNode expression, Scope scope) {
         if (expression instanceof LiteralNode literalNode) {
             return LiteralTransformer.transform(literalNode);
         }
 
-        return transformOperators(expression, symbolTable);
+        return transformOperators(expression, scope);
     }
 
-    private static ExpressionNode transformOperators(ExpressionNode expression, SymbolTable symbolTable) {
+    private static ExpressionNode transformOperators(ExpressionNode expression, Scope scope) {
         // TODO: Static members
         //       Change every member reference to work with base class and interfaces
         if (expression instanceof BinaryExpressionNode binaryExpression) {
-            binaryExpression.left = transformValue(binaryExpression.left, symbolTable);
+            binaryExpression.left = transformValue(binaryExpression.left, scope);
 
-            String leftType = determineType(binaryExpression.left, symbolTable);
-            ClassDeclarationNode leftTypeNode = symbolTable.getClass(leftType);
+            String leftType = determineType(binaryExpression.left, scope);
+            ClassDeclarationNode leftTypeNode = scope.getClass(leftType);
+
+            if (leftTypeNode == null)
+                throw new SA_UnresolvedSymbolException(leftType);
 
             if (binaryExpression.operator.equals(".")) {
                 if (binaryExpression.right instanceof VariableReferenceNode reference) {
@@ -55,7 +59,7 @@ public class ExpressionTraverse {
                     );
 
                     if (field == null) {
-                        throw new SA_UnresolvedSymbolException(leftType + "." + reference.variable);
+                        throw new SA_UnresolvedSymbolException(leftType + "." + reference.variable); // Log
                     }
 
                     return new FieldReferenceNode(
@@ -69,12 +73,12 @@ public class ExpressionTraverse {
                         leftTypeNode.methods,
                         call.name,
                         call.arguments.stream().map(
-                            argument -> determineType(argument.value, symbolTable)
+                            argument -> determineType(argument.value, scope)
                         ).toList()
                     );
 
                     if (function == null) {
-                        throw new SA_UnresolvedSymbolException(leftType + "." + call.name);
+                        throw new SA_UnresolvedSymbolException(leftType + "." + call.name); // Log
                     }
 
                     call.arguments.add(
@@ -91,13 +95,13 @@ public class ExpressionTraverse {
                         call.arguments
                     );
                 } else {
-                    throw new SA_SemanticError("Expected field or function");
+                    throw new SA_SemanticError("Expected field or function"); // Log
                 }
             }
 
-            binaryExpression.right = transformValue(binaryExpression.right, symbolTable);
+            binaryExpression.right = transformValue(binaryExpression.right, scope);
 
-            String rightType = determineType(binaryExpression.right, symbolTable);
+            String rightType = determineType(binaryExpression.right, scope);
 
             String operatorName = getOperatorName(binaryExpression.operator);
 
@@ -117,31 +121,72 @@ public class ExpressionTraverse {
                     )
                 );
             }
+
+
+        } else if (expression instanceof UnaryOperatorNode unaryExpression) {
+            unaryExpression.operand = transformValue(unaryExpression.operand, scope);
+
+            String operandType = determineType(unaryExpression.operand, scope);
+            ClassDeclarationNode operandTypeNode = scope.getClass(operandType);
+
+            if (operandTypeNode == null)
+                throw new SA_UnresolvedSymbolException(operandType);
+
+            String operatorName = getOperatorName(unaryExpression.operator);
+
+            FunctionDeclarationNode functionDecl = findMethodWithParameters(
+                operandTypeNode.methods,
+                operatorName,
+                List.of()
+            );
+
+            if (functionDecl != null) {
+                return new FunctionCallNode(
+                    operandType,
+                    operatorName,
+                    List.of(
+                        new ArgumentNode(null, unaryExpression.operand)
+                    )
+                );
+            }
         }
 
         return null;
     }
 
-    private static String determineType(ExpressionNode expression, SymbolTable symbolTable) {
-        // TODO: Everything below
+    private static String determineType(ExpressionNode expression, Scope scope) {
         if (expression instanceof ObjectNode objectNode) {
             return objectNode.className;
         }
         if (expression instanceof VariableReferenceNode variable) {
-            // Search variable in symbol table
-            // Return variable type if found,
-            // throw if not found
+            // TODO: Also check for nullability
 
-            // Also check for nullability
-        } else if (expression instanceof FunctionCallNode functionCall) {
-            // Search function in symbol table
-            // Return function type if found,
-            // throw if not found
-        } else {
+            if (scope.findTypeDeclaration(variable.variable)) {
+                return variable.variable; //TODO: Make it differentiate between static and instance members
+            }
 
+            FieldNode field = scope.getField(variable.variable);
+
+            if (field != null) {
+                return field.initialization.declaration.type;
+            }
+
+            throw new SA_UnresolvedSymbolException(variable.variable); // LOG
+        }
+        if (expression instanceof FunctionCallNode functionCall) {
+            FunctionDeclarationNode function = scope.getFunction(functionCall.name);
+
+            if (function != null) {
+                return function.returnType;
+            }
+
+            throw new SA_UnresolvedSymbolException(functionCall.name); // LOG
+        }
+        if (expression instanceof NullLiteral) {
+            return "null";
         }
 
-        throw new SA_SemanticError("Could not resolve type");
+        throw new SA_SemanticError("Could not resolve type"); // Log and return something
     }
 
     private static FieldNode findField(

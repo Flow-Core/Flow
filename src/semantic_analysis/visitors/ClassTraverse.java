@@ -10,7 +10,7 @@ import parser.nodes.components.BlockNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableReferenceNode;
-import semantic_analysis.Scope;
+import semantic_analysis.scopes.Scope;
 import semantic_analysis.SymbolTable;
 import semantic_analysis.exceptions.SA_RedefinitionException;
 
