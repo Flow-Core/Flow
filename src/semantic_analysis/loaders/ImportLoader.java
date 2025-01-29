@@ -30,7 +30,7 @@ public class ImportLoader {
             throw new SA_UnresolvedPackageException(packagePath);
         }
 
-        final SymbolTable importedSymbols = globalPackages.get(packagePath).symbolTable();
+        final SymbolTable importedSymbols = globalPackages.get(packagePath).scope().symbols();
         if (importNode.isWildcard) {
             if (!importNode.alias.equals("*")) {
                 throw new SA_SemanticError("Cannot rename all imported items to one identifier");

@@ -1,15 +1,13 @@
 package semantic_analysis.scopes;
 
-import parser.nodes.classes.ClassDeclarationNode;
-import parser.nodes.classes.FieldNode;
-import parser.nodes.classes.InterfaceNode;
-import parser.nodes.classes.TypeDeclarationNode;
+import parser.nodes.classes.*;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.SymbolTable;
 
 public record Scope (
     Scope parent,
-    SymbolTable symbols
+    SymbolTable symbols,
+    Type type
 ) {
     public boolean findSymbol(String symbol) {
         return findInterface(symbol) || findClass(symbol) || findFunction(symbol) || findField(symbol);
@@ -55,6 +53,29 @@ public record Scope (
             parent != null ? parent.getField(symbol) : null;
     }
 
+    public boolean isSameType(String type, String superType) {
+        final ClassDeclarationNode classDeclarationNode = symbols.getClass(type);
+        if (classDeclarationNode != null) {
+            if (!classDeclarationNode.baseClasses.isEmpty() && classDeclarationNode.baseClasses.get(0).name.equals(superType)) {
+                return true;
+            }
+            if (!classDeclarationNode.baseClasses.isEmpty() && isSameType(type, classDeclarationNode.baseClasses.get(0).name)) {
+                return true;
+            }
+        }
+
+        final TypeDeclarationNode typeDeclarationNode = symbols.getTypeDeclaration(type);
+        if (typeDeclarationNode != null) {
+            for (final BaseInterfaceNode baseInterfaceNode : symbols.getTypeDeclaration(type).implementedInterfaces) {
+                if (baseInterfaceNode.name.equals(superType) || isSameType(type, baseInterfaceNode.name)) {
+                    return true;
+                }
+            }
+        }
+
+        return parent != null && parent.isSameType(type, superType);
+    }
+
     public boolean findClass(String symbol) {
         return symbols.findClass(symbol) || (parent != null && parent().findClass(symbol));
     }
@@ -73,5 +94,11 @@ public record Scope (
 
     public boolean findField(String symbol) {
         return symbols.findField(symbol) || (parent != null && parent().findField(symbol));
+    }
+
+    public enum Type {
+        TOP,
+        CLASS,
+        FUNCTION
     }
 }
