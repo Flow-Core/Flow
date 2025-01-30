@@ -1,14 +1,16 @@
 package semantic_analysis.loaders;
 
 import parser.nodes.classes.FieldNode;
+import parser.nodes.variable.VariableAssignmentNode;
 import semantic_analysis.exceptions.SA_SemanticError;
+import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.visitors.ExpressionTraverse;
 
 import java.util.Objects;
 
 public class VariableLoader {
-    public void load(
+    public void loadDeclaration(
         final FieldNode fieldNode,
         final Scope parent
     ) {
@@ -28,5 +30,17 @@ public class VariableLoader {
         } else {
             fieldNode.initialization.declaration.type = actualType;
         }
+    }
+
+    public void loadAssignment(
+        final VariableAssignmentNode variableAssignment,
+        final Scope parent
+    ) {
+        final FieldNode fieldDeclaration = parent.getField(variableAssignment.variable);
+        if (fieldDeclaration == null) {
+            throw new SA_UnresolvedSymbolException(variableAssignment.variable);
+        }
+
+        loadDeclaration(fieldDeclaration, parent);
     }
 }

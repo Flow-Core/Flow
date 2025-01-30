@@ -59,7 +59,7 @@ public record Scope (
             if (!classDeclarationNode.baseClasses.isEmpty() && classDeclarationNode.baseClasses.get(0).name.equals(superType)) {
                 return true;
             }
-            if (!classDeclarationNode.baseClasses.isEmpty() && isSameType(type, classDeclarationNode.baseClasses.get(0).name)) {
+            if (!classDeclarationNode.baseClasses.isEmpty() && isSameType(classDeclarationNode.baseClasses.get(0).name, superType)) {
                 return true;
             }
         }
@@ -67,7 +67,7 @@ public record Scope (
         final TypeDeclarationNode typeDeclarationNode = symbols.getTypeDeclaration(type);
         if (typeDeclarationNode != null) {
             for (final BaseInterfaceNode baseInterfaceNode : symbols.getTypeDeclaration(type).implementedInterfaces) {
-                if (baseInterfaceNode.name.equals(superType) || isSameType(type, baseInterfaceNode.name)) {
+                if (baseInterfaceNode.name.equals(superType) || isSameType(baseInterfaceNode.name, superType)) {
                     return true;
                 }
             }
