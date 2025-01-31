@@ -36,11 +36,21 @@ public class VariableLoader {
         final VariableAssignmentNode variableAssignment,
         final Scope parent
     ) {
-        final FieldNode fieldDeclaration = parent.getField(variableAssignment.variable);
-        if (fieldDeclaration == null) {
+        final FieldNode fieldNode = parent.getField(variableAssignment.variable);
+        if (fieldNode == null) {
             throw new SA_UnresolvedSymbolException(variableAssignment.variable);
         }
 
-        loadDeclaration(fieldDeclaration, parent);
+        if (!fieldNode.initialization.declaration.modifier.equals("var")) {
+            throw new SA_SemanticError(fieldNode.initialization.declaration.modifier + " cannot be reassigned");
+        }
+
+        final String varType = fieldNode.initialization.declaration.type;
+        String actualType = new ExpressionTraverse().traverse(variableAssignment.value, parent);
+        fieldNode.isInitialized = true;
+
+        if (!Objects.equals(actualType, varType) && !parent.isSameType(actualType, varType)) {
+            throw new SA_SemanticError("Type mismatch: expected '"  + varType + "' but received '" + actualType + "'");
+        }
     }
 }
