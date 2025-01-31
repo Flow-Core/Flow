@@ -1,7 +1,10 @@
 package semantic_analysis.loaders;
 
 import parser.nodes.classes.FieldNode;
+import parser.nodes.expressions.BinaryExpressionNode;
+import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.variable.VariableAssignmentNode;
+import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.exceptions.SA_SemanticError;
 import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 import semantic_analysis.scopes.Scope;
@@ -46,7 +49,19 @@ public class VariableLoader {
         }
 
         final String varType = fieldNode.initialization.declaration.type;
-        String actualType = new ExpressionTraverse().traverse(variableAssignment.value, parent);
+        ExpressionBaseNode expressionBase = variableAssignment.value;
+        if (!Objects.equals(variableAssignment.operator, "=")) {
+            final String[] operators = variableAssignment.operator.split("");
+            expressionBase = new ExpressionBaseNode(
+                new BinaryExpressionNode(
+                    new VariableReferenceNode(variableAssignment.variable),
+                    variableAssignment.value.expression,
+                    operators[0]
+                )
+            );
+            variableAssignment.operator = "=";
+        }
+        String actualType = new ExpressionTraverse().traverse(expressionBase, parent);
         fieldNode.isInitialized = true;
 
         if (!Objects.equals(actualType, varType) && !parent.isSameType(actualType, varType)) {
