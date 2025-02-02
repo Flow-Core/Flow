@@ -99,6 +99,8 @@ public class Main {
         package main.third
         
         import main.first.B
+        
+        val x: B = new C()
 
         class C: B() {
         

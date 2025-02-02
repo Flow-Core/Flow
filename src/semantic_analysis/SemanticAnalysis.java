@@ -1,8 +1,8 @@
 package semantic_analysis;
 
 import semantic_analysis.loaders.ClassLoader;
-import semantic_analysis.loaders.SignatureLoader;
 import semantic_analysis.loaders.ImportLoader;
+import semantic_analysis.loaders.SignatureLoader;
 
 import java.util.Map;
 
@@ -16,19 +16,19 @@ public class SemanticAnalysis {
     public void analyze() {
         for (final PackageWrapper currentPackageWrapper : packages.values()) {
             for (final FileWrapper file : currentPackageWrapper.files()) {
-                SignatureLoader.load(file.root().children, file.symbolTable(), currentPackageWrapper);
+                SignatureLoader.load(file.root().children, file.scope().symbols(), currentPackageWrapper);
             }
         }
 
         for (final PackageWrapper currentPackageWrapper : packages.values()) {
             for (final FileWrapper file : currentPackageWrapper.files()) {
-                new ImportLoader().load(file.root(), file.symbolTable(), packages);
+                new ImportLoader().load(file.root(), file.scope().symbols(), packages);
             }
         }
 
         for (final PackageWrapper currentPackageWrapper : packages.values()) {
             for (final FileWrapper file : currentPackageWrapper.files()) {
-                file.root().accept(new ClassLoader(currentPackageWrapper.symbolTable()), file.symbolTable());
+                file.root().accept(new ClassLoader(currentPackageWrapper.scope().symbols()), file.scope().symbols());
             }
         }
 
@@ -37,7 +37,7 @@ public class SemanticAnalysis {
         /*
         for (final PackageWrapper currentPackageWrapper : packages.values()) {
             for (final FileWrapper file : currentPackageWrapper.files()) {
-                file.root().accept(new TypeCohesionVisitor(currentPackageWrapper.symbolTable()), file.symbolTable());
+                file.root().accept(new TypeCohesionVisitor(currentPackageWrapper.scope()), file.scope());
             }
         }
         */

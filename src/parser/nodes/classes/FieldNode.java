@@ -9,11 +9,14 @@ import java.util.List;
 public class FieldNode implements ASTNode {
     public List<String> modifiers;
     public InitializedVariableNode initialization;
+    public boolean isInitialized;
 
     public FieldNode(List<String> modifiers, InitializedVariableNode initialization
     ) {
         this.modifiers = modifiers;
         this.initialization = initialization;
+
+        isInitialized = false;
     }
 
     @Override
