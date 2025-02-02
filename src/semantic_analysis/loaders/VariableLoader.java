@@ -15,19 +15,27 @@ import java.util.Objects;
 public class VariableLoader {
     public void loadDeclaration(
         final FieldNode fieldNode,
-        final Scope parent
+        final Scope scope
     ) {
         final String varType = fieldNode.initialization.declaration.type;
         String actualType = null;
         if (fieldNode.initialization.assignment.value != null) {
-            actualType = new ExpressionTraverse().traverse(fieldNode.initialization.assignment.value, parent);
+            actualType = new ExpressionTraverse().traverse(fieldNode.initialization.assignment.value, scope);
             fieldNode.isInitialized = true;
         } else if (varType == null) {
             throw new SA_SemanticError("Variable must either have an explicit type or be initialized");
         }
 
+        if (actualType == null) {
+            return;
+        }
+
         if (varType != null) {
-            if (!Objects.equals(actualType, varType) && !parent.isSameType(actualType, varType)) {
+            if (actualType.equals("null")) {
+                if (!fieldNode.initialization.declaration.isNullable) {
+                    throw new SA_SemanticError("Null cannot be a value of a non-null type");
+                }
+            } else if (!Objects.equals(actualType, varType) && !scope.isSameType(actualType, varType)) {
                 throw new SA_SemanticError("Type mismatch: expected '"  + varType + "' but received '" + actualType + "'");
             }
         } else {
@@ -37,16 +45,9 @@ public class VariableLoader {
 
     public void loadAssignment(
         final VariableAssignmentNode variableAssignment,
-        final Scope parent
+        final Scope scope
     ) {
-        final FieldNode fieldNode = parent.getField(variableAssignment.variable);
-        if (fieldNode == null) {
-            throw new SA_UnresolvedSymbolException(variableAssignment.variable);
-        }
-
-        if (!fieldNode.initialization.declaration.modifier.equals("var")) {
-            throw new SA_SemanticError(fieldNode.initialization.declaration.modifier + " cannot be reassigned");
-        }
+        final FieldNode fieldNode = getFieldNode(variableAssignment, scope);
 
         final String varType = fieldNode.initialization.declaration.type;
         ExpressionBaseNode expressionBase = variableAssignment.value;
@@ -61,11 +62,32 @@ public class VariableLoader {
             );
             variableAssignment.operator = "=";
         }
-        String actualType = new ExpressionTraverse().traverse(expressionBase, parent);
+        String actualType = new ExpressionTraverse().traverse(expressionBase, scope);
         fieldNode.isInitialized = true;
 
-        if (!Objects.equals(actualType, varType) && !parent.isSameType(actualType, varType)) {
+        if (actualType.equals("null")) {
+            if (!fieldNode.initialization.declaration.isNullable) {
+                throw new SA_SemanticError("Null cannot be a value of a non-null type");
+            }
+        } else if (!Objects.equals(actualType, varType) && !scope.isSameType(actualType, varType)) {
             throw new SA_SemanticError("Type mismatch: expected '"  + varType + "' but received '" + actualType + "'");
         }
+    }
+
+    private static FieldNode getFieldNode(VariableAssignmentNode variableAssignment, Scope scope) {
+        final FieldNode fieldNode = scope.getField(variableAssignment.variable);
+        if (fieldNode == null) {
+            throw new SA_UnresolvedSymbolException(variableAssignment.variable);
+        }
+
+        if (!fieldNode.initialization.declaration.modifier.equals("var")) {
+            throw new SA_SemanticError(fieldNode.initialization.declaration.modifier + " cannot be reassigned");
+        }
+
+        if (scope.type() == Scope.Type.FUNCTION && !fieldNode.modifiers.isEmpty()) {
+            throw new SA_SemanticError("Modifier are not applicable to 'local variable'");
+        }
+
+        return fieldNode;
     }
 }
