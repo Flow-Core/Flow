@@ -5,6 +5,8 @@ import parser.nodes.classes.*;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.SymbolTable;
 
+import java.util.Objects;
+
 public record Scope (
     Scope parent,
     SymbolTable symbols,
@@ -56,6 +58,10 @@ public record Scope (
     }
 
     public boolean isSameType(String type, String superType) {
+        if (Objects.equals(type, superType)) {
+            return true;
+        }
+
         final ClassDeclarationNode classDeclarationNode = symbols.getClass(type);
         if (classDeclarationNode != null) {
             if (!classDeclarationNode.baseClasses.isEmpty() && classDeclarationNode.baseClasses.get(0).name.equals(superType)) {
