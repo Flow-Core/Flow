@@ -118,6 +118,10 @@ public class SignatureLoader {
         List<ParameterNode> methods,
         List<String> parameterTypes
     ) {
+        if (parameterTypes.size() != methods.size()) {
+            return false;
+        }
+
         for (int i = 0; i < methods.size(); i++) {
             if (!methods.get(i).type.equals(parameterTypes.get(i)))
                 return false;

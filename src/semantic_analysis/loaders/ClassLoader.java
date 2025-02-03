@@ -18,6 +18,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
+
 public class ClassLoader implements ASTVisitor<SymbolTable> {
     private final SymbolTable packageLevel;
 
@@ -41,7 +43,43 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
         addPrimaryConstructor(classDeclaration);
         addThisParameterToInstanceMethods(classDeclaration);
 
+        if (!classDeclaration.modifiers.contains("abstract")) {
+            checkIfAllOverridden(classDeclaration, data);
+        }
+
         data.classes().add(classDeclaration);
+    }
+
+    private void checkIfAllOverridden(final ClassDeclarationNode classDeclaration, final SymbolTable data) {
+        // TODO: ignore this parameter
+
+        final List<FunctionDeclarationNode> abstractFunctions = getFunctionsByModifier("abstract", classDeclaration, data);
+        final List<FunctionDeclarationNode> overriddenFunctions = getFunctionsByModifier("override", classDeclaration, data);
+
+        for (final FunctionDeclarationNode abstractFunction : abstractFunctions) {
+            final FunctionDeclarationNode method = findMethodWithParameters(
+                overriddenFunctions,
+                abstractFunction.name,
+                abstractFunction.parameters.stream().map(functionNode -> functionNode.name).toList()
+            );
+            if (method == null) {
+                throw new SA_SemanticError("Class '" + classDeclaration.name + "' is not abstract and does not implement abstract base class member '" + abstractFunction.name + "'");
+            } else if (!method.returnType.equals(abstractFunction.returnType)) {
+                throw new SA_SemanticError("Return type of function '" + abstractFunction.name + "' does not have the same return type as the overridden class, expected: '" + abstractFunction.returnType + "' but found '" + method.returnType + "'");
+            }
+        }
+
+        for (final FunctionDeclarationNode overriddenFunction : overriddenFunctions) {
+            if (
+                findMethodWithParameters(
+                    abstractFunctions,
+                    overriddenFunction.name,
+                    overriddenFunction.parameters.stream().map(functionNode -> functionNode.name).toList()
+                ) == null
+            ) {
+                throw new SA_SemanticError("'" + overriddenFunction.name + "' overrides nothing");
+            }
+        }
     }
 
     private void validateBaseClass(ClassDeclarationNode classDeclaration, SymbolTable data) {
@@ -135,7 +173,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     private void validateInterfaces(InterfaceNode interfaceNode, SymbolTable data) {
         for (final BaseInterfaceNode currentInterface : interfaceNode.implementedInterfaces) {
             if (data.getInterface(currentInterface.name) == null && packageLevel.getInterface(currentInterface.name) == null) {
-                throw new SA_SemanticError("Interface '" + currentInterface.name + "' was not found.");
+                throw new SA_SemanticError("Interface '" + currentInterface.name + "' was not found");
             }
 
             if (currentInterface.name.equals(interfaceNode.name)) {
@@ -194,6 +232,9 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                 if (!classDeclaration.modifiers.contains("abstract")) {
                     throw new SA_SemanticError("Abstract function '" + functionDeclaration.name + "' in non-abstract class '" + classDeclaration.name + "'");
                 }
+                if (functionDeclaration.block != null) {
+                    throw new SA_SemanticError("Abstract function '" + functionDeclaration.name + "' cannot have a block");
+                }
             } else if (functionDeclaration.block == null) {
                 throw new SA_SemanticError("Function '" + functionDeclaration.name + "' without a body must be abstract");
             }
@@ -210,5 +251,51 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
         }
 
         data.interfaces().add(interfaceDeclaration);
+    }
+
+    private List<FunctionDeclarationNode> getFunctionsByModifier(
+        final String modifier,
+        final TypeDeclarationNode typeDeclarationNode,
+        final SymbolTable data
+    ) {
+        final List<FunctionDeclarationNode> foundFunctions = new ArrayList<>();
+
+        for (final FunctionDeclarationNode functionDeclarationNode : typeDeclarationNode.methods) {
+            if (functionDeclarationNode.modifiers.contains(modifier)) {
+                foundFunctions.add(functionDeclarationNode);
+            }
+        }
+
+        if (typeDeclarationNode instanceof ClassDeclarationNode classDeclarationNode) {
+            if (!classDeclarationNode.baseClasses.isEmpty()) {
+                final String baseClassName = classDeclarationNode.baseClasses.get(0).name;
+                final ClassDeclarationNode fileLevelBaseClass = data.getClass(baseClassName);
+                final ClassDeclarationNode baseClass = getClassDeclarationNode(classDeclarationNode, baseClassName, fileLevelBaseClass);
+                foundFunctions.addAll(getFunctionsByModifier(modifier, baseClass, data));
+            }
+        }
+
+        if (modifier.equals("abstract")) {
+            for (final BaseInterfaceNode baseInterfaceNode : typeDeclarationNode.implementedInterfaces) {
+                final InterfaceNode interfaceNode = getInterfaceNode(data, baseInterfaceNode);
+
+                foundFunctions.addAll(interfaceNode.methods);
+                foundFunctions.addAll(getFunctionsByModifier(modifier, interfaceNode, data));
+            }
+        }
+
+        return foundFunctions;
+    }
+
+    private InterfaceNode getInterfaceNode(SymbolTable data, BaseInterfaceNode baseInterfaceNode) {
+        final InterfaceNode fileLevelInterfaceNode = data.getInterface(baseInterfaceNode.name);
+        final InterfaceNode packageLevelInterfaceNode = packageLevel.getInterface(baseInterfaceNode.name);
+
+        final InterfaceNode interfaceNode = fileLevelInterfaceNode != null ? fileLevelInterfaceNode : packageLevelInterfaceNode;
+        if (interfaceNode == null) {
+            throw new SA_SemanticError("Interface '" + baseInterfaceNode.name + "' was not found");
+        }
+
+        return interfaceNode;
     }
 }

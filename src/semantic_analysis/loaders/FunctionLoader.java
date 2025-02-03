@@ -49,19 +49,21 @@ public class FunctionLoader {
             );
         }
 
-        BlockTraverse.traverse(functionDeclarationNode.block, new Scope(scope, symbolTable, functionDeclarationNode, Scope.Type.FUNCTION));
+        if (functionDeclarationNode.block != null) {
+            BlockTraverse.traverse(functionDeclarationNode.block, new Scope(scope, symbolTable, functionDeclarationNode, Scope.Type.FUNCTION));
 
-        if (!functionDeclarationNode.returnType.equals("Void")) {
-            boolean haveReturn = false;
-            for (final ASTNode node : functionDeclarationNode.block.children) {
-                if (node instanceof ReturnStatementNode) {
-                    haveReturn = true;
-                    break;
+            if (!functionDeclarationNode.returnType.equals("Void")) {
+                boolean haveReturn = false;
+                for (final ASTNode node : functionDeclarationNode.block.children) {
+                    if (node instanceof ReturnStatementNode) {
+                        haveReturn = true;
+                        break;
+                    }
                 }
-            }
 
-            if (!haveReturn) {
-                throw new SA_SemanticError("Missing return statement");
+                if (!haveReturn) {
+                    throw new SA_SemanticError("Missing return statement");
+                }
             }
         }
     }
