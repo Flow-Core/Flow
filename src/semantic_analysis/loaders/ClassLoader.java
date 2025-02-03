@@ -40,6 +40,8 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
 
         addPrimaryConstructor(classDeclaration);
         addThisParameterToInstanceMethods(classDeclaration);
+
+        data.classes().add(classDeclaration);
     }
 
     private void validateBaseClass(ClassDeclarationNode classDeclaration, SymbolTable data) {
@@ -206,5 +208,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                 functionDeclaration.parameters.add(0, new ParameterNode(interfaceDeclaration.name, false, "this", null));
             }
         }
+
+        data.interfaces().add(interfaceDeclaration);
     }
 }
