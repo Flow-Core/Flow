@@ -4,7 +4,6 @@ import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.ObjectNode;
 import parser.nodes.components.ArgumentNode;
-import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.BinaryExpressionNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
@@ -21,6 +20,8 @@ import semantic_analysis.scopes.Scope;
 import semantic_analysis.transformers.LiteralTransformer;
 
 import java.util.List;
+
+import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
 
 public class ExpressionTraverse {
     public String traverse(ExpressionBaseNode root, Scope scope) {
@@ -221,45 +222,6 @@ public class ExpressionTraverse {
         return fields.stream().filter(
             interfaceNode -> interfaceNode.initialization.declaration.name.equals(name)
         ).findFirst().orElse(null);
-    }
-
-    private static FunctionDeclarationNode findMethodWithParameters(
-        List<FunctionDeclarationNode> methods,
-        String name,
-        List<String> parameterTypes
-    ) {
-        return methods.stream()
-            .filter(method -> method.name.equals(name))
-            .filter(method -> compareParameterTypes(method.parameters, parameterTypes))
-            .findFirst().orElse(null);
-    }
-
-    private static FunctionDeclarationNode findMethodWithParameters(
-        Scope scope,
-        String name,
-        List<String> parameterTypes
-    ) {
-        FunctionDeclarationNode declaration = null;
-
-        while (declaration == null && scope != null && scope.parent() != null) {
-            declaration = findMethodWithParameters(scope.symbols().functions(), name, parameterTypes);
-
-            scope = scope.parent();
-        }
-
-        return declaration;
-    }
-
-    private static boolean compareParameterTypes(
-        List<ParameterNode> methods,
-        List<String> parameterTypes
-    ) {
-        for (int i = 0; i < methods.size(); i++) {
-            if (!methods.get(i).type.equals(parameterTypes.get(i)))
-                return false;
-        }
-
-        return true;
     }
 
     private record TypeWrapper(
