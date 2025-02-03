@@ -78,15 +78,22 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
         parser.advance();
 
         String returnType = "Void";
+        boolean isReturnTypeNullable = false;
 
         if (parser.check(TokenType.COLON_OPERATOR)) {
             parser.advance();
             returnType = parser.consume(TokenType.IDENTIFIER).value();
+
+            if (parser.check(TokenType.NULLABLE)) {
+                parser.advance();
+                isReturnTypeNullable = true;
+            }
         }
 
         return new FunctionDeclarationNode(
             funcName.value(),
             returnType,
+            isReturnTypeNullable,
             modifiers,
             parameters,
             null

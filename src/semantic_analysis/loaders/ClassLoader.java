@@ -188,6 +188,13 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
             if (!functionDeclaration.modifiers.contains("static")) {
                 functionDeclaration.parameters.add(0, new ParameterNode(classDeclaration.name, false, "this", null));
             }
+            if (functionDeclaration.modifiers.contains("abstract")) {
+                if (!classDeclaration.modifiers.contains("abstract")) {
+                    throw new SA_SemanticError("Abstract function '" + functionDeclaration.name + "' in non-abstract class '" + classDeclaration.name + "'");
+                }
+            } else if (functionDeclaration.block == null) {
+                throw new SA_SemanticError("Function '" + functionDeclaration.name + "' without a body must be abstract");
+            }
         }
     }
 

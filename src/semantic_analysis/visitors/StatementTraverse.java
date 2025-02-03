@@ -94,16 +94,18 @@ public class StatementTraverse {
     }
 
     private static void handleReturnStatement(final ReturnStatementNode returnStatementNode, final Scope scope) {
-        final String returnType = new ExpressionTraverse().traverse(new ExpressionBaseNode(returnStatementNode.returnValue), scope);
+        final String returnType = new ExpressionTraverse().traverse(new ExpressionBaseNode(returnStatementNode.returnValue), scope); // TODO: Expression base
         final ASTNode currentParent = scope.currentParent();
         if (!(currentParent instanceof FunctionDeclarationNode functionDeclarationNode)) {
             throw new SA_SemanticError("Return statement is not allowed here");
         }
 
-        if (!scope.isSameType(returnType, functionDeclarationNode.returnType)) {
-            throw new SA_SemanticError(
-                "Return type mismatch: Expected '" + functionDeclarationNode.returnType + "' but found '" + returnType + "'"
-            );
+        if (returnType.equals("null")) {
+            if (!functionDeclarationNode.isReturnTypeNullable) {
+                throw new SA_SemanticError("Null cannot be a value of a non-null type '" + functionDeclarationNode.returnType + "'");
+            }
+        } else if (!scope.isSameType(returnType, functionDeclarationNode.returnType)) {
+            throw new SA_SemanticError("Type mismatch: expected '"  + functionDeclarationNode.returnType + "' but received '" + returnType + "'");
         }
     }
 }

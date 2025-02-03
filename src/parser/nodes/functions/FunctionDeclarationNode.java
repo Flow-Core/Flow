@@ -10,13 +10,15 @@ import java.util.List;
 public class FunctionDeclarationNode implements ASTNode {
     public String name;
     public String returnType;
+    public boolean isReturnTypeNullable;
     public List<String> modifiers;
     public List<ParameterNode> parameters;
     public BlockNode block;
 
-    public FunctionDeclarationNode(String name, String returnType, List<String> modifiers, List<ParameterNode> parameters, BlockNode block) {
+    public FunctionDeclarationNode(String name, String returnType, boolean isReturnTypeNullable, List<String> modifiers, List<ParameterNode> parameters, BlockNode block) {
         this.name = name;
         this.returnType = returnType;
+        this.isReturnTypeNullable = isReturnTypeNullable;
         this.modifiers = modifiers;
         this.parameters = parameters;
         this.block = block;
@@ -40,6 +42,7 @@ public class FunctionDeclarationNode implements ASTNode {
         return "FunctionDeclarationNode{" +
             "name='" + name + '\'' +
             ", returnType='" + returnType + '\'' +
+            ", isReturnTypeNullable=" + isReturnTypeNullable +
             ", modifiers=" + modifiers +
             ", parameters=" + parameters +
             ", block=" + block +
