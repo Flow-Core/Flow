@@ -2,16 +2,16 @@ package parser.nodes.statements;
 
 import parser.nodes.ASTVisitor;
 import parser.nodes.components.BlockNode;
-import parser.nodes.expressions.ExpressionNode;
+import parser.nodes.expressions.ExpressionBaseNode;
 
 import java.util.List;
 
 public class SwitchStatementNode implements StatementNode {
-    public ExpressionNode condition;
+    public ExpressionBaseNode condition;
     public List<CaseNode> cases;
     public BlockNode defaultBlock;
 
-    public SwitchStatementNode(ExpressionNode condition, List<CaseNode> cases, BlockNode defaultBlock) {
+    public SwitchStatementNode(ExpressionBaseNode condition, List<CaseNode> cases, BlockNode defaultBlock) {
         this.condition = condition;
         this.cases = cases;
         this.defaultBlock = defaultBlock;

@@ -1,12 +1,12 @@
 package parser.nodes.statements;
 
 import parser.nodes.ASTVisitor;
-import parser.nodes.expressions.ExpressionNode;
+import parser.nodes.expressions.ExpressionBaseNode;
 
 public class ThrowNode implements StatementNode {
-    public ExpressionNode throwValue;
+    public ExpressionBaseNode throwValue;
 
-    public ThrowNode(ExpressionNode throwValue) {
+    public ThrowNode(ExpressionBaseNode throwValue) {
         this.throwValue = throwValue;
     }
 

@@ -6,6 +6,7 @@ import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
 import parser.analyzers.top.BlockAnalyzer;
 import parser.analyzers.top.ExpressionAnalyzer;
+import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.statements.CaseNode;
@@ -25,7 +26,7 @@ public class CaseAnalyzer extends TopAnalyzer {
 
         return new AnalyzerResult(
             new CaseNode(
-                expression,
+                new ExpressionBaseNode(expression),
                 block
             ),
             parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
