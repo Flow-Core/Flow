@@ -13,17 +13,23 @@ import semantic_analysis.visitors.BlockTraverse;
 import java.util.ArrayList;
 
 public class FunctionLoader {
-    public static void load(final FunctionDeclarationNode functionDeclarationNode, final Scope scope) {
+    public static void loadSignature(final FunctionDeclarationNode functionDeclarationNode, final Scope scope) {
         if (!scope.findTypeDeclaration(functionDeclarationNode.returnType)) {
             throw new SA_UnresolvedSymbolException(functionDeclarationNode.returnType);
         }
 
-        // Check and add parameters to the st
-        final SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
         for (final ParameterNode parameter : functionDeclarationNode.parameters) {
             if (!scope.findTypeDeclaration(parameter.type)) {
                 throw new SA_UnresolvedSymbolException(parameter.type);
             }
+        }
+
+        scope.symbols().functions().add(functionDeclarationNode);
+    }
+
+    public static void loadBody(final FunctionDeclarationNode functionDeclarationNode, final Scope scope) {
+        final SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
+        for (final ParameterNode parameter : functionDeclarationNode.parameters) {
             symbolTable.fields().add(
                 new FieldNode(
                     new ArrayList<>(),

@@ -1,11 +1,8 @@
 package semantic_analysis;
 
-import parser.nodes.ASTNode;
-import parser.nodes.classes.FieldNode;
 import semantic_analysis.loaders.ClassLoader;
 import semantic_analysis.loaders.ImportLoader;
 import semantic_analysis.loaders.SignatureLoader;
-import semantic_analysis.loaders.VariableLoader;
 
 import java.util.Map;
 
@@ -32,15 +29,6 @@ public class SemanticAnalysis {
         for (final PackageWrapper currentPackageWrapper : packages.values()) {
             for (final FileWrapper file : currentPackageWrapper.files()) {
                 file.root().accept(new ClassLoader(currentPackageWrapper.scope().symbols()), file.scope().symbols());
-            }
-        }
-
-        for (final PackageWrapper currentPackageWrapper : packages.values()) {
-            for (final FileWrapper file : currentPackageWrapper.files()) {
-                for (final ASTNode node : file.root().children) {
-                    if (node instanceof FieldNode fieldNode)
-                        new VariableLoader().loadDeclaration(fieldNode, file.scope());
-                }
             }
         }
 
