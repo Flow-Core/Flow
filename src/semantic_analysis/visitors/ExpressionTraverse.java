@@ -208,7 +208,7 @@ public class ExpressionTraverse {
                 return new TypeWrapper(function.returnType, false);
             }
 
-            throw new SA_UnresolvedSymbolException(functionCall.name); // LOG
+            throw new SA_UnresolvedSymbolException(functionCall.name); // LOG with parameters for more info
         }
         if (expression instanceof NullLiteral) {
             return new TypeWrapper("null", false);
