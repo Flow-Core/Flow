@@ -28,10 +28,6 @@ public class FunctionDeclarationNode implements ASTNode {
     public <D> void accept(final ASTVisitor<D> visitor, final D data) {
         ASTNode.super.accept(visitor, data);
 
-        for (final ParameterNode parameter : parameters) {
-            parameter.accept(visitor, data);
-        }
-
         if (block != null) {
             block.accept(visitor, data);
         }

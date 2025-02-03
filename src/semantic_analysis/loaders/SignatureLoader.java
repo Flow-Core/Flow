@@ -115,11 +115,13 @@ public class SignatureLoader {
     }
 
     public static boolean compareParameterTypes(
-        List<ParameterNode> methods,
+        List<ParameterNode> parameters,
         List<String> parameterTypes
     ) {
-        for (int i = 0; i < methods.size(); i++) {
-            if (!methods.get(i).type.equals(parameterTypes.get(i)))
+        if (parameterTypes.size() != parameters.size()) return false;
+
+        for (int i = 0; i < parameters.size(); i++) {
+            if (!parameters.get(i).type.equals(parameterTypes.get(i)))
                 return false;
         }
 

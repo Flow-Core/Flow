@@ -19,6 +19,6 @@ public class ExpressionBaseNode implements ASTNode {
 
     @Override
     public String toString() {
-        return expression.toString();
+        return expression == null ? "'null'" : expression.toString();
     }
 }
