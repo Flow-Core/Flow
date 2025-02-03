@@ -36,7 +36,7 @@ public class VariableLoader {
             }
             if (actualType.equals("null")) {
                 if (!fieldNode.initialization.declaration.isNullable) {
-                    throw new SA_SemanticError("Null cannot be a value of a non-null type");
+                    throw new SA_SemanticError("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'");
                 }
             } else if (!scope.isSameType(actualType, varType)) {
                 throw new SA_SemanticError("Type mismatch: expected '"  + varType + "' but received '" + actualType + "'");
@@ -75,7 +75,7 @@ public class VariableLoader {
 
         if (actualType.equals("null")) {
             if (!fieldNode.initialization.declaration.isNullable) {
-                throw new SA_SemanticError("Null cannot be a value of a non-null type");
+                throw new SA_SemanticError("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'");
             }
         } else if (!scope.isSameType(actualType, varType)) {
             throw new SA_SemanticError("Type mismatch: expected '"  + varType + "' but received '" + actualType + "'");
