@@ -3,6 +3,7 @@ package semantic_analysis;
 import semantic_analysis.loaders.ClassLoader;
 import semantic_analysis.loaders.ImportLoader;
 import semantic_analysis.loaders.SignatureLoader;
+import semantic_analysis.visitors.FunctionSignatureVisitor;
 
 import java.util.Map;
 
@@ -29,6 +30,18 @@ public class SemanticAnalysis {
         for (final PackageWrapper currentPackageWrapper : packages.values()) {
             for (final FileWrapper file : currentPackageWrapper.files()) {
                 file.root().accept(new ClassLoader(currentPackageWrapper.scope().symbols()), file.scope().symbols());
+            }
+        }
+
+        for (final PackageWrapper currentPackageWrapper : packages.values()) {
+            for (final FileWrapper file : currentPackageWrapper.files()) {
+                file.root().accept(new ClassLoader(currentPackageWrapper.scope().symbols()), file.scope().symbols());
+            }
+        }
+
+        for (final PackageWrapper currentPackageWrapper : packages.values()) {
+            for (final FileWrapper file : currentPackageWrapper.files()) {
+                file.root().accept(new FunctionSignatureVisitor(), file.scope());
             }
         }
 
