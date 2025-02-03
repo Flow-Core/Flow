@@ -52,6 +52,19 @@ public class Main {
                     print("test2")
                 foreach (x in collection) {
                 }
+                
+                if (x == 5)
+                {
+                    print("test")
+                }
+                
+                try {
+                    throw new Exception()
+                } catch (e: Exception) {
+                    
+                } catch (e: NumberFormatException) {
+                
+                }
             }
             func test(x: Int) {
                 val y: C = C()

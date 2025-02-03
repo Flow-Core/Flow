@@ -1,11 +1,10 @@
 package parser.nodes.statements;
 
-import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
-import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.components.BlockNode;
+import parser.nodes.expressions.ExpressionNode;
 
-public class WhileStatementNode implements ASTNode {
+public class WhileStatementNode implements StatementNode {
     public ExpressionNode condition;
     public BlockNode loopBlock;
 
@@ -16,7 +15,7 @@ public class WhileStatementNode implements ASTNode {
 
     @Override
     public <D> void accept(final ASTVisitor<D> visitor, final D data) {
-        ASTNode.super.accept(visitor, data);
+        StatementNode.super.accept(visitor, data);
 
         condition.accept(visitor, data);
 

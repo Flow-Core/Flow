@@ -30,10 +30,10 @@ public class PackageMapper {
 
             PackageWrapper packageWrapper = packages.computeIfAbsent(
                 packagePath,
-                path -> new PackageWrapper(path, new ArrayList<>(), new Scope(null, SymbolTable.getEmptySymbolTable(), Scope.Type.TOP))
+                path -> new PackageWrapper(path, new ArrayList<>(), new Scope(null, SymbolTable.getEmptySymbolTable(), null, Scope.Type.TOP))
             );
 
-            Scope fileScope = new Scope(packageWrapper.scope(), SymbolTable.getEmptySymbolTable(), Scope.Type.TOP);
+            Scope fileScope = new Scope(packageWrapper.scope(), SymbolTable.getEmptySymbolTable(), null, Scope.Type.TOP);
             FileWrapper fileWrapper = new FileWrapper(root, fileScope);
 
             packageWrapper.files().add(fileWrapper);

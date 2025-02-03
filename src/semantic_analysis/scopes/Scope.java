@@ -1,5 +1,6 @@
 package semantic_analysis.scopes;
 
+import parser.nodes.ASTNode;
 import parser.nodes.classes.*;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.SymbolTable;
@@ -7,6 +8,7 @@ import semantic_analysis.SymbolTable;
 public record Scope (
     Scope parent,
     SymbolTable symbols,
+    ASTNode currentParent,
     Type type
 ) {
     public boolean findSymbol(String symbol) {

@@ -2,14 +2,14 @@ package parser.nodes.statements;
 
 import parser.nodes.ASTVisitor;
 import parser.nodes.components.BlockNode;
-import parser.nodes.expressions.ExpressionNode;
+import parser.nodes.components.ParameterNode;
 
-public class CaseNode implements StatementNode {
-    public ExpressionNode value;
+public class CatchNode implements StatementNode {
+    public ParameterNode parameter;
     public BlockNode body;
 
-    public CaseNode(ExpressionNode value, BlockNode body) {
-        this.value = value;
+    public CatchNode(ParameterNode parameter, BlockNode body) {
+        this.parameter = parameter;
         this.body = body;
     }
 
@@ -17,14 +17,15 @@ public class CaseNode implements StatementNode {
     public <D> void accept(final ASTVisitor<D> visitor, final D data) {
         StatementNode.super.accept(visitor, data);
 
-        value.accept(visitor, data);
+        parameter.accept(visitor, data);
+
         body.accept(visitor, data);
     }
 
     @Override
     public String toString() {
-        return "CaseNode{" +
-            "value=" + value +
+        return "CatchNode{" +
+            "argument=" + parameter +
             ", body=" + body +
             '}';
     }

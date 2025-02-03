@@ -82,7 +82,7 @@ public class ClassTraverse {
             }
         }
 
-        Scope scope = new Scope(parent, currSymbols, Scope.Type.TOP);
+        Scope scope = new Scope(parent, currSymbols, null, Scope.Type.TOP);
 
         for (ClassDeclarationNode classDeclaration : currSymbols.classes()) {
             traverseClass(classDeclaration, scope);

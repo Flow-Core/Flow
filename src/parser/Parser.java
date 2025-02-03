@@ -61,6 +61,10 @@ public class Parser {
             throw new IllegalArgumentException("Consume can't be empty");
         }
 
+        if (check(TokenType.NEW_LINE)) {
+            advance();
+        }
+
         if (Arrays.stream(expectedTypes).noneMatch(tokenType -> peek().type() == tokenType)) {
             if (expectedTypes.length == 1) {
                 throw new PARSE_UnexpectedToken("Expected " + Arrays.stream(expectedTypes).findFirst().get() + " but found '" + peek().value() + "'");

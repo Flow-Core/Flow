@@ -1,11 +1,10 @@
 package parser.nodes.statements;
 
-import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
-import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.components.BlockNode;
+import parser.nodes.expressions.ExpressionNode;
 
-public class ForeachStatementNode implements ASTNode {
+public class ForeachStatementNode implements StatementNode {
     public String loopVariable;
     public ExpressionNode collection;
     public BlockNode body;
@@ -18,7 +17,7 @@ public class ForeachStatementNode implements ASTNode {
 
     @Override
     public <D> void accept(final ASTVisitor<D> visitor, final D data) {
-        ASTNode.super.accept(visitor, data);
+        StatementNode.super.accept(visitor, data);
 
         collection.accept(visitor, data);
 

@@ -19,6 +19,7 @@ public enum TokenType {
     INTERFACE("\\binterface\\b"),
     TRY("\\btry\\b"),
     CATCH("\\bcatch\\b"),
+    THROW("\\bthrow\\b"),
 
     CONST("\\bconst\\b"),
     VAL("\\bval\\b"),
@@ -34,6 +35,7 @@ public enum TokenType {
     CONTINUE("\\bcontinue\\b"),
 
     IN("\\bin\\b"),
+    IS_NOT("\\bis not\\b"),
     IS("\\bis\\b"),
     AS("\\bas\\b"),
     NULL("\\bnull\\b"),

@@ -1,11 +1,10 @@
 package parser.nodes.statements;
 
-import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
-import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.components.BlockNode;
+import parser.nodes.expressions.ExpressionNode;
 
-public class IfStatementNode implements ASTNode {
+public class IfStatementNode implements StatementNode {
     public ExpressionNode condition;
     public BlockNode trueBranch;
     public BlockNode falseBranch;
@@ -18,13 +17,15 @@ public class IfStatementNode implements ASTNode {
 
     @Override
     public <D> void accept(final ASTVisitor<D> visitor, final D data) {
-        ASTNode.super.accept(visitor, data);
+        StatementNode.super.accept(visitor, data);
 
         condition.accept(visitor, data);
 
         trueBranch.accept(visitor, data);
 
-        falseBranch.accept(visitor, data);
+        if (falseBranch != null) {
+            falseBranch.accept(visitor, data);
+        }
     }
 
     @Override

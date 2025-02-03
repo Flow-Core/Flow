@@ -1,12 +1,11 @@
 package parser.nodes.statements;
 
-import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
-import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.components.BlockNode;
+import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.variable.VariableAssignmentNode;
 
-public class ForStatementNode implements ASTNode {
+public class ForStatementNode implements StatementNode {
     public VariableAssignmentNode initialization;
     public ExpressionNode condition;
     public VariableAssignmentNode action;
@@ -21,7 +20,7 @@ public class ForStatementNode implements ASTNode {
 
     @Override
     public <D> void accept(final ASTVisitor<D> visitor, final D data) {
-        ASTNode.super.accept(visitor, data);
+        StatementNode.super.accept(visitor, data);
 
         condition.accept(visitor, data);
 

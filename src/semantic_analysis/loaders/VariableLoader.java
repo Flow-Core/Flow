@@ -41,6 +41,8 @@ public class VariableLoader {
         } else {
             fieldNode.initialization.declaration.type = actualType;
         }
+
+        scope.symbols().fields().add(fieldNode);
     }
 
     public void loadAssignment(
