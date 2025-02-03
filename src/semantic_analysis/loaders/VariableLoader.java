@@ -13,7 +13,7 @@ import semantic_analysis.visitors.ExpressionTraverse;
 import java.util.Objects;
 
 public class VariableLoader {
-    public void loadDeclaration(
+    public static void loadDeclaration(
         final FieldNode fieldNode,
         final Scope scope
     ) {
@@ -51,7 +51,7 @@ public class VariableLoader {
         scope.symbols().fields().add(fieldNode);
     }
 
-    public void loadAssignment(
+    public static void loadAssignment(
         final VariableAssignmentNode variableAssignment,
         final Scope scope
     ) {

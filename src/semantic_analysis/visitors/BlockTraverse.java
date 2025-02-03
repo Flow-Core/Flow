@@ -15,9 +15,9 @@ public class BlockTraverse {
             if (node instanceof StatementNode statementNode) {
                 StatementTraverse.traverse(statementNode, scope);
             } else if (node instanceof FieldNode fieldNode) {
-                new VariableLoader().loadDeclaration(fieldNode, scope);
+                VariableLoader.loadDeclaration(fieldNode, scope);
             } else if (node instanceof VariableAssignmentNode variableAssignmentNode) {
-                new VariableLoader().loadAssignment(variableAssignmentNode, scope);
+                VariableLoader.loadAssignment(variableAssignmentNode, scope);
             } else if (node instanceof ExpressionBaseNode expressionBaseNode) {
                 new ExpressionTraverse().traverse(expressionBaseNode, scope);
             }
