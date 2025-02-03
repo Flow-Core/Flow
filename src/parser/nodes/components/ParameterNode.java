@@ -6,11 +6,13 @@ import parser.nodes.expressions.ExpressionNode;
 
 public class ParameterNode implements ASTNode {
     public String type;
+    public boolean isNullable;
     public String name;
     public ExpressionNode defaultValue;
 
-    public ParameterNode(String type, String name, ExpressionNode defaultValue) {
+    public ParameterNode(String type, boolean isNullable, String name, ExpressionNode defaultValue) {
         this.type = type;
+        this.isNullable = isNullable;
         this.name = name;
         this.defaultValue = defaultValue;
     }
@@ -28,6 +30,7 @@ public class ParameterNode implements ASTNode {
     public String toString() {
         return "ParameterNode{" +
             "type='" + type + '\'' +
+            ", isNullable=" + isNullable +
             ", name='" + name + '\'' +
             ", defaultValue=" + defaultValue +
             '}';

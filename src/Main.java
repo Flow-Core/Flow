@@ -66,7 +66,7 @@ public class Main {
                 
                 }
             }
-            func test(x: Int) {
+            func test(x: Int?) {
                 val y: C = C()
                 var x = 10
                 switch (x) {

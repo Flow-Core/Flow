@@ -31,6 +31,9 @@ public class VariableLoader {
         }
 
         if (varType != null) {
+            if (!scope.findTypeDeclaration(varType)) {
+                throw new SA_UnresolvedSymbolException(varType);
+            }
             if (actualType.equals("null")) {
                 if (!fieldNode.initialization.declaration.isNullable) {
                     throw new SA_SemanticError("Null cannot be a value of a non-null type");
@@ -39,6 +42,9 @@ public class VariableLoader {
                 throw new SA_SemanticError("Type mismatch: expected '"  + varType + "' but received '" + actualType + "'");
             }
         } else {
+            if (actualType.equals("null")) {
+                throw new SA_SemanticError("Variable must either have an explicit type or be initialized");
+            }
             fieldNode.initialization.declaration.type = actualType;
         }
 

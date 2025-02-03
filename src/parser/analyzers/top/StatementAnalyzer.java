@@ -146,7 +146,7 @@ public class StatementAnalyzer extends TopAnalyzer {
 
                     catchNodes.add(
                         new CatchNode(
-                            new ParameterNode(type, parameterName, null),
+                            new ParameterNode(type, false, parameterName, null),
                             catchBlock
                         )
                     );

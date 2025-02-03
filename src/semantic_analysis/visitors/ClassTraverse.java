@@ -30,6 +30,7 @@ public class ClassTraverse {
             primaryParameters.add(
                 new ParameterNode(
                     field.initialization.declaration.type,
+                    field.initialization.declaration.isNullable,
                     "_" + field.initialization.declaration.name,
                     null
                 )

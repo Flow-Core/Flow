@@ -152,6 +152,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
             primaryParameters.add(
                 new ParameterNode(
                     field.initialization.declaration.type,
+                    field.initialization.declaration.isNullable,
                     field.initialization.declaration.name,
                     null
                 )
@@ -185,7 +186,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     private void addThisParameterToInstanceMethods(ClassDeclarationNode classDeclaration) {
         for (FunctionDeclarationNode functionDeclaration : classDeclaration.methods) {
             if (!functionDeclaration.modifiers.contains("static")) {
-                functionDeclaration.parameters.add(0, new ParameterNode(classDeclaration.name, "this", null));
+                functionDeclaration.parameters.add(0, new ParameterNode(classDeclaration.name, false, "this", null));
             }
         }
     }
@@ -195,7 +196,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
 
         for (FunctionDeclarationNode functionDeclaration : interfaceDeclaration.methods) {
             if (!functionDeclaration.modifiers.contains("static")) {
-                functionDeclaration.parameters.add(0, new ParameterNode(interfaceDeclaration.name, "this", null));
+                functionDeclaration.parameters.add(0, new ParameterNode(interfaceDeclaration.name, false, "this", null));
             }
         }
     }

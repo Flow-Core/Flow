@@ -55,6 +55,11 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
             String name = parser.consume(TokenType.IDENTIFIER).value();
             parser.consume(TokenType.COLON_OPERATOR);
             String type = parser.consume(TokenType.IDENTIFIER).value();
+            boolean isNullable = false;
+            if (parser.check(TokenType.NULLABLE)) {
+                isNullable = true;
+                parser.advance();
+            }
 
             ExpressionNode defaultValue = null;
             if (parser.peek().type() == TokenType.EQUAL_OPERATOR) {
@@ -62,7 +67,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
                 defaultValue = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
             }
 
-            ParameterNode arg = new ParameterNode(type, name, defaultValue);
+            ParameterNode arg = new ParameterNode(type, isNullable, name, defaultValue);
 
             parameters.add(arg);
 
