@@ -82,7 +82,7 @@ public class ExpressionTraverse {
                         leftTypeNode.methods,
                         call.name,
                         call.arguments.stream().map(
-                            argument -> new ExpressionTraverse().traverse(new ExpressionBaseNode(argument.value), scope)
+                            argument -> new ExpressionTraverse().traverse(argument.value, scope)
                         ).toList()
                     );
 
@@ -95,7 +95,9 @@ public class ExpressionTraverse {
                             0,
                             new ArgumentNode(
                                 null,
-                                binaryExpression.left
+                                new ExpressionBaseNode(
+                                    binaryExpression.left
+                                )
                             )
                         );
 
@@ -132,8 +134,8 @@ public class ExpressionTraverse {
                     leftType.type,
                     operatorName,
                     List.of(
-                        new ArgumentNode(null, binaryExpression.left),
-                        new ArgumentNode(null, binaryExpression.right)
+                        new ArgumentNode(null, new ExpressionBaseNode(binaryExpression.left)),
+                        new ArgumentNode(null, new ExpressionBaseNode(binaryExpression.right))
                     )
                 );
             }
@@ -165,7 +167,7 @@ public class ExpressionTraverse {
                     operandType.type,
                     operatorName,
                     List.of(
-                        new ArgumentNode(null, unaryExpression.operand)
+                        new ArgumentNode(null, new ExpressionBaseNode(unaryExpression.operand))
                     )
                 );
             }
@@ -198,7 +200,7 @@ public class ExpressionTraverse {
                 scope,
                 functionCall.name,
                 functionCall.arguments.stream().map(
-                    argument -> new ExpressionTraverse().traverse(new ExpressionBaseNode(argument.value), scope)
+                    argument -> new ExpressionTraverse().traverse(argument.value, scope)
                 ).toList()
             );
 

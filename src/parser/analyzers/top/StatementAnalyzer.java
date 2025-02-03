@@ -4,9 +4,10 @@ import lexer.token.TokenType;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
-import parser.nodes.components.ParameterNode;
-import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.components.BlockNode;
+import parser.nodes.components.ParameterNode;
+import parser.nodes.expressions.ExpressionBaseNode;
+import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.statements.*;
 import parser.nodes.variable.VariableAssignmentNode;
 
@@ -36,7 +37,7 @@ public class StatementAnalyzer extends TopAnalyzer {
 
                 return new AnalyzerResult(
                     new IfStatementNode(
-                        ifCondition,
+                        new ExpressionBaseNode(ifCondition),
                         trueBranch,
                         falseBranch
                     ),
@@ -62,7 +63,7 @@ public class StatementAnalyzer extends TopAnalyzer {
                 return new AnalyzerResult(
                     new ForStatementNode(
                         loopVariable,
-                        forCondition,
+                        new ExpressionBaseNode(forCondition),
                         loopUpdate,
                         forBlock
                     ),
@@ -111,7 +112,7 @@ public class StatementAnalyzer extends TopAnalyzer {
 
                 return new AnalyzerResult(
                     new SwitchStatementNode(
-                        switchCondition,
+                        new ExpressionBaseNode(switchCondition),
                         switchBlock.children
                             .stream()
                             .filter(node -> node instanceof CaseNode)
@@ -162,14 +163,18 @@ public class StatementAnalyzer extends TopAnalyzer {
             case THROW:
                 return new AnalyzerResult(
                     new ThrowNode(
-                        (ExpressionNode) new ExpressionAnalyzer().parse(parser).node()
+                        new ExpressionBaseNode(
+                            (ExpressionNode) new ExpressionAnalyzer().parse(parser).node()
+                        )
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
             case RETURN:
                 return new AnalyzerResult(
                     new ReturnStatementNode(
-                        (ExpressionNode) new ExpressionAnalyzer().parse(parser).node()
+                        new ExpressionBaseNode(
+                            (ExpressionNode) new ExpressionAnalyzer().parse(parser).node()
+                        )
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );

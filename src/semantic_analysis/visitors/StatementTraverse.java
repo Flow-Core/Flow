@@ -29,7 +29,7 @@ public class StatementTraverse {
     }
 
     private static void handleIfStatement(final IfStatementNode ifStatementNode, final Scope scope) {
-        final String conditionType = new ExpressionTraverse().traverse(new ExpressionBaseNode(ifStatementNode.condition), scope);
+        final String conditionType = new ExpressionTraverse().traverse(ifStatementNode.condition, scope);
         if (!conditionType.equals("Bool")) {
             throw new SA_SemanticError("Condition type mismatch: 'Bool' was expected");
         }
@@ -51,7 +51,7 @@ public class StatementTraverse {
     }
 
     private static void handleForStatement(final ForStatementNode forStatementNode, final Scope scope) {
-        final String conditionType = new ExpressionTraverse().traverse(new ExpressionBaseNode(forStatementNode.condition), scope);
+        final String conditionType = new ExpressionTraverse().traverse(forStatementNode.condition, scope);
         if (!conditionType.equals("Bool")) {
             throw new SA_SemanticError("Loop condition type mismatch: must be of type 'Bool'");
         }
@@ -76,10 +76,10 @@ public class StatementTraverse {
     }
 
     private static void handleSwitchStatement(final SwitchStatementNode switchStatementNode, final Scope scope) {
-        final String switchType = new ExpressionTraverse().traverse(new ExpressionBaseNode(switchStatementNode.condition), scope);
+        final String switchType = new ExpressionTraverse().traverse(switchStatementNode.condition, scope);
 
         for (CaseNode caseNode : switchStatementNode.cases) {
-            final String caseType = new ExpressionTraverse().traverse(new ExpressionBaseNode(caseNode.value), scope);
+            final String caseType = new ExpressionTraverse().traverse(caseNode.value, scope);
 
             if (!scope.isSameType(caseType, switchType)) {
                 throw new SA_SemanticError("Switch case type mismatch: Expected '" + switchType + "' but found '" + caseType + "'");
@@ -94,7 +94,7 @@ public class StatementTraverse {
     }
 
     private static void handleReturnStatement(final ReturnStatementNode returnStatementNode, final Scope scope) {
-        final String returnType = new ExpressionTraverse().traverse(new ExpressionBaseNode(returnStatementNode.returnValue), scope); // TODO: Expression base
+        final String returnType = new ExpressionTraverse().traverse(returnStatementNode.returnValue, scope);
         final ASTNode currentParent = scope.currentParent();
         if (!(currentParent instanceof FunctionDeclarationNode functionDeclarationNode)) {
             throw new SA_SemanticError("Return statement is not allowed here");

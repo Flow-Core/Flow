@@ -2,15 +2,15 @@ package parser.nodes.components;
 
 import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
-import parser.nodes.expressions.ExpressionNode;
+import parser.nodes.expressions.ExpressionBaseNode;
 
 public class ParameterNode implements ASTNode {
     public String type;
     public boolean isNullable;
     public String name;
-    public ExpressionNode defaultValue;
+    public ExpressionBaseNode defaultValue;
 
-    public ParameterNode(String type, boolean isNullable, String name, ExpressionNode defaultValue) {
+    public ParameterNode(String type, boolean isNullable, String name, ExpressionBaseNode defaultValue) {
         this.type = type;
         this.isNullable = isNullable;
         this.name = name;

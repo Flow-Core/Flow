@@ -2,16 +2,16 @@ package parser.nodes.statements;
 
 import parser.nodes.ASTVisitor;
 import parser.nodes.components.BlockNode;
-import parser.nodes.expressions.ExpressionNode;
+import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.variable.VariableAssignmentNode;
 
 public class ForStatementNode implements StatementNode {
     public VariableAssignmentNode initialization;
-    public ExpressionNode condition;
+    public ExpressionBaseNode condition;
     public VariableAssignmentNode action;
     public BlockNode loopBlock;
 
-    public ForStatementNode(VariableAssignmentNode initialization, ExpressionNode condition, VariableAssignmentNode action, BlockNode loopBlock) {
+    public ForStatementNode(VariableAssignmentNode initialization, ExpressionBaseNode condition, VariableAssignmentNode action, BlockNode loopBlock) {
         this.initialization = initialization;
         this.condition = condition;
         this.action = action;

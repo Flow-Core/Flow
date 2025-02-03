@@ -1,12 +1,12 @@
 package parser.nodes.statements;
 
 import parser.nodes.ASTVisitor;
-import parser.nodes.expressions.ExpressionNode;
+import parser.nodes.expressions.ExpressionBaseNode;
 
 public class ReturnStatementNode implements StatementNode {
-    public ExpressionNode returnValue;
+    public ExpressionBaseNode returnValue;
 
-    public ReturnStatementNode(ExpressionNode throwValue) {
+    public ReturnStatementNode(ExpressionBaseNode throwValue) {
         this.returnValue = throwValue;
     }
 

@@ -2,13 +2,13 @@ package parser.nodes.components;
 
 import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
-import parser.nodes.expressions.ExpressionNode;
+import parser.nodes.expressions.ExpressionBaseNode;
 
 public class ArgumentNode implements ASTNode {
     public String name;
-    public ExpressionNode value;
+    public ExpressionBaseNode value;
 
-    public ArgumentNode(String name, ExpressionNode value) {
+    public ArgumentNode(String name, ExpressionBaseNode value) {
         this.name = name;
         this.value = value;
     }
