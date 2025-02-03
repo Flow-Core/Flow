@@ -15,9 +15,9 @@ import parser.nodes.literals.LiteralNode;
 import parser.nodes.literals.NullLiteral;
 import parser.nodes.variable.FieldReferenceNode;
 import parser.nodes.variable.VariableReferenceNode;
-import semantic_analysis.scopes.Scope;
 import semantic_analysis.exceptions.SA_SemanticError;
 import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
+import semantic_analysis.scopes.Scope;
 import semantic_analysis.transformers.LiteralTransformer;
 
 import java.util.List;
@@ -28,7 +28,12 @@ public class ExpressionTraverse {
 
         root.expression = transformValue(expression, scope);
 
-        return determineType(expression, scope);
+        TypeWrapper type = determineType(expression, scope);
+
+        if (type.isTypeReference)
+            throw new SA_SemanticError("Expression expected"); // Log
+
+        return type.type;
     }
 
     private static ExpressionNode transformValue(ExpressionNode expression, Scope scope) {
@@ -40,19 +45,22 @@ public class ExpressionTraverse {
     }
 
     private static ExpressionNode transformOperators(ExpressionNode expression, Scope scope) {
-        // TODO: Static members
-        //       Change every member reference to work with base class and interfaces
         if (expression instanceof BinaryExpressionNode binaryExpression) {
             binaryExpression.left = transformValue(binaryExpression.left, scope);
 
-            String leftType = determineType(binaryExpression.left, scope);
-            ClassDeclarationNode leftTypeNode = scope.getClass(leftType);
+            TypeWrapper leftType = determineType(binaryExpression.left, scope);
+
+            ClassDeclarationNode leftTypeNode = scope.getClass(leftType.type);
 
             if (leftTypeNode == null)
-                throw new SA_UnresolvedSymbolException(leftType);
+                throw new SA_UnresolvedSymbolException(leftType.type); // Log
 
             if (binaryExpression.operator.equals(".")) {
                 if (binaryExpression.right instanceof VariableReferenceNode reference) {
+                    if (scope.findTypeDeclaration(reference.variable)) {
+                        throw new SA_SemanticError("Cannot access nested types"); // Log
+                    }
+
                     FieldNode field = findField(
                         leftTypeNode.fields,
                         reference.variable
@@ -63,7 +71,7 @@ public class ExpressionTraverse {
                     }
 
                     return new FieldReferenceNode(
-                        leftType,
+                        leftType.type,
                         reference.variable,
                         binaryExpression.left
                     );
@@ -73,7 +81,7 @@ public class ExpressionTraverse {
                         leftTypeNode.methods,
                         call.name,
                         call.arguments.stream().map(
-                            argument -> determineType(argument.value, scope)
+                            argument -> new ExpressionTraverse().traverse(new ExpressionBaseNode(argument.value), scope)
                         ).toList()
                     );
 
@@ -81,16 +89,17 @@ public class ExpressionTraverse {
                         throw new SA_UnresolvedSymbolException(leftType + "." + call.name); // Log
                     }
 
-                    call.arguments.add(
-                        0,
-                        new ArgumentNode(
-                            null,
-                            binaryExpression.left
-                        )
-                    );
+                    if (!leftType.isTypeReference)
+                        call.arguments.add(
+                            0,
+                            new ArgumentNode(
+                                null,
+                                binaryExpression.left
+                            )
+                        );
 
                     return new FunctionCallNode(
-                        leftType,
+                        leftType.type,
                         call.name,
                         call.arguments
                     );
@@ -99,21 +108,27 @@ public class ExpressionTraverse {
                 }
             }
 
+            if (leftType.isTypeReference)
+                throw new SA_SemanticError("Expression expected");
+
             binaryExpression.right = transformValue(binaryExpression.right, scope);
 
-            String rightType = determineType(binaryExpression.right, scope);
+            TypeWrapper rightType = determineType(binaryExpression.right, scope);
+
+            if (rightType.isTypeReference)
+                throw new SA_SemanticError("Expression expected");
 
             String operatorName = getOperatorName(binaryExpression.operator);
 
             FunctionDeclarationNode functionDecl = findMethodWithParameters(
                 leftTypeNode.methods,
                 operatorName,
-                List.of(rightType)
+                List.of(rightType.type)
             );
 
             if (functionDecl != null) {
                 return new FunctionCallNode(
-                    leftType,
+                    leftType.type,
                     operatorName,
                     List.of(
                         new ArgumentNode(null, binaryExpression.left),
@@ -126,11 +141,15 @@ public class ExpressionTraverse {
         } else if (expression instanceof UnaryOperatorNode unaryExpression) {
             unaryExpression.operand = transformValue(unaryExpression.operand, scope);
 
-            String operandType = determineType(unaryExpression.operand, scope);
-            ClassDeclarationNode operandTypeNode = scope.getClass(operandType);
+            TypeWrapper operandType = determineType(unaryExpression.operand, scope);
+
+            if (operandType.isTypeReference)
+                throw new SA_SemanticError("Expression expected");
+
+            ClassDeclarationNode operandTypeNode = scope.getClass(operandType.type);
 
             if (operandTypeNode == null)
-                throw new SA_UnresolvedSymbolException(operandType);
+                throw new SA_UnresolvedSymbolException(operandType.type);
 
             String operatorName = getOperatorName(unaryExpression.operator);
 
@@ -142,7 +161,7 @@ public class ExpressionTraverse {
 
             if (functionDecl != null) {
                 return new FunctionCallNode(
-                    operandType,
+                    operandType.type,
                     operatorName,
                     List.of(
                         new ArgumentNode(null, unaryExpression.operand)
@@ -154,21 +173,21 @@ public class ExpressionTraverse {
         return null;
     }
 
-    private static String determineType(ExpressionNode expression, Scope scope) {
+    private static TypeWrapper determineType(ExpressionNode expression, Scope scope) {
         if (expression instanceof ObjectNode objectNode) {
-            return objectNode.className;
+            return new TypeWrapper(objectNode.className, false);
         }
         if (expression instanceof VariableReferenceNode variable) {
             // TODO: Also check for nullability
 
             if (scope.findTypeDeclaration(variable.variable)) {
-                return variable.variable; //TODO: Make it differentiate between static and instance members
+                return new TypeWrapper(variable.variable, true); //TODO: Make it differentiate between static and instance members
             }
 
             FieldNode field = scope.getField(variable.variable);
 
             if (field != null) {
-                return field.initialization.declaration.type;
+                return new TypeWrapper(field.initialization.declaration.type, false);
             }
 
             throw new SA_UnresolvedSymbolException(variable.variable); // LOG
@@ -178,18 +197,18 @@ public class ExpressionTraverse {
                 scope,
                 functionCall.name,
                 functionCall.arguments.stream().map(
-                    argument -> determineType(argument.value, scope)
+                    argument -> new ExpressionTraverse().traverse(new ExpressionBaseNode(argument.value), scope)
                 ).toList()
             );
 
             if (function != null) {
-                return function.returnType;
+                return new TypeWrapper(function.returnType, false);
             }
 
             throw new SA_UnresolvedSymbolException(functionCall.name); // LOG
         }
         if (expression instanceof NullLiteral) {
-            return "null";
+            return new TypeWrapper("null", false);
         }
 
         throw new SA_SemanticError("Could not resolve type"); // Log and return something
@@ -242,6 +261,11 @@ public class ExpressionTraverse {
 
         return true;
     }
+
+    private record TypeWrapper(
+        String type,
+        boolean isTypeReference
+    ) {}
 
     private static String getOperatorName(String operator) {
         return switch (operator) {
