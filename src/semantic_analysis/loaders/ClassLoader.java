@@ -12,13 +12,13 @@ import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.SymbolTable;
 import semantic_analysis.exceptions.SA_SemanticError;
-import semantic_analysis.scopes.Scope;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static semantic_analysis.loaders.SignatureLoader.compareParameterTypes;
 import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
 
 public class ClassLoader implements ASTVisitor<SymbolTable> {
@@ -38,7 +38,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     }
 
     private void handleClass(final ClassDeclarationNode classDeclaration, final SymbolTable data) {
-        ModifierLoader.load(classDeclaration.modifiers, Scope.Type.CLASS);
+        ModifierLoader.load(classDeclaration.modifiers, ModifierLoader.ModifierType.CLASS);
 
         validateBaseClass(classDeclaration, data);
         validateInterfaces(classDeclaration.implementedInterfaces, data);
@@ -50,7 +50,30 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
             checkIfAllOverridden(classDeclaration, data);
         }
 
+        loadConstructors(classDeclaration);
+
         data.classes().add(classDeclaration);
+    }
+
+    private void loadConstructors(final ClassDeclarationNode classDeclaration) {
+        for (final ConstructorNode constructorNode : classDeclaration.constructors) {
+            ModifierLoader.load(classDeclaration.modifiers, ModifierLoader.ModifierType.CONSTRUCTOR);
+
+            constructorNode.parameters.add(0, new ParameterNode(classDeclaration.name, false, "this", null));
+
+            if (
+                classDeclaration.constructors.stream()
+                    .filter(
+                        constructor -> compareParameterTypes(
+                            constructor.parameters,
+                            constructorNode.parameters.stream().map(parameter -> parameter.type).toList(),
+                            false
+                        )
+                    ).toList().size() > 1
+            ) {
+                throw new SA_SemanticError("Cannot have more than one constructor with the same signature");
+            }
+        }
     }
 
     private void checkIfAllOverridden(final ClassDeclarationNode classDeclaration, final SymbolTable data) {
@@ -68,10 +91,10 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                 throw new SA_SemanticError("Class '" + classDeclaration.name + "' is not abstract and does not implement abstract base class member '" + abstractFunction.name + "'");
             } else if (
                 (method.isReturnTypeNullable != abstractFunction.isReturnTypeNullable) ||
-                !data.isSameType(method.returnType, abstractFunction.returnType)
-                && !packageLevel.isSameType(method.returnType, abstractFunction.returnType)
+                    !data.isSameType(method.returnType, abstractFunction.returnType)
+                        && !packageLevel.isSameType(method.returnType, abstractFunction.returnType)
             ) {
-                throw new SA_SemanticError("Return type of function '" + abstractFunction.name + "' is not a subtype of the overridden member, expected a subtype of: '" + abstractFunction.returnType + (abstractFunction.isReturnTypeNullable ? "?" : "") + "' but found '" + method.returnType + (method.isReturnTypeNullable ? "?" : "")  + "'");
+                throw new SA_SemanticError("Return type of function '" + abstractFunction.name + "' is not a subtype of the overridden member, expected a subtype of: '" + abstractFunction.returnType + (abstractFunction.isReturnTypeNullable ? "?" : "") + "' but found '" + method.returnType + (method.isReturnTypeNullable ? "?" : "") + "'");
             }
         }
 

@@ -48,10 +48,35 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
 
         Token funcName = parser.consume(TokenType.IDENTIFIER);
 
+        List<ParameterNode> parameters = parseParameters(parser);
+
+        String returnType = "Void";
+        boolean isReturnTypeNullable = false;
+
+        if (parser.check(TokenType.COLON_OPERATOR)) {
+            parser.advance();
+            returnType = parser.consume(TokenType.IDENTIFIER).value();
+
+            if (parser.check(TokenType.NULLABLE)) {
+                parser.advance();
+                isReturnTypeNullable = true;
+            }
+        }
+
+        return new FunctionDeclarationNode(
+            funcName.value(),
+            returnType,
+            isReturnTypeNullable,
+            modifiers,
+            parameters,
+            null
+        );
+    }
+
+    public static List<ParameterNode> parseParameters(Parser parser) {
         parser.consume(TokenType.OPEN_PARENTHESES);
 
         List<ParameterNode> parameters = new ArrayList<>();
-
         while (!parser.check(TokenType.CLOSE_PARENTHESES)) {
             String name = parser.consume(TokenType.IDENTIFIER).value();
             parser.consume(TokenType.COLON_OPERATOR);
@@ -83,26 +108,6 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
         }
         parser.advance();
 
-        String returnType = "Void";
-        boolean isReturnTypeNullable = false;
-
-        if (parser.check(TokenType.COLON_OPERATOR)) {
-            parser.advance();
-            returnType = parser.consume(TokenType.IDENTIFIER).value();
-
-            if (parser.check(TokenType.NULLABLE)) {
-                parser.advance();
-                isReturnTypeNullable = true;
-            }
-        }
-
-        return new FunctionDeclarationNode(
-            funcName.value(),
-            returnType,
-            isReturnTypeNullable,
-            modifiers,
-            parameters,
-            null
-        );
+        return parameters;
     }
 }

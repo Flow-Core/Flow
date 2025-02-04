@@ -1,47 +1,13 @@
 package semantic_analysis.loaders;
 
 import semantic_analysis.exceptions.SA_SemanticError;
-import semantic_analysis.scopes.Scope;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ModifierLoader {
-    // allowed modifiers, each modifier contains list of modifiers it cannot be with
-    private static final Map<String, List<String>> CLASS_ALLOWED = Map.of(
-        "private", List.of("public", "protected"),
-        "public", List.of("private", "protected"),
-        "protected", List.of("public", "private"),
-        "static", List.of("abstract", "final", "open"),
-        "abstract", List.of("static", "final", "open"),
-        "final", List.of("static", "abstract", "open"),
-        "open", List.of("static", "abstract", "final")
-    );
-
-    private static final Map<String, List<String>> FUNCTION_ALLOWED = Map.of(
-        "private", List.of("public", "protected"),
-        "public", List.of("private", "protected"),
-        "protected", List.of("public", "private"),
-        "static", List.of("abstract", "final", "open"),
-        "abstract", List.of("static", "final", "open"),
-        "final", List.of("static", "abstract", "open"),
-        "open", List.of("static", "abstract", "final"),
-        "override", List.of("abstract", "static", "final")
-    );
-
-    public static void load(final List<String> modifiers, final Scope.Type type) {
-        if (type == Scope.Type.TOP) {
-            throw new IllegalArgumentException("No top level modifiers exist");
-        }
-
-        if (type == Scope.Type.CLASS) {
-            checkModifiers(modifiers, CLASS_ALLOWED);
-        } else if (type == Scope.Type.FUNCTION) {
-            checkModifiers(modifiers, FUNCTION_ALLOWED);
-        }
+    public static void load(final List<String> modifiers, final ModifierType modifierType) {
+        checkModifiers(modifiers, modifierType.restrictions);
     }
 
     private static void checkModifiers(
@@ -69,6 +35,45 @@ public class ModifierLoader {
             if (!conflicts.isEmpty()) {
                 throw new SA_SemanticError("Modifier '" + modifier + "' cannot be used with: " + conflicts);
             }
+        }
+    }
+
+    public enum ModifierType {
+        CLASS(
+            Map.of(
+                "private", List.of("public", "protected"),
+                "public", List.of("private", "protected"),
+                "protected", List.of("public", "private"),
+                "static", List.of("abstract", "final", "open"),
+                "abstract", List.of("static", "final", "open"),
+                "final", List.of("static", "abstract", "open"),
+                "open", List.of("static", "abstract", "final")
+            )
+        ),
+
+        FUNCTION(
+            Map.of(
+                "private", List.of("public", "protected"),
+                "public", List.of("private", "protected"),
+                "protected", List.of("public", "private"),
+                "static", List.of("abstract", "final", "open"),
+                "abstract", List.of("static", "final", "open"),
+                "final", List.of("static", "abstract", "open"),
+                "open", List.of("static", "abstract", "final"),
+                "override", List.of("abstract", "static", "final")
+            )
+        ),
+        CONSTRUCTOR(
+            Map.of(
+                "private", List.of("public", "protected"),
+                "public", List.of("private", "protected"),
+                "protected", List.of("public", "private")
+            )
+        );
+
+        private final Map<String, List<String>> restrictions;
+        ModifierType(Map<String, List<String>> restrictions) {
+            this.restrictions = restrictions;
         }
     }
 }

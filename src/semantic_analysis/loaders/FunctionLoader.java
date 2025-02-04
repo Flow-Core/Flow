@@ -19,7 +19,7 @@ import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters
 
 public class FunctionLoader {
     public static void loadSignature(final FunctionDeclarationNode functionDeclarationNode, final Scope scope) {
-        ModifierLoader.load(functionDeclarationNode.modifiers, Scope.Type.FUNCTION);
+        ModifierLoader.load(functionDeclarationNode.modifiers, ModifierLoader.ModifierType.FUNCTION);
 
         if (!scope.findTypeDeclaration(functionDeclarationNode.returnType)) {
             throw new SA_UnresolvedSymbolException(functionDeclarationNode.returnType);

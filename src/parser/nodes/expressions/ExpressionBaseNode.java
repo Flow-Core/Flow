@@ -14,7 +14,9 @@ public class ExpressionBaseNode implements ASTNode {
     public <D> void accept(final ASTVisitor<D> visitor, final D data) {
         ASTNode.super.accept(visitor, data);
 
-        expression.accept(visitor, data);
+        if (expression != null) {
+            expression.accept(visitor, data);
+        }
     }
 
     @Override

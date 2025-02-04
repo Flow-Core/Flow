@@ -1,6 +1,7 @@
 package parser.analyzers;
 
 import parser.analyzers.classes.ClassAnalyzer;
+import parser.analyzers.classes.ConstructorAnalyzer;
 import parser.analyzers.classes.InitAnalyzer;
 import parser.analyzers.classes.InterfaceAnalyzer;
 import parser.analyzers.switches.CaseAnalyzer;
@@ -74,6 +75,7 @@ public final class AnalyzerDeclarations {
         CLASS_SCOPE.add(new InterfaceAnalyzer());
         CLASS_SCOPE.add(new FieldAnalyzer());
         CLASS_SCOPE.add(new InitAnalyzer());
+        CLASS_SCOPE.add(new ConstructorAnalyzer());
 
         // Interface Scope
         INTERFACE_SCOPE.add(new FunctionDeclarationAnalyzer());
