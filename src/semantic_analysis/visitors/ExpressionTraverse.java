@@ -25,11 +25,9 @@ import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters
 
 public class ExpressionTraverse {
     public String traverse(ExpressionBaseNode root, Scope scope) {
-        ExpressionNode expression = root.expression;
+        root.expression = transformValue(root.expression, scope);
 
-        root.expression = transformValue(expression, scope);
-
-        TypeWrapper type = determineType(expression, scope);
+        TypeWrapper type = determineType(root.expression, scope);
 
         if (type.isTypeReference)
             throw new SA_SemanticError("Expression expected"); // Log
@@ -62,13 +60,13 @@ public class ExpressionTraverse {
                         throw new SA_SemanticError("Cannot access nested types"); // Log
                     }
 
-                    FieldNode field = findField(
-                        leftTypeNode.fields,
+                    FieldNode field = leftTypeNode.findField(
+                        scope,
                         reference.variable
                     );
 
                     if (field == null) {
-                        throw new SA_UnresolvedSymbolException(leftType + "." + reference.variable); // Log
+                        throw new SA_UnresolvedSymbolException(leftType.type + "." + reference.variable); // Log
                     }
 
                     return new FieldReferenceNode(
@@ -78,8 +76,8 @@ public class ExpressionTraverse {
                     );
                 } else
                 if (binaryExpression.right instanceof FunctionCallNode call) {
-                    FunctionDeclarationNode function = findMethodWithParameters(
-                        leftTypeNode.methods,
+                    FunctionDeclarationNode function = leftTypeNode.findMethod(
+                        scope,
                         call.name,
                         call.arguments.stream().map(
                             argument -> new ExpressionTraverse().traverse(argument.value, scope)
@@ -173,7 +171,7 @@ public class ExpressionTraverse {
             }
         }
 
-        return null;
+        return expression;
     }
 
     private static TypeWrapper determineType(ExpressionNode expression, Scope scope) {
@@ -210,20 +208,24 @@ public class ExpressionTraverse {
 
             throw new SA_UnresolvedSymbolException(functionCall.name); // LOG with parameters for more info
         }
+        if (expression instanceof FieldReferenceNode field) {
+            ClassDeclarationNode holder = scope.getClass(field.holderType);
+
+            if (holder == null)
+                throw new SA_UnresolvedSymbolException(field.holderType); // Log (unknown type)
+
+            FieldNode actualField = holder.findField(scope, field.name);
+
+            if (actualField == null)
+                throw new SA_UnresolvedSymbolException(field.holderType + "." + field.name); // Log
+
+            return new TypeWrapper(actualField.initialization.declaration.type, false);
+        }
         if (expression instanceof NullLiteral) {
             return new TypeWrapper("null", false);
         }
 
-        throw new SA_SemanticError("Could not resolve type"); // Log and return something
-    }
-
-    private static FieldNode findField(
-        List<FieldNode> fields,
-        String name
-    ) {
-        return fields.stream().filter(
-            interfaceNode -> interfaceNode.initialization.declaration.name.equals(name)
-        ).findFirst().orElse(null);
+        throw new SA_SemanticError("Could not resolve type: '" + expression + "'"); // Log and return something
     }
 
     private record TypeWrapper(

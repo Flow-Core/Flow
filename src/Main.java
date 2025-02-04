@@ -13,7 +13,7 @@ public class Main {
     public static void main(String[] args) {
         final String file1 = """
         func main(): A? {
-            val y = new B()
+            val y = A.foo(new B())
             val x = foo(y)
         
             return null
@@ -23,7 +23,11 @@ public class Main {
             return new A()
         }
         
-        class A {}
+        open class A {
+            static func foo(a: A): A {
+                return new A()
+            }
+        }
         
         class B : A() {}
         \s""";
@@ -41,6 +45,8 @@ public class Main {
 
         final SemanticAnalysis semanticAnalysis = new SemanticAnalysis(files);
         semanticAnalysis.analyze();
+
+        Parser.printTree(file1Root);
     }
 
     private static BlockNode getFileAST(final String file) {
@@ -48,9 +54,7 @@ public class Main {
         final List<Token> tokens = lexer.tokenize();
 
         final Parser parser = new Parser(tokens);
-        final BlockNode root = parser.parse();
-        parser.printTree(root);
 
-        return root;
+        return parser.parse();
     }
 }

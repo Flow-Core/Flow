@@ -75,7 +75,7 @@ public class Parser {
         return advance();
     }
 
-    public void printTree(final ASTNode root) {
+    public static void printTree(final ASTNode root) {
         System.out.println(root.toString());
     }
 

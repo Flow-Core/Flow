@@ -3,9 +3,12 @@ package parser.nodes.classes;
 import parser.nodes.ASTVisitor;
 import parser.nodes.components.BlockNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import semantic_analysis.scopes.Scope;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
 
 public class ClassDeclarationNode extends TypeDeclarationNode {
     public String name;
@@ -39,6 +42,56 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
         this.constructors = constructors;
         this.initBlock = initBlock;
         this.classBlock = classBlock;
+    }
+
+    public FunctionDeclarationNode findMethod(
+        Scope scope,
+        String name,
+        List<String> parameterTypes
+    ) {
+        ClassDeclarationNode caller = this;
+        FunctionDeclarationNode function = findMethodWithParameters(
+            methods,
+            name,
+            parameterTypes
+        );
+
+        while (function == null && caller != null && !caller.baseClasses.isEmpty()) {
+            function = findMethodWithParameters(
+                caller.methods,
+                name,
+                parameterTypes
+            );
+
+            caller = scope.getClass(caller.baseClasses.get(0).name);
+        }
+
+        return function;
+    }
+
+    private static FieldNode findField(
+        List<FieldNode> fields,
+        String name
+    ) {
+        return fields.stream().filter(
+            interfaceNode -> interfaceNode.initialization.declaration.name.equals(name)
+        ).findFirst().orElse(null);
+    }
+
+    public FieldNode findField(
+        Scope scope,
+        String name
+    ) {
+        ClassDeclarationNode caller = this;
+        FieldNode field = findField(caller.fields, name);
+
+        while (field == null && caller != null && !caller.baseClasses.isEmpty()) {
+            field = findField(caller.fields, name);
+
+            caller = scope.getClass(caller.baseClasses.get(0).name);
+        }
+
+        return field;
     }
 
     @Override
