@@ -15,12 +15,24 @@ import semantic_analysis.visitors.BlockTraverse;
 
 import java.util.ArrayList;
 
+import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
+
 public class FunctionLoader {
     public static void loadSignature(final FunctionDeclarationNode functionDeclarationNode, final Scope scope) {
         ModifierLoader.load(functionDeclarationNode.modifiers, Scope.Type.FUNCTION);
 
         if (!scope.findTypeDeclaration(functionDeclarationNode.returnType)) {
             throw new SA_UnresolvedSymbolException(functionDeclarationNode.returnType);
+        }
+
+        if (
+            findMethodWithParameters(
+                scope.symbols().functions(),
+                functionDeclarationNode.name,
+                functionDeclarationNode.parameters.stream().map(parameterNode -> parameterNode.type).toList()
+            ) != null
+        ) {
+            throw new SA_SemanticError("Conflicting overloads: ");
         }
 
         for (final ParameterNode parameter : functionDeclarationNode.parameters) {
