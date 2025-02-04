@@ -236,7 +236,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
             classDeclaration.fields.add(0, field);
             assignments.add(
                 new VariableAssignmentNode(
-                    field.initialization.declaration.name,
+                    new ExpressionBaseNode(new VariableReferenceNode(field.initialization.declaration.name)),
                     "=",
                     new ExpressionBaseNode(
                         new BinaryExpressionNode(

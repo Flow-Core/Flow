@@ -1,6 +1,5 @@
 package parser.analyzers.top;
 
-import lexer.token.Token;
 import lexer.token.TokenType;
 import parser.Parser;
 import parser.analyzers.TopAnalyzer;
@@ -17,12 +16,12 @@ public class VariableAssignmentAnalyzer extends TopAnalyzer {
 
     @Override
     public AnalyzerResult parse(final Parser parser) {
-        final Token variable = TopAnalyzer.testFor(parser, TokenType.IDENTIFIER);
+        final ExpressionNode variable = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
         final String operator = supportsAugmented ? TopAnalyzer.testFor(parser, TokenType.EQUAL_OPERATOR, TokenType.ASSIGNMENT_OPERATOR).value() : TopAnalyzer.testFor(parser, TokenType.EQUAL_OPERATOR).value();
         final ExpressionNode expr = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
 
         return new AnalyzerResult(
-            new VariableAssignmentNode(variable.value(), operator, new ExpressionBaseNode(expr)),
+            new VariableAssignmentNode(new ExpressionBaseNode(variable), operator, new ExpressionBaseNode(expr)),
             parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
         );
     }

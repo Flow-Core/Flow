@@ -2,7 +2,6 @@ package semantic_analysis.visitors;
 
 import parser.nodes.ASTNode;
 import parser.nodes.classes.FieldNode;
-import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.statements.*;
 import parser.nodes.variable.InitializedVariableNode;
@@ -42,7 +41,7 @@ public class StatementTraverse {
     }
 
     private static void handleWhileStatement(final WhileStatementNode whileStatementNode, final Scope scope) {
-        final String conditionType = new ExpressionTraverse().traverse(new ExpressionBaseNode(whileStatementNode.condition), scope);
+        final String conditionType = new ExpressionTraverse().traverse(whileStatementNode.condition, scope);
         if (!conditionType.equals("Bool")) {
             throw new SA_SemanticError("Loop condition type mismatch: must be of type 'Bool'");
         }
@@ -63,7 +62,7 @@ public class StatementTraverse {
             new InitializedVariableNode(
                 new VariableDeclarationNode(
                     "var",
-                    new ExpressionTraverse().traverse(forStatementNode.action.value, scope),
+                    new ExpressionTraverse().traverse(forStatementNode.initialization.value, scope),
                     forStatementNode.initialization.variable,
                     false
                 ),

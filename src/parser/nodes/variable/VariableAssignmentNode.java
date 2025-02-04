@@ -5,11 +5,11 @@ import parser.nodes.ASTVisitor;
 import parser.nodes.expressions.ExpressionBaseNode;
 
 public class VariableAssignmentNode implements ASTNode {
-    public String variable;
+    public ExpressionBaseNode variable;
     public String operator;
     public ExpressionBaseNode value;
 
-    public VariableAssignmentNode(String variable, String operator, ExpressionBaseNode value) {
+    public VariableAssignmentNode(ExpressionBaseNode variable, String operator, ExpressionBaseNode value) {
         this.variable = variable;
         this.operator = operator;
         this.value = value;

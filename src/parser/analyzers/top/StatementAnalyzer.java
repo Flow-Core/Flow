@@ -97,7 +97,8 @@ public class StatementAnalyzer extends TopAnalyzer {
 
                 return new AnalyzerResult(
                     new WhileStatementNode(
-                        whileCondition, whileBlock
+                        new ExpressionBaseNode(whileCondition),
+                        whileBlock
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
