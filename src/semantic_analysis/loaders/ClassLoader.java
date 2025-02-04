@@ -95,6 +95,11 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
             final String baseClassName = classDeclaration.baseClasses.get(0).name;
             final ClassDeclarationNode fileLevelBaseClass = data.getClass(baseClassName);
             final ClassDeclarationNode baseClass = getClassDeclarationNode(classDeclaration, baseClassName, fileLevelBaseClass);
+
+            if (!baseClass.modifiers.contains("open")) {
+                throw new SA_SemanticError("'" + baseClassName + "' is final, so it cannot be extended");
+            }
+
             checkCircularInheritance(classDeclaration.name, baseClass, new HashSet<>(), data);
         }
     }
@@ -102,7 +107,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     private ClassDeclarationNode getClassDeclarationNode(ClassDeclarationNode classDeclaration, String baseClassName, ClassDeclarationNode fileLevelBaseClass) {
         final ClassDeclarationNode packageLevelBaseClass = packageLevel.getClass(baseClassName);
         if (fileLevelBaseClass == null && packageLevelBaseClass == null) {
-            throw new SA_SemanticError("Base class '" + baseClassName + "' for class '" + classDeclaration.name + "' was not found.");
+            throw new SA_SemanticError("Base class '" + baseClassName + "' for class '" + classDeclaration.name + "' was not found");
         }
 
         if (classDeclaration.name.equals(baseClassName)) {
@@ -142,7 +147,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     private void validateInterfaces(List<BaseInterfaceNode> interfaces, SymbolTable data) {
         for (final BaseInterfaceNode interfaceNode : interfaces) {
             if (data.getInterface(interfaceNode.name) == null && packageLevel.getInterface(interfaceNode.name) == null) {
-                throw new SA_SemanticError("Interface '" + interfaceNode.name + "' was not found.");
+                throw new SA_SemanticError("Interface '" + interfaceNode.name + "' was not found");
             }
         }
     }
