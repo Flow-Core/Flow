@@ -57,7 +57,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
 
     private void loadConstructors(final ClassDeclarationNode classDeclaration) {
         for (final ConstructorNode constructorNode : classDeclaration.constructors) {
-            ModifierLoader.load(classDeclaration.modifiers, ModifierLoader.ModifierType.CONSTRUCTOR);
+            ModifierLoader.load(List.of(constructorNode.accessModifier), ModifierLoader.ModifierType.CONSTRUCTOR);
 
             constructorNode.parameters.add(0, new ParameterNode(classDeclaration.name, false, "this", null));
 
