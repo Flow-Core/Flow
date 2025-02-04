@@ -51,8 +51,6 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     }
 
     private void checkIfAllOverridden(final ClassDeclarationNode classDeclaration, final SymbolTable data) {
-        // TODO: ignore this parameter
-
         final List<FunctionDeclarationNode> abstractFunctions = getFunctionsByModifier("abstract", classDeclaration, data);
         final List<FunctionDeclarationNode> overriddenFunctions = getFunctionsByModifier("override", classDeclaration, data);
 
@@ -60,12 +58,17 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
             final FunctionDeclarationNode method = findMethodWithParameters(
                 overriddenFunctions,
                 abstractFunction.name,
-                abstractFunction.parameters.stream().map(functionNode -> functionNode.name).toList()
+                abstractFunction.parameters.stream().map(functionNode -> functionNode.name).toList(),
+                true
             );
             if (method == null) {
                 throw new SA_SemanticError("Class '" + classDeclaration.name + "' is not abstract and does not implement abstract base class member '" + abstractFunction.name + "'");
-            } else if (!method.returnType.equals(abstractFunction.returnType)) {
-                throw new SA_SemanticError("Return type of function '" + abstractFunction.name + "' does not have the same return type as the overridden class, expected: '" + abstractFunction.returnType + "' but found '" + method.returnType + "'");
+            } else if (
+                (method.isReturnTypeNullable != abstractFunction.isReturnTypeNullable) ||
+                !data.isSameType(method.returnType, abstractFunction.returnType)
+                && !packageLevel.isSameType(method.returnType, abstractFunction.returnType)
+            ) {
+                throw new SA_SemanticError("Return type of function '" + abstractFunction.name + "' is not a subtype of the overridden member, expected a subtype of: '" + abstractFunction.returnType + (abstractFunction.isReturnTypeNullable ? "?" : "") + "' but found '" + method.returnType + (method.isReturnTypeNullable ? "?" : "")  + "'");
             }
         }
 
@@ -74,7 +77,8 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                 findMethodWithParameters(
                     abstractFunctions,
                     overriddenFunction.name,
-                    overriddenFunction.parameters.stream().map(functionNode -> functionNode.name).toList()
+                    overriddenFunction.parameters.stream().map(functionNode -> functionNode.name).toList(),
+                    true
                 ) == null
             ) {
                 throw new SA_SemanticError("'" + overriddenFunction.name + "' overrides nothing");

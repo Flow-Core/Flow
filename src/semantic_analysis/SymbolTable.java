@@ -1,16 +1,10 @@
 package semantic_analysis;
 
 import parser.nodes.ASTNode;
-import parser.nodes.classes.ClassDeclarationNode;
-import parser.nodes.classes.FieldNode;
-import parser.nodes.classes.InterfaceNode;
-import parser.nodes.classes.TypeDeclarationNode;
+import parser.nodes.classes.*;
 import parser.nodes.functions.FunctionDeclarationNode;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public record SymbolTable(
     List<InterfaceNode> interfaces,
@@ -21,6 +15,33 @@ public record SymbolTable(
 ) {
     public static SymbolTable getEmptySymbolTable() {
         return new SymbolTable(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new HashMap<>());
+    }
+
+    public boolean isSameType(String type, String superType) {
+        if (Objects.equals(type, superType)) {
+            return true;
+        }
+
+        final ClassDeclarationNode classDeclarationNode = getClass(type);
+        if (classDeclarationNode != null) {
+            if (!classDeclarationNode.baseClasses.isEmpty() && classDeclarationNode.baseClasses.get(0).name.equals(superType)) {
+                return true;
+            }
+            if (!classDeclarationNode.baseClasses.isEmpty() && isSameType(classDeclarationNode.baseClasses.get(0).name, superType)) {
+                return true;
+            }
+        }
+
+        final TypeDeclarationNode typeDeclarationNode = getTypeDeclaration(type);
+        if (typeDeclarationNode != null) {
+            for (final BaseInterfaceNode baseInterfaceNode : getTypeDeclaration(type).implementedInterfaces) {
+                if (baseInterfaceNode.name.equals(superType) || isSameType(baseInterfaceNode.name, superType)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public void recognizeSymbolTable(SymbolTable other) {

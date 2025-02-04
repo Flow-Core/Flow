@@ -90,11 +90,23 @@ public class SignatureLoader {
     public static FunctionDeclarationNode findMethodWithParameters(
         List<FunctionDeclarationNode> methods,
         String name,
+        List<String> parameterTypes,
+        boolean ignoreThis
+    ) {
+        return methods.stream()
+            .filter(method -> method.name.equals(name))
+            .filter(method -> compareParameterTypes(method.parameters, parameterTypes, ignoreThis))
+            .findFirst().orElse(null);
+    }
+
+    public static FunctionDeclarationNode findMethodWithParameters(
+        List<FunctionDeclarationNode> methods,
+        String name,
         List<String> parameterTypes
     ) {
         return methods.stream()
             .filter(method -> method.name.equals(name))
-            .filter(method -> compareParameterTypes(method.parameters, parameterTypes))
+            .filter(method -> compareParameterTypes(method.parameters, parameterTypes, false))
             .findFirst().orElse(null);
     }
 
@@ -116,11 +128,12 @@ public class SignatureLoader {
 
     public static boolean compareParameterTypes(
         List<ParameterNode> parameters,
-        List<String> parameterTypes
+        List<String> parameterTypes,
+        boolean ignoreThis
     ) {
         if (parameterTypes.size() != parameters.size()) return false;
 
-        for (int i = 0; i < parameters.size(); i++) {
+        for (int i = ignoreThis ? 1 : 0; i < parameters.size(); i++) {
             if (!parameters.get(i).type.equals(parameterTypes.get(i)))
                 return false;
         }

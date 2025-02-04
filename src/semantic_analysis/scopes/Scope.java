@@ -1,11 +1,12 @@
 package semantic_analysis.scopes;
 
 import parser.nodes.ASTNode;
-import parser.nodes.classes.*;
+import parser.nodes.classes.ClassDeclarationNode;
+import parser.nodes.classes.FieldNode;
+import parser.nodes.classes.InterfaceNode;
+import parser.nodes.classes.TypeDeclarationNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.SymbolTable;
-
-import java.util.Objects;
 
 public record Scope (
     Scope parent,
@@ -58,30 +59,7 @@ public record Scope (
     }
 
     public boolean isSameType(String type, String superType) {
-        if (Objects.equals(type, superType)) {
-            return true;
-        }
-
-        final ClassDeclarationNode classDeclarationNode = symbols.getClass(type);
-        if (classDeclarationNode != null) {
-            if (!classDeclarationNode.baseClasses.isEmpty() && classDeclarationNode.baseClasses.get(0).name.equals(superType)) {
-                return true;
-            }
-            if (!classDeclarationNode.baseClasses.isEmpty() && isSameType(classDeclarationNode.baseClasses.get(0).name, superType)) {
-                return true;
-            }
-        }
-
-        final TypeDeclarationNode typeDeclarationNode = symbols.getTypeDeclaration(type);
-        if (typeDeclarationNode != null) {
-            for (final BaseInterfaceNode baseInterfaceNode : symbols.getTypeDeclaration(type).implementedInterfaces) {
-                if (baseInterfaceNode.name.equals(superType) || isSameType(baseInterfaceNode.name, superType)) {
-                    return true;
-                }
-            }
-        }
-
-        return parent != null && parent.isSameType(type, superType);
+        return symbols().isSameType(type, superType) || parent != null && parent.isSameType(type, superType);
     }
 
     public boolean findClass(String symbol) {
