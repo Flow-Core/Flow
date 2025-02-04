@@ -12,6 +12,7 @@ import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.SymbolTable;
 import semantic_analysis.exceptions.SA_SemanticError;
+import semantic_analysis.scopes.Scope;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -37,6 +38,8 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     }
 
     private void handleClass(final ClassDeclarationNode classDeclaration, final SymbolTable data) {
+        ModifierLoader.load(classDeclaration.modifiers, Scope.Type.CLASS);
+
         validateBaseClass(classDeclaration, data);
         validateInterfaces(classDeclaration.implementedInterfaces, data);
 

@@ -17,6 +17,8 @@ import java.util.ArrayList;
 
 public class FunctionLoader {
     public static void loadSignature(final FunctionDeclarationNode functionDeclarationNode, final Scope scope) {
+        ModifierLoader.load(functionDeclarationNode.modifiers, Scope.Type.FUNCTION);
+
         if (!scope.findTypeDeclaration(functionDeclarationNode.returnType)) {
             throw new SA_UnresolvedSymbolException(functionDeclarationNode.returnType);
         }
