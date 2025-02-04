@@ -6,6 +6,7 @@ import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.statements.*;
 import parser.nodes.variable.InitializedVariableNode;
 import parser.nodes.variable.VariableDeclarationNode;
+import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.SymbolTable;
 import semantic_analysis.exceptions.SA_SemanticError;
 import semantic_analysis.scopes.Scope;
@@ -63,7 +64,7 @@ public class StatementTraverse {
                 new VariableDeclarationNode(
                     "var",
                     new ExpressionTraverse().traverse(forStatementNode.initialization.value, scope),
-                    forStatementNode.initialization.variable,
+                    ((VariableReferenceNode) forStatementNode.initialization.variable.expression).variable,
                     false
                 ),
                 forStatementNode.initialization
@@ -71,7 +72,8 @@ public class StatementTraverse {
         );
         forScope.symbols().fields().add(localVariable);
 
-        BlockTraverse.traverse(forStatementNode.loopBlock, new Scope(scope, SymbolTable.getEmptySymbolTable(), scope.currentParent(), Scope.Type.FUNCTION));
+        BlockTraverse.traverse(forStatementNode.action, forScope);
+        BlockTraverse.traverse(forStatementNode.loopBlock, forScope);
     }
 
     private static void handleSwitchStatement(final SwitchStatementNode switchStatementNode, final Scope scope) {

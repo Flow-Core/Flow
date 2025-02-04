@@ -19,6 +19,7 @@ public final class AnalyzerDeclarations {
     private final static List<TopAnalyzer> CLASS_SCOPE = new ArrayList<>();
     private final static List<TopAnalyzer> INTERFACE_SCOPE = new ArrayList<>();
     private final static List<TopAnalyzer> SWITCH_SCOPE = new ArrayList<>();
+    private final static List<TopAnalyzer> INLINE_SCOPE = new ArrayList<>();
 
     private AnalyzerDeclarations() {}
 
@@ -44,6 +45,9 @@ public final class AnalyzerDeclarations {
 
     public static List<TopAnalyzer> getSwitchScope() {
         return Collections.unmodifiableList(SWITCH_SCOPE);
+    }
+    public static List<TopAnalyzer> getInlineScope() {
+        return Collections.unmodifiableList(INLINE_SCOPE);
     }
 
     static {
@@ -86,5 +90,9 @@ public final class AnalyzerDeclarations {
         // Switch Scope
         SWITCH_SCOPE.add(new CaseAnalyzer());
         SWITCH_SCOPE.add(new DefaultCaseAnalyzer());
+
+        // Inline Scope
+        INLINE_SCOPE.add(new ExpressionAnalyzer());
+        INLINE_SCOPE.add(new VariableAssignmentAnalyzer(true));
     }
 }

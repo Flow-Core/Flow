@@ -8,10 +8,10 @@ import parser.nodes.variable.VariableAssignmentNode;
 public class ForStatementNode implements StatementNode {
     public VariableAssignmentNode initialization;
     public ExpressionBaseNode condition;
-    public VariableAssignmentNode action;
+    public BlockNode action;
     public BlockNode loopBlock;
 
-    public ForStatementNode(VariableAssignmentNode initialization, ExpressionBaseNode condition, VariableAssignmentNode action, BlockNode loopBlock) {
+    public ForStatementNode(VariableAssignmentNode initialization, ExpressionBaseNode condition, BlockNode action, BlockNode loopBlock) {
         this.initialization = initialization;
         this.condition = condition;
         this.action = action;

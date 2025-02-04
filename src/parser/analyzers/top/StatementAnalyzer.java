@@ -54,7 +54,7 @@ public class StatementAnalyzer extends TopAnalyzer {
 
                 parser.consume(TokenType.COMMA);
 
-                final VariableAssignmentNode loopUpdate = (VariableAssignmentNode) new VariableAssignmentAnalyzer(true).parse(parser).node();
+                BlockNode loopActionBlock = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getInlineScope(), TokenType.CLOSE_PARENTHESES);
 
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
@@ -64,7 +64,7 @@ public class StatementAnalyzer extends TopAnalyzer {
                     new ForStatementNode(
                         loopVariable,
                         new ExpressionBaseNode(forCondition),
-                        loopUpdate,
+                        loopActionBlock,
                         forBlock
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED

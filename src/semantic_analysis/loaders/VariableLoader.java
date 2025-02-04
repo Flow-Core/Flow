@@ -63,7 +63,7 @@ public class VariableLoader {
             final String[] operators = variableAssignment.operator.split("");
             expressionBase = new ExpressionBaseNode(
                 new BinaryExpressionNode(
-                    new VariableReferenceNode(variableAssignment.variable),
+                    variableAssignment.variable.expression,
                     variableAssignment.value.expression,
                     operators[0]
                 )
@@ -83,9 +83,9 @@ public class VariableLoader {
     }
 
     private static FieldNode getFieldNode(VariableAssignmentNode variableAssignment, Scope scope) {
-        final FieldNode fieldNode = scope.getField(variableAssignment.variable);
+        final FieldNode fieldNode = scope.getField(((VariableReferenceNode) variableAssignment.variable.expression).variable);
         if (fieldNode == null) {
-            throw new SA_UnresolvedSymbolException(variableAssignment.variable);
+            throw new SA_UnresolvedSymbolException(((VariableReferenceNode) variableAssignment.variable.expression).variable);
         }
 
         if (!fieldNode.initialization.declaration.modifier.equals("var")) {

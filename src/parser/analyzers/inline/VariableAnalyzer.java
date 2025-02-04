@@ -10,6 +10,7 @@ import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.variable.InitializedVariableNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableDeclarationNode;
+import parser.nodes.variable.VariableReferenceNode;
 
 import static parser.analyzers.top.PackageAnalyzer.parseModulePath;
 
@@ -24,7 +25,7 @@ public class VariableAnalyzer {
             final ExpressionNode expr = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
             final VariableDeclarationNode declaration = new VariableDeclarationNode(modifier.value(), null, name.value(), false);
             final VariableAssignmentNode assignment = new VariableAssignmentNode(
-                name.value(),
+                new ExpressionBaseNode(new VariableReferenceNode(name.value())),
                 "=",
                 new ExpressionBaseNode(expr));
 
@@ -52,7 +53,7 @@ public class VariableAnalyzer {
             parser.consume(TokenType.EQUAL_OPERATOR);
             final ExpressionNode expr = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
             final VariableAssignmentNode assignment = new VariableAssignmentNode(
-                name.value(),
+                new ExpressionBaseNode(new VariableReferenceNode(name.value())),
                 "=",
                 new ExpressionBaseNode(expr));
 
