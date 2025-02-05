@@ -13,7 +13,6 @@ import java.util.Objects;
 import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
 
 public class ClassDeclarationNode extends TypeDeclarationNode {
-    public String name;
     public List<String> modifiers;
     public List<FieldNode> primaryConstructor;
     public List<BaseClassNode> baseClasses;

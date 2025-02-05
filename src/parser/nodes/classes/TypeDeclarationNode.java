@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 
 public abstract class TypeDeclarationNode implements ASTNode {
+    public String name;
     public List<FunctionDeclarationNode> methods;
     public List<BaseInterfaceNode> implementedInterfaces;
 

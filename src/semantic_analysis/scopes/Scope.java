@@ -82,6 +82,15 @@ public record Scope (
         return symbols.findField(symbol) || (parent != null && parent().findField(symbol));
     }
 
+    public TypeDeclarationNode getContainingType() {
+        if (currentParent == null) return null;
+
+        if (currentParent instanceof TypeDeclarationNode typeDeclaration)
+            return typeDeclaration;
+
+        return parent.getContainingType();
+    }
+
     public enum Type {
         TOP,
         CLASS,

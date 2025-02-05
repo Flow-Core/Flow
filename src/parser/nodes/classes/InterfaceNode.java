@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Objects;
 
 public class InterfaceNode extends TypeDeclarationNode {
-    public String name;
     public List<String> modifiers;
     public BlockNode block;
 

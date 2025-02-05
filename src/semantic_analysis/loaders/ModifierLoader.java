@@ -43,6 +43,12 @@ public class ModifierLoader {
         }
     }
 
+    public static String getAccessModifier(List<String> modifiers) {
+        return modifiers.stream()
+            .filter(modifier -> modifier.equals("private") || modifier.equals("public") || modifier.equals("protected"))
+            .findFirst().orElse("public");
+    }
+
     public enum ModifierType {
         CLASS(
             Map.of(

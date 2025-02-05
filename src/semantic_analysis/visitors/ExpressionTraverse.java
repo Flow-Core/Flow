@@ -3,6 +3,7 @@ package semantic_analysis.visitors;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.ObjectNode;
+import parser.nodes.classes.TypeDeclarationNode;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.expressions.BinaryExpressionNode;
 import parser.nodes.expressions.ExpressionBaseNode;
@@ -16,6 +17,7 @@ import parser.nodes.variable.FieldReferenceNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.exceptions.SA_SemanticError;
 import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
+import semantic_analysis.loaders.ModifierLoader;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.transformers.LiteralTransformer;
 
@@ -81,6 +83,17 @@ public class ExpressionTraverse {
                         call.name
                     );
 
+                    if (!leftType.isTypeReference)
+                        call.arguments.add(
+                            0,
+                            new ArgumentNode(
+                                null,
+                                new ExpressionBaseNode(
+                                    binaryExpression.left
+                                )
+                            )
+                        );
+
                     FunctionDeclarationNode function = findMethodWithParameters(
                         scope,
                         functions,
@@ -98,17 +111,6 @@ public class ExpressionTraverse {
                                 leftType.type + "." + call.name +
                                 "' match the argument list");
                     }
-
-                    if (!leftType.isTypeReference)
-                        call.arguments.add(
-                            0,
-                            new ArgumentNode(
-                                null,
-                                new ExpressionBaseNode(
-                                    binaryExpression.left
-                                )
-                            )
-                        );
 
                     return new FunctionCallNode(
                         leftType.type,
@@ -209,19 +211,38 @@ public class ExpressionTraverse {
             throw new SA_UnresolvedSymbolException(variable.variable); // LOG
         }
         if (expression instanceof FunctionCallNode functionCall) {
+            ClassDeclarationNode caller = scope.getClass(functionCall.callerType);
+
+            if (caller == null) throw new SA_UnresolvedSymbolException(functionCall.callerType);
+
+            List<FunctionDeclarationNode> functions = caller.findMethodsWithName(
+                scope,
+                functionCall.name
+            );
+
             FunctionDeclarationNode function = findMethodWithParameters(
                 scope,
+                functions,
                 functionCall.name,
                 functionCall.arguments.stream().map(
                     argument -> new ExpressionTraverse().traverse(argument.value, scope)
                 ).toList()
             );
 
-            if (function != null) {
-                return new TypeWrapper(function.returnType, false, function.isReturnTypeNullable);
-            }
+            if (function == null)
+                throw new SA_UnresolvedSymbolException(functionCall.name); // LOG with parameters for more info
 
-            throw new SA_UnresolvedSymbolException(functionCall.name); // LOG with parameters for more info
+            TypeDeclarationNode containingType = scope.getContainingType();
+            String modifier = ModifierLoader.getAccessModifier(function.modifiers);
+
+            if (modifier.equals("private") && (containingType == null || !containingType.name.equals(functionCall.callerType)) ||
+                modifier.equals("protected") && (containingType == null || !scope.isSameType(
+                    new TypeWrapper(containingType.name, false, false),
+                    new TypeWrapper(functionCall.callerType, false, false)
+                ))
+            ) throw new SA_SemanticError("Cannot access '" + function.name + "', it is " + modifier + " in '" + functionCall.callerType + "'");
+
+            return new TypeWrapper(function.returnType, false, function.isReturnTypeNullable);
         }
         if (expression instanceof FieldReferenceNode field) {
             ClassDeclarationNode holder = scope.getClass(field.holderType);
@@ -233,6 +254,17 @@ public class ExpressionTraverse {
 
             if (actualField == null)
                 throw new SA_UnresolvedSymbolException(field.holderType + "." + field.name); // Log
+
+            String modifier = ModifierLoader.getAccessModifier(actualField.modifiers);
+
+            TypeDeclarationNode containingType = scope.getContainingType();
+
+            if (modifier.equals("private") && (containingType == null || !containingType.name.equals(holder.name)) ||
+                modifier.equals("protected") && (containingType == null || !scope.isSameType(
+                    new TypeWrapper(containingType.name, false, false),
+                    new TypeWrapper(holder.name, false, false)
+                ))
+            ) throw new SA_SemanticError("Cannot access '" + field.name + "', it is " + modifier + " in '" + holder.name + "'");
 
             return new TypeWrapper(
                 actualField.initialization.declaration.type,
