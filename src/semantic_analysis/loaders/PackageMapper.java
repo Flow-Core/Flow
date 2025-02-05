@@ -3,9 +3,10 @@ package semantic_analysis.loaders;
 import parser.nodes.ASTNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.packages.PackageNode;
-import semantic_analysis.FileWrapper;
-import semantic_analysis.PackageWrapper;
-import semantic_analysis.SymbolTable;
+import semantic_analysis.files.FileWrapper;
+import semantic_analysis.files.PackageWrapper;
+import semantic_analysis.scopes.SymbolTable;
+import semantic_analysis.scopes.Scope;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,11 +28,15 @@ public class PackageMapper {
                 packagePath = packageNode.packagePath;
             }
 
-            FileWrapper fileWrapper = new FileWrapper(root, SymbolTable.getEmptySymbolTable());
-            packages.computeIfAbsent(
+            PackageWrapper packageWrapper = packages.computeIfAbsent(
                 packagePath,
-                path -> new PackageWrapper(path, new ArrayList<>(), SymbolTable.getEmptySymbolTable())
-            ).files().add(fileWrapper);
+                path -> new PackageWrapper(path, new ArrayList<>(), new Scope(null, SymbolTable.getEmptySymbolTable(), null, Scope.Type.TOP))
+            );
+
+            Scope fileScope = new Scope(packageWrapper.scope(), SymbolTable.getEmptySymbolTable(), null, Scope.Type.TOP);
+            FileWrapper fileWrapper = new FileWrapper(root, fileScope);
+
+            packageWrapper.files().add(fileWrapper);
         }
 
         return packages;

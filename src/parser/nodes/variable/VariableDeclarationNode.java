@@ -2,6 +2,8 @@ package parser.nodes.variable;
 
 import parser.nodes.ASTNode;
 
+import java.util.Objects;
+
 public class VariableDeclarationNode implements ASTNode {
     public String modifier;
     public String type;
@@ -13,6 +15,28 @@ public class VariableDeclarationNode implements ASTNode {
         this.type = type;
         this.name = name;
         this.isNullable = isNullable;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        VariableDeclarationNode that = (VariableDeclarationNode) o;
+
+        if (isNullable != that.isNullable) return false;
+        if (!Objects.equals(modifier, that.modifier)) return false;
+        if (!Objects.equals(type, that.type)) return false;
+        return Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = modifier != null ? modifier.hashCode() : 0;
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (isNullable ? 1 : 0);
+        return result;
     }
 
     @Override

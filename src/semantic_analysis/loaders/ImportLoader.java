@@ -1,21 +1,24 @@
 package semantic_analysis.loaders;
 
-import logger.Logger;
-import logger.LoggerFacade;
-import parser.ASTMetaDataStore;
 import parser.nodes.ASTNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.packages.ImportNode;
-import semantic_analysis.PackageWrapper;
-import semantic_analysis.SymbolTable;
+import parser.nodes.packages.PackageNode;
+import semantic_analysis.files.PackageWrapper;
+import semantic_analysis.scopes.SymbolTable;
+import semantic_analysis.exceptions.SA_SemanticError;
+import semantic_analysis.exceptions.SA_UnresolvedPackageException;
 
 import java.util.Map;
 
 public class ImportLoader {
     public void load(final BlockNode root, final SymbolTable data, final Map<String, PackageWrapper> globalPackages) {
-        for (final ASTNode node : root.children) {
+        for (int i = 0; i < root.children.size(); i++) {
+            final ASTNode node = root.children.get(i);
             if (node instanceof ImportNode importNode) {
                 validateImport(importNode, data, globalPackages);
+            } else if (i != 0 && node instanceof PackageNode) {
+                throw new SA_SemanticError("Package must be on top of the file");
             }
         }
     }
@@ -24,6 +27,10 @@ public class ImportLoader {
         final String modulePath = importNode.module;
 
         final int lastDotIndex = modulePath.lastIndexOf(".");
+        if (lastDotIndex == -1) {
+            throw new SA_SemanticError("No module included in import (use wildcard: '*' to import all)");
+        }
+
         final String packagePath = modulePath.substring(0, lastDotIndex);
         final String module = modulePath.substring(lastDotIndex + 1);
 
@@ -37,7 +44,7 @@ public class ImportLoader {
             return;
         }
 
-        final SymbolTable importedSymbols = globalPackages.get(packagePath).symbolTable();
+        final SymbolTable importedSymbols = globalPackages.get(packagePath).scope().symbols();
         if (importNode.isWildcard) {
             if (!importNode.alias.equals("*")) {
                 LoggerFacade.getLogger().log(

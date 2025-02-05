@@ -2,6 +2,7 @@ package semantic_analysis.transformers;
 
 import parser.nodes.classes.ObjectNode;
 import parser.nodes.components.ArgumentNode;
+import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.literals.LiteralNode;
 
 import java.util.List;
@@ -13,7 +14,9 @@ public class LiteralTransformer {
             List.of(
                 new ArgumentNode(
                     null,
-                    literalNode
+                    new ExpressionBaseNode(
+                        literalNode
+                    )
                 )
             )
         );

@@ -5,6 +5,7 @@ import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.components.ArgumentNode;
 
 import java.util.List;
+import java.util.Objects;
 
 public class ObjectNode implements ExpressionNode {
     public String className;
@@ -22,6 +23,24 @@ public class ObjectNode implements ExpressionNode {
         for (final ArgumentNode argument : arguments) {
             argument.accept(visitor, data);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ObjectNode that = (ObjectNode) o;
+
+        if (!Objects.equals(className, that.className)) return false;
+        return Objects.equals(arguments, that.arguments);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = className != null ? className.hashCode() : 0;
+        result = 31 * result + (arguments != null ? arguments.hashCode() : 0);
+        return result;
     }
 
     @Override

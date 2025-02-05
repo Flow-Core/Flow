@@ -6,6 +6,7 @@ import parser.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
+import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.components.ParameterNode;
@@ -52,14 +53,44 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
 
         Token funcName = parser.consume(TokenType.IDENTIFIER);
 
+        List<ParameterNode> parameters = parseParameters(parser);
+
+        String returnType = "Void";
+        boolean isReturnTypeNullable = false;
+
+        if (parser.check(TokenType.COLON_OPERATOR)) {
+            parser.advance();
+            returnType = parser.consume(TokenType.IDENTIFIER).value();
+
+            if (parser.check(TokenType.NULLABLE)) {
+                parser.advance();
+                isReturnTypeNullable = true;
+            }
+        }
+
+        return new FunctionDeclarationNode(
+            funcName.value(),
+            returnType,
+            isReturnTypeNullable,
+            modifiers,
+            parameters,
+            null
+        );
+    }
+
+    public static List<ParameterNode> parseParameters(Parser parser) {
         parser.consume(TokenType.OPEN_PARENTHESES);
 
         List<ParameterNode> parameters = new ArrayList<>();
-
         while (!parser.check(TokenType.CLOSE_PARENTHESES)) {
             String name = parser.consume(TokenType.IDENTIFIER).value();
             parser.consume(TokenType.COLON_OPERATOR);
             String type = parser.consume(TokenType.IDENTIFIER).value();
+            boolean isNullable = false;
+            if (parser.check(TokenType.NULLABLE)) {
+                isNullable = true;
+                parser.advance();
+            }
 
             ExpressionNode defaultValue = null;
             if (parser.peek().type() == TokenType.EQUAL_OPERATOR) {
@@ -67,7 +98,12 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
                 defaultValue = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
             }
 
-            ParameterNode arg = new ParameterNode(type, name, defaultValue);
+            ParameterNode arg = new ParameterNode(
+                type,
+                isNullable,
+                name,
+                new ExpressionBaseNode(defaultValue)
+            );
 
             parameters.add(arg);
 
@@ -77,19 +113,6 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
         }
         parser.advance();
 
-        String returnType = "Void";
-
-        if (parser.check(TokenType.COLON_OPERATOR)) {
-            parser.advance();
-            returnType = parser.consume(TokenType.IDENTIFIER).value();
-        }
-
-        return new FunctionDeclarationNode(
-            funcName.value(),
-            returnType,
-            modifiers,
-            parameters,
-            null
-        );
+        return parameters;
     }
 }

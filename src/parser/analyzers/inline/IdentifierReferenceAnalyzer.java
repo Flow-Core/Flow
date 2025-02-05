@@ -5,9 +5,10 @@ import lexer.token.TokenType;
 import parser.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.top.ExpressionAnalyzer;
+import parser.nodes.components.ArgumentNode;
+import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.functions.FunctionCallNode;
-import parser.nodes.components.ArgumentNode;
 import parser.nodes.variable.VariableReferenceNode;
 
 import java.util.ArrayList;
@@ -43,10 +44,10 @@ public class IdentifierReferenceAnalyzer {
                 parser.consume(TokenType.EQUAL_OPERATOR);
                 final ExpressionNode value = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
 
-                args.add(new ArgumentNode(argumentName.value(), value));
+                args.add(new ArgumentNode(argumentName.value(), new ExpressionBaseNode(value)));
             } else {
                 final ExpressionNode value = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
-                args.add(new ArgumentNode(null, value));
+                args.add(new ArgumentNode(null, new ExpressionBaseNode(value)));
             }
 
             if (!parser.check(TokenType.CLOSE_PARENTHESES)) {

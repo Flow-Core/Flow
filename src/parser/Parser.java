@@ -64,6 +64,10 @@ public class Parser {
             throw new IllegalArgumentException("Consume can't be empty");
         }
 
+        if (check(TokenType.NEW_LINE)) {
+            advance();
+        }
+
         if (Arrays.stream(expectedTypes).noneMatch(tokenType -> peek().type() == tokenType)) {
             if (expectedTypes.length == 1) {
                 throw LoggerFacade.getLogger().panic("Expected " + Arrays.stream(expectedTypes).findFirst().get() + " but found '" + peek().type() + "'", peek().line(), file);
@@ -74,7 +78,7 @@ public class Parser {
         return advance();
     }
 
-    public void printTree(final ASTNode root) {
+    public static void printTree(final ASTNode root) {
         System.out.println(root.toString());
     }
 

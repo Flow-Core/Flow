@@ -1,16 +1,17 @@
 package parser.nodes.statements;
 
-import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
-import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.components.BlockNode;
+import parser.nodes.expressions.ExpressionBaseNode;
 
-public class IfStatementNode implements ASTNode {
-    public ExpressionNode condition;
+import java.util.Objects;
+
+public class IfStatementNode implements StatementNode {
+    public ExpressionBaseNode condition;
     public BlockNode trueBranch;
     public BlockNode falseBranch;
 
-    public IfStatementNode(ExpressionNode condition, BlockNode trueBranch, BlockNode falseBranch) {
+    public IfStatementNode(ExpressionBaseNode condition, BlockNode trueBranch, BlockNode falseBranch) {
         this.condition = condition;
         this.trueBranch = trueBranch;
         this.falseBranch = falseBranch;
@@ -18,13 +19,35 @@ public class IfStatementNode implements ASTNode {
 
     @Override
     public <D> void accept(final ASTVisitor<D> visitor, final D data) {
-        ASTNode.super.accept(visitor, data);
+        StatementNode.super.accept(visitor, data);
 
         condition.accept(visitor, data);
 
         trueBranch.accept(visitor, data);
 
-        falseBranch.accept(visitor, data);
+        if (falseBranch != null) {
+            falseBranch.accept(visitor, data);
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        IfStatementNode that = (IfStatementNode) o;
+
+        if (!Objects.equals(condition, that.condition)) return false;
+        if (!Objects.equals(trueBranch, that.trueBranch)) return false;
+        return Objects.equals(falseBranch, that.falseBranch);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = condition != null ? condition.hashCode() : 0;
+        result = 31 * result + (trueBranch != null ? trueBranch.hashCode() : 0);
+        result = 31 * result + (falseBranch != null ? falseBranch.hashCode() : 0);
+        return result;
     }
 
     @Override

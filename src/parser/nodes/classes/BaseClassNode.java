@@ -5,6 +5,7 @@ import parser.nodes.ASTVisitor;
 import parser.nodes.components.ArgumentNode;
 
 import java.util.List;
+import java.util.Objects;
 
 public class BaseClassNode implements ASTNode {
     public String name;
@@ -22,6 +23,22 @@ public class BaseClassNode implements ASTNode {
         for (final ArgumentNode argument : arguments) {
             argument.accept(visitor, data);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        BaseClassNode that = (BaseClassNode) o;
+
+        if (!Objects.equals(name, that.name)) return false;
+        return Objects.equals(arguments, that.arguments);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, arguments);
     }
 
     @Override

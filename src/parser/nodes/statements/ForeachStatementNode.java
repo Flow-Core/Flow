@@ -1,11 +1,12 @@
 package parser.nodes.statements;
 
-import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
-import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.components.BlockNode;
+import parser.nodes.expressions.ExpressionNode;
 
-public class ForeachStatementNode implements ASTNode {
+import java.util.Objects;
+
+public class ForeachStatementNode implements StatementNode {
     public String loopVariable;
     public ExpressionNode collection;
     public BlockNode body;
@@ -18,11 +19,31 @@ public class ForeachStatementNode implements ASTNode {
 
     @Override
     public <D> void accept(final ASTVisitor<D> visitor, final D data) {
-        ASTNode.super.accept(visitor, data);
+        StatementNode.super.accept(visitor, data);
 
         collection.accept(visitor, data);
 
         body.accept(visitor, data);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ForeachStatementNode that = (ForeachStatementNode) o;
+
+        if (!Objects.equals(loopVariable, that.loopVariable)) return false;
+        if (!Objects.equals(collection, that.collection)) return false;
+        return Objects.equals(body, that.body);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = loopVariable != null ? loopVariable.hashCode() : 0;
+        result = 31 * result + (collection != null ? collection.hashCode() : 0);
+        result = 31 * result + (body != null ? body.hashCode() : 0);
+        return result;
     }
 
     @Override

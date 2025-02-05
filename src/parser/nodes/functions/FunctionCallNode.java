@@ -5,6 +5,7 @@ import parser.nodes.components.ArgumentNode;
 import parser.nodes.expressions.ExpressionNode;
 
 import java.util.List;
+import java.util.Objects;
 
 public class FunctionCallNode implements ExpressionNode {
     public String callerType;
@@ -30,6 +31,27 @@ public class FunctionCallNode implements ExpressionNode {
         for (final ArgumentNode argument : arguments) {
             argument.accept(visitor, data);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        FunctionCallNode that = (FunctionCallNode) o;
+
+        if (!Objects.equals(callerType, that.callerType)) return false;
+        if (!Objects.equals(name, that.name)) return false;
+        return Objects.equals(arguments, that.arguments);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = callerType != null ? callerType.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (arguments != null ? arguments.hashCode() : 0);
+        return result;
     }
 
     @Override
