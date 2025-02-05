@@ -16,6 +16,7 @@ import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.visitors.ExpressionTraverse;
 import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static semantic_analysis.scopes.SymbolTable.joinPath;
@@ -239,6 +240,8 @@ public class SignatureLoader {
     ) {
         boolean foundNamed = false;
 
+        List<ParameterNode> passedArgument = new ArrayList<>();
+
         for (int i = 0; i < arguments.size(); i++) {
             final ArgumentNode argumentNode = arguments.get(i);
             final ParameterNode parameterNode;
@@ -258,6 +261,8 @@ public class SignatureLoader {
                 parameterNode = parameters.get(i);
             }
 
+            passedArgument.add(parameterNode);
+
             final TypeWrapper argType = new ExpressionTraverse().traverse(argumentNode.value, scope);
 
             if (!scope.isSameType(
@@ -268,6 +273,11 @@ public class SignatureLoader {
                     parameterNode.isNullable
                 )
             ))
+                return false;
+        }
+
+        for (ParameterNode parameter : parameters) {
+            if (parameter.defaultValue == null && !passedArgument.contains(parameter))
                 return false;
         }
 
