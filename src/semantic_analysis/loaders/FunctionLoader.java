@@ -27,6 +27,7 @@ public class FunctionLoader {
 
         if (
             findMethodWithParameters(
+                scope,
                 scope.symbols().functions(),
                 functionDeclarationNode.name,
                 functionDeclarationNode.parameters.stream().map(parameterNode -> parameterNode.type).toList()

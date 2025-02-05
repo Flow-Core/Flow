@@ -88,6 +88,7 @@ public class SignatureLoader {
     }
 
     public static FunctionDeclarationNode findMethodWithParameters(
+        Scope scope,
         List<FunctionDeclarationNode> methods,
         String name,
         List<String> parameterTypes,
@@ -95,18 +96,44 @@ public class SignatureLoader {
     ) {
         return methods.stream()
             .filter(method -> method.name.equals(name))
-            .filter(method -> compareParameterTypes(method.parameters, parameterTypes, ignoreThis))
+            .filter(method -> compareParameterTypes(scope, method.parameters, parameterTypes, ignoreThis))
             .findFirst().orElse(null);
     }
 
     public static FunctionDeclarationNode findMethodWithParameters(
+        SymbolTable symbols,
+        List<FunctionDeclarationNode> methods,
+        String name,
+        List<String> parameterTypes,
+        boolean ignoreThis
+    ) {
+        return methods.stream()
+            .filter(method -> method.name.equals(name))
+            .filter(method -> compareParameterTypes(symbols, method.parameters, parameterTypes, ignoreThis))
+            .findFirst().orElse(null);
+    }
+
+    public static FunctionDeclarationNode findMethodWithParameters(
+        Scope scope,
         List<FunctionDeclarationNode> methods,
         String name,
         List<String> parameterTypes
     ) {
         return methods.stream()
             .filter(method -> method.name.equals(name))
-            .filter(method -> compareParameterTypes(method.parameters, parameterTypes, false))
+            .filter(method -> compareParameterTypes(scope, method.parameters, parameterTypes, false))
+            .findFirst().orElse(null);
+    }
+
+    public static FunctionDeclarationNode findMethodWithParameters(
+        SymbolTable symbols,
+        List<FunctionDeclarationNode> methods,
+        String name,
+        List<String> parameterTypes
+    ) {
+        return methods.stream()
+            .filter(method -> method.name.equals(name))
+            .filter(method -> compareParameterTypes(symbols, method.parameters, parameterTypes, false))
             .findFirst().orElse(null);
     }
 
@@ -118,7 +145,7 @@ public class SignatureLoader {
         FunctionDeclarationNode declaration = null;
 
         while (declaration == null && scope != null && scope.parent() != null) {
-            declaration = findMethodWithParameters(scope.symbols().functions(), name, parameterTypes);
+            declaration = findMethodWithParameters(scope, scope.symbols().functions(), name, parameterTypes);
 
             scope = scope.parent();
         }
@@ -127,6 +154,7 @@ public class SignatureLoader {
     }
 
     public static boolean compareParameterTypes(
+        Scope scope,
         List<ParameterNode> parameters,
         List<String> parameterTypes,
         boolean ignoreThis
@@ -134,7 +162,23 @@ public class SignatureLoader {
         if (parameterTypes.size() != parameters.size()) return false;
 
         for (int i = ignoreThis ? 1 : 0; i < parameters.size(); i++) {
-            if (!parameters.get(i).type.equals(parameterTypes.get(i)))
+            if (!scope.isSameType(parameterTypes.get(i), parameters.get(i).type))
+                return false;
+        }
+
+        return true;
+    }
+
+    public static boolean compareParameterTypes(
+        SymbolTable symbols,
+        List<ParameterNode> parameters,
+        List<String> parameterTypes,
+        boolean ignoreThis
+    ) {
+        if (parameterTypes.size() != parameters.size()) return false;
+
+        for (int i = ignoreThis ? 1 : 0; i < parameters.size(); i++) {
+            if (!symbols.isSameType(parameters.get(i).type, parameterTypes.get(i)))
                 return false;
         }
 
