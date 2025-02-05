@@ -52,6 +52,10 @@ class ExpressionTraverseTest {
                 List.of(
                     ParameterNodeGenerator.builder()
                         .type("Int")
+                        .name("this")
+                        .build(),
+                    ParameterNodeGenerator.builder()
+                        .type("Int")
                         .name("other")
                         .build()
                 )
