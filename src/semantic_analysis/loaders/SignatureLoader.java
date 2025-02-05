@@ -4,12 +4,16 @@ import parser.nodes.ASTNode;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.InterfaceNode;
+import parser.nodes.components.ArgumentNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.exceptions.SA_RedefinitionException;
+import semantic_analysis.exceptions.SA_SemanticError;
+import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
+import semantic_analysis.visitors.ExpressionTraverse;
 import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
 
 import java.util.List;
@@ -138,6 +142,34 @@ public class SignatureLoader {
             .findFirst().orElse(null);
     }
 
+    public static FunctionDeclarationNode findMethodByArguments(
+        Scope scope,
+        List<FunctionDeclarationNode> methods,
+        String name,
+        List<ArgumentNode> arguments
+    ) {
+        return methods.stream()
+            .filter(method -> method.name.equals(name))
+            .filter(method -> compareParameterTypes(scope, method.parameters, arguments))
+            .findFirst().orElse(null);
+    }
+
+    public static FunctionDeclarationNode findMethodByArguments(
+        Scope scope,
+        String name,
+        List<ArgumentNode> arguments
+    ) {
+        FunctionDeclarationNode declaration = null;
+
+        while (declaration == null && scope != null && scope.parent() != null) {
+            declaration = findMethodByArguments(scope, scope.symbols().functions(), name, arguments);
+
+            scope = scope.parent();
+        }
+
+        return declaration;
+    }
+
     public static FunctionDeclarationNode findMethodWithParameters(
         Scope scope,
         String name,
@@ -192,6 +224,48 @@ public class SignatureLoader {
                     parameters.get(i).type,
                     false,
                     parameters.get(i).isNullable
+                )
+            ))
+                return false;
+        }
+
+        return true;
+    }
+
+    public static boolean compareParameterTypes(
+        Scope scope,
+        List<ParameterNode> parameters,
+        List<ArgumentNode> arguments
+    ) {
+        boolean foundNamed = false;
+
+        for (int i = 0; i < arguments.size(); i++) {
+            final ArgumentNode argumentNode = arguments.get(i);
+            final ParameterNode parameterNode;
+
+            if (argumentNode.name != null) {
+                foundNamed = true;
+
+                parameterNode = parameters.stream()
+                    .filter(parameter -> parameter.name.equals(argumentNode.name))
+                    .findFirst().orElse(null);
+
+                if (parameterNode == null)
+                    throw new SA_UnresolvedSymbolException(argumentNode.name);
+            } else if (foundNamed)
+                throw new SA_SemanticError("Unnamed arguments cannot follow named arguments"); // Log
+            else {
+                parameterNode = parameters.get(i);
+            }
+
+            final TypeWrapper argType = new ExpressionTraverse().traverse(argumentNode.value, scope);
+
+            if (!scope.isSameType(
+                argType,
+                new TypeWrapper(
+                    parameterNode.type,
+                    false,
+                    parameterNode.isNullable
                 )
             ))
                 return false;
