@@ -76,8 +76,14 @@ public class ExpressionTraverse {
                     );
                 } else
                 if (binaryExpression.right instanceof FunctionCallNode call) {
-                    FunctionDeclarationNode function = leftTypeNode.findMethod(
+                    List<FunctionDeclarationNode> functions = leftTypeNode.findMethodsWithName(
                         scope,
+                        call.name
+                    );
+
+                    FunctionDeclarationNode function = findMethodWithParameters(
+                        scope,
+                        functions,
                         call.name,
                         call.arguments.stream().map(
                             argument -> new ExpressionTraverse().traverse(argument.value, scope)
@@ -85,7 +91,12 @@ public class ExpressionTraverse {
                     );
 
                     if (function == null) {
-                        throw new SA_UnresolvedSymbolException(leftType + "." + call.name); // Log
+                        if (functions.isEmpty())
+                            throw new SA_UnresolvedSymbolException(leftType.type + "." + call.name); // Log
+                        else
+                            throw new SA_SemanticError("None of the overrides for '" +
+                                leftType.type + "." + call.name +
+                                "' match the argument list");
                     }
 
                     if (!leftType.isTypeReference)
@@ -122,6 +133,7 @@ public class ExpressionTraverse {
             String operatorName = getOperatorName(binaryExpression.operator);
 
             FunctionDeclarationNode functionDecl = findMethodWithParameters(
+                scope,
                 leftTypeNode.methods,
                 operatorName,
                 List.of(rightType.type)
@@ -155,6 +167,7 @@ public class ExpressionTraverse {
             String operatorName = getOperatorName(unaryExpression.operator);
 
             FunctionDeclarationNode functionDecl = findMethodWithParameters(
+                scope,
                 operandTypeNode.methods,
                 operatorName,
                 List.of()

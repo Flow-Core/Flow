@@ -65,6 +65,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                 classDeclaration.constructors.stream()
                     .filter(
                         constructor -> compareParameterTypes(
+                            packageLevel,
                             constructor.parameters,
                             constructorNode.parameters.stream().map(parameter -> parameter.type).toList(),
                             false
@@ -82,6 +83,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
 
         for (final FunctionDeclarationNode abstractFunction : abstractFunctions) {
             final FunctionDeclarationNode method = findMethodWithParameters(
+                data,
                 overriddenFunctions,
                 abstractFunction.name,
                 abstractFunction.parameters.stream().map(functionNode -> functionNode.name).toList(),
@@ -101,6 +103,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
         for (final FunctionDeclarationNode overriddenFunction : overriddenFunctions) {
             if (
                 findMethodWithParameters(
+                    data,
                     abstractFunctions,
                     overriddenFunction.name,
                     overriddenFunction.parameters.stream().map(functionNode -> functionNode.name).toList(),

@@ -45,6 +45,28 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
         this.classBlock = classBlock;
     }
 
+    public List<FunctionDeclarationNode> findMethodsWithName(
+        Scope scope,
+        String name
+    ) {
+        ClassDeclarationNode caller = this;
+        List<FunctionDeclarationNode> functions = new ArrayList<>();
+
+        while (caller != null) {
+            functions.addAll(caller.methods.stream()
+                .filter(
+                    method -> method.name.equals(name)
+                ).toList());
+
+            if (!caller.baseClasses.isEmpty())
+                caller = scope.getClass(caller.baseClasses.get(0).name);
+            else
+                break;
+        }
+
+        return functions;
+    }
+
     public FunctionDeclarationNode findMethod(
         Scope scope,
         String name,
@@ -52,6 +74,7 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
     ) {
         ClassDeclarationNode caller = this;
         FunctionDeclarationNode function = findMethodWithParameters(
+            scope,
             methods,
             name,
             parameterTypes
@@ -59,6 +82,7 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
 
         while (function == null && caller != null && !caller.baseClasses.isEmpty()) {
             function = findMethodWithParameters(
+                scope,
                 caller.methods,
                 name,
                 parameterTypes
