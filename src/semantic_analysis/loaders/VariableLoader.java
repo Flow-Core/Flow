@@ -17,23 +17,27 @@ public class VariableLoader {
         final FieldNode fieldNode,
         final Scope scope
     ) {
+        // var x: ASF
+
         final String varType = fieldNode.initialization.declaration.type;
         String actualType = null;
-        if (fieldNode.initialization.assignment.value != null) {
+        if (fieldNode.initialization.assignment != null) {
             actualType = new ExpressionTraverse().traverse(fieldNode.initialization.assignment.value, scope);
             fieldNode.isInitialized = true;
         } else if (varType == null) {
             throw new SA_SemanticError("Variable must either have an explicit type or be initialized");
         }
 
-        if (actualType == null) {
-            return;
-        }
-
         if (varType != null) {
             if (!scope.findTypeDeclaration(varType)) {
                 throw new SA_UnresolvedSymbolException(varType);
             }
+
+            if (actualType == null) {
+                scope.symbols().fields().add(fieldNode);
+                return;
+            }
+
             if (actualType.equals("null")) {
                 if (!fieldNode.initialization.declaration.isNullable) {
                     throw new SA_SemanticError("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'");
