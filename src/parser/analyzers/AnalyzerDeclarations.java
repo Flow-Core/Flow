@@ -92,7 +92,7 @@ public final class AnalyzerDeclarations {
         SWITCH_SCOPE.add(new DefaultCaseAnalyzer());
 
         // Inline Scope
-        INLINE_SCOPE.add(new ExpressionAnalyzer());
         INLINE_SCOPE.add(new VariableAssignmentAnalyzer(true));
+        INLINE_SCOPE.add(new ExpressionAnalyzer());
     }
 }
