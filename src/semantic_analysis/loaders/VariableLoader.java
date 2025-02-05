@@ -17,8 +17,6 @@ public class VariableLoader {
         final FieldNode fieldNode,
         final Scope scope
     ) {
-        // var x: ASF
-
         final String varType = fieldNode.initialization.declaration.type;
         String actualType = null;
         if (fieldNode.initialization.assignment != null) {
@@ -92,7 +90,10 @@ public class VariableLoader {
             throw new SA_UnresolvedSymbolException(((VariableReferenceNode) variableAssignment.variable.expression).variable);
         }
 
-        if (!fieldNode.initialization.declaration.modifier.equals("var")) {
+        if (
+            fieldNode.initialization.declaration.modifier.equals("const")
+                || fieldNode.initialization.declaration.modifier.equals("val") && fieldNode.isInitialized
+        ) {
             throw new SA_SemanticError(fieldNode.initialization.declaration.modifier + " cannot be reassigned");
         }
 
