@@ -1,4 +1,4 @@
-package semantic_analysis;
+package semantic_analysis.files;
 
 import semantic_analysis.scopes.Scope;
 

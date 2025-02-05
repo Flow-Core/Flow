@@ -1,4 +1,4 @@
-package semantic_analysis;
+package semantic_analysis.scopes;
 
 import parser.nodes.ASTNode;
 import parser.nodes.classes.*;

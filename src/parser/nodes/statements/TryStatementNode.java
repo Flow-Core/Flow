@@ -4,6 +4,7 @@ import parser.nodes.ASTVisitor;
 import parser.nodes.components.BlockNode;
 
 import java.util.List;
+import java.util.Objects;
 
 public class TryStatementNode implements StatementNode {
     public BlockNode tryBranch;
@@ -23,6 +24,24 @@ public class TryStatementNode implements StatementNode {
         for (final CatchNode exception : exceptionBranches) {
             exception.accept(visitor, data);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TryStatementNode that = (TryStatementNode) o;
+
+        if (!Objects.equals(tryBranch, that.tryBranch)) return false;
+        return Objects.equals(exceptionBranches, that.exceptionBranches);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = tryBranch != null ? tryBranch.hashCode() : 0;
+        result = 31 * result + (exceptionBranches != null ? exceptionBranches.hashCode() : 0);
+        return result;
     }
 
     @Override

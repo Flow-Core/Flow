@@ -5,7 +5,7 @@ import parser.nodes.ASTVisitor;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
-import semantic_analysis.SymbolTable;
+import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 
 public class TypeCohesionVisitor implements ASTVisitor<SymbolTable> {

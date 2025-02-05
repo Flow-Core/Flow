@@ -3,6 +3,8 @@ package parser.nodes.expressions;
 import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
 
+import java.util.Objects;
+
 public class ExpressionBaseNode implements ASTNode {
     public ExpressionNode expression;
 
@@ -17,6 +19,21 @@ public class ExpressionBaseNode implements ASTNode {
         if (expression != null) {
             expression.accept(visitor, data);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ExpressionBaseNode that = (ExpressionBaseNode) o;
+
+        return Objects.equals(expression, that.expression);
+    }
+
+    @Override
+    public int hashCode() {
+        return expression != null ? expression.hashCode() : 0;
     }
 
     @Override

@@ -4,6 +4,8 @@ import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
 import parser.nodes.expressions.ExpressionBaseNode;
 
+import java.util.Objects;
+
 public class VariableAssignmentNode implements ASTNode {
     public ExpressionBaseNode variable;
     public String operator;
@@ -20,6 +22,26 @@ public class VariableAssignmentNode implements ASTNode {
         ASTNode.super.accept(visitor, data);
 
         value.accept(visitor, data);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        VariableAssignmentNode that = (VariableAssignmentNode) o;
+
+        if (!Objects.equals(variable, that.variable)) return false;
+        if (!Objects.equals(operator, that.operator)) return false;
+        return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = variable != null ? variable.hashCode() : 0;
+        result = 31 * result + (operator != null ? operator.hashCode() : 0);
+        result = 31 * result + (value != null ? value.hashCode() : 0);
+        return result;
     }
 
     @Override

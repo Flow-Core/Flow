@@ -7,6 +7,7 @@ import semantic_analysis.scopes.Scope;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
 
@@ -127,6 +128,37 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
         }
 
         classBlock.accept(visitor, data);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ClassDeclarationNode that = (ClassDeclarationNode) o;
+
+        if (!Objects.equals(name, that.name)) return false;
+        if (!Objects.equals(modifiers, that.modifiers)) return false;
+        if (!Objects.equals(primaryConstructor, that.primaryConstructor))
+            return false;
+        if (!Objects.equals(baseClasses, that.baseClasses)) return false;
+        if (!Objects.equals(fields, that.fields)) return false;
+        if (!Objects.equals(constructors, that.constructors)) return false;
+        if (!Objects.equals(initBlock, that.initBlock)) return false;
+        return Objects.equals(classBlock, that.classBlock);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (modifiers != null ? modifiers.hashCode() : 0);
+        result = 31 * result + (primaryConstructor != null ? primaryConstructor.hashCode() : 0);
+        result = 31 * result + (baseClasses != null ? baseClasses.hashCode() : 0);
+        result = 31 * result + (fields != null ? fields.hashCode() : 0);
+        result = 31 * result + (constructors != null ? constructors.hashCode() : 0);
+        result = 31 * result + (initBlock != null ? initBlock.hashCode() : 0);
+        result = 31 * result + (classBlock != null ? classBlock.hashCode() : 0);
+        return result;
     }
 
     @Override

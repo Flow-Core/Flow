@@ -3,7 +3,7 @@ import lexer.token.Token;
 import parser.Parser;
 import parser.nodes.components.BlockNode;
 import semantic_analysis.loaders.PackageMapper;
-import semantic_analysis.PackageWrapper;
+import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.SemanticAnalysis;
 
 import java.util.List;
@@ -13,8 +13,9 @@ public class Main {
     public static void main(String[] args) {
         final String file1 = """
         func main(): A? {
-            val y = A.foo(new B())
-            val x = foo(y)
+            val x: A = new A()
+            
+            
         
             return null
         }

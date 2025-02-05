@@ -6,14 +6,14 @@ import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.InterfaceNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
-import semantic_analysis.PackageWrapper;
-import semantic_analysis.SymbolTable;
+import semantic_analysis.files.PackageWrapper;
+import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.exceptions.SA_RedefinitionException;
 import semantic_analysis.scopes.Scope;
 
 import java.util.List;
 
-import static semantic_analysis.SymbolTable.joinPath;
+import static semantic_analysis.scopes.SymbolTable.joinPath;
 
 public class SignatureLoader {
     public static void load(final List<ASTNode> nodes, final SymbolTable fileLevel, final PackageWrapper packageWrapper) {

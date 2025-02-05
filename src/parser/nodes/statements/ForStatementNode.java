@@ -5,6 +5,8 @@ import parser.nodes.components.BlockNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.variable.VariableAssignmentNode;
 
+import java.util.Objects;
+
 public class ForStatementNode implements StatementNode {
     public VariableAssignmentNode initialization;
     public ExpressionBaseNode condition;
@@ -27,6 +29,29 @@ public class ForStatementNode implements StatementNode {
         action.accept(visitor, data);
 
         loopBlock.accept(visitor, data);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ForStatementNode that = (ForStatementNode) o;
+
+        if (!Objects.equals(initialization, that.initialization))
+            return false;
+        if (!Objects.equals(condition, that.condition)) return false;
+        if (!Objects.equals(action, that.action)) return false;
+        return Objects.equals(loopBlock, that.loopBlock);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = initialization != null ? initialization.hashCode() : 0;
+        result = 31 * result + (condition != null ? condition.hashCode() : 0);
+        result = 31 * result + (action != null ? action.hashCode() : 0);
+        result = 31 * result + (loopBlock != null ? loopBlock.hashCode() : 0);
+        return result;
     }
 
     @Override

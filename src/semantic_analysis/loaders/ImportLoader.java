@@ -4,8 +4,8 @@ import parser.nodes.ASTNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.packages.ImportNode;
 import parser.nodes.packages.PackageNode;
-import semantic_analysis.PackageWrapper;
-import semantic_analysis.SymbolTable;
+import semantic_analysis.files.PackageWrapper;
+import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.exceptions.SA_SemanticError;
 import semantic_analysis.exceptions.SA_UnresolvedPackageException;
 

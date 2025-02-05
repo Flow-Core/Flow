@@ -4,6 +4,8 @@ import parser.nodes.ASTVisitor;
 import parser.nodes.components.BlockNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 
+import java.util.Objects;
+
 public class CaseNode implements StatementNode {
     public ExpressionBaseNode value;
     public BlockNode body;
@@ -19,6 +21,24 @@ public class CaseNode implements StatementNode {
 
         value.accept(visitor, data);
         body.accept(visitor, data);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        CaseNode caseNode = (CaseNode) o;
+
+        if (!Objects.equals(value, caseNode.value)) return false;
+        return Objects.equals(body, caseNode.body);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = value != null ? value.hashCode() : 0;
+        result = 31 * result + (body != null ? body.hashCode() : 0);
+        return result;
     }
 
     @Override

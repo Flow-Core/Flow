@@ -6,6 +6,7 @@ import parser.nodes.components.ParameterNode;
 import parser.nodes.components.BlockNode;
 
 import java.util.List;
+import java.util.Objects;
 
 public class FunctionDeclarationNode implements ASTNode {
     public String name;
@@ -31,6 +32,32 @@ public class FunctionDeclarationNode implements ASTNode {
         if (block != null) {
             block.accept(visitor, data);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        FunctionDeclarationNode that = (FunctionDeclarationNode) o;
+
+        if (isReturnTypeNullable != that.isReturnTypeNullable) return false;
+        if (!Objects.equals(name, that.name)) return false;
+        if (!Objects.equals(returnType, that.returnType)) return false;
+        if (!Objects.equals(modifiers, that.modifiers)) return false;
+        if (!Objects.equals(parameters, that.parameters)) return false;
+        return Objects.equals(block, that.block);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (returnType != null ? returnType.hashCode() : 0);
+        result = 31 * result + (isReturnTypeNullable ? 1 : 0);
+        result = 31 * result + (modifiers != null ? modifiers.hashCode() : 0);
+        result = 31 * result + (parameters != null ? parameters.hashCode() : 0);
+        result = 31 * result + (block != null ? block.hashCode() : 0);
+        return result;
     }
 
     @Override

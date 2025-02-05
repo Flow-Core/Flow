@@ -4,6 +4,8 @@ import parser.nodes.ASTVisitor;
 import parser.nodes.components.BlockNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 
+import java.util.Objects;
+
 public class IfStatementNode implements StatementNode {
     public ExpressionBaseNode condition;
     public BlockNode trueBranch;
@@ -26,6 +28,26 @@ public class IfStatementNode implements StatementNode {
         if (falseBranch != null) {
             falseBranch.accept(visitor, data);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        IfStatementNode that = (IfStatementNode) o;
+
+        if (!Objects.equals(condition, that.condition)) return false;
+        if (!Objects.equals(trueBranch, that.trueBranch)) return false;
+        return Objects.equals(falseBranch, that.falseBranch);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = condition != null ? condition.hashCode() : 0;
+        result = 31 * result + (trueBranch != null ? trueBranch.hashCode() : 0);
+        result = 31 * result + (falseBranch != null ? falseBranch.hashCode() : 0);
+        return result;
     }
 
     @Override

@@ -8,6 +8,7 @@ import parser.nodes.components.BlockNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
+import parser.nodes.literals.VoidLiteralNode;
 import parser.nodes.statements.*;
 import parser.nodes.variable.VariableAssignmentNode;
 
@@ -171,6 +172,17 @@ public class StatementAnalyzer extends TopAnalyzer {
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
             case RETURN:
+                if (parser.peek().isLineTerminator()) {
+                    return new AnalyzerResult(
+                        new ReturnStatementNode(
+                            new ExpressionBaseNode(
+                                new VoidLiteralNode()
+                            )
+                        ),
+                        parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
+                    );
+                }
+
                 return new AnalyzerResult(
                     new ReturnStatementNode(
                         new ExpressionBaseNode(

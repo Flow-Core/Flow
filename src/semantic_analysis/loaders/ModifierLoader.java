@@ -2,8 +2,10 @@ package semantic_analysis.loaders;
 
 import semantic_analysis.exceptions.SA_SemanticError;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ModifierLoader {
     public static void load(final List<String> modifiers, final ModifierType modifierType) {
@@ -14,9 +16,14 @@ public class ModifierLoader {
         List<String> modifiers,
         Map<String, List<String>> allowedRules
     ) {
-        Set<String> duplicates = modifiers.stream()
-            .filter(mod -> Collections.frequency(modifiers, mod) > 1)
-            .collect(Collectors.toSet());
+        Set<String> seen = new HashSet<>();
+        Set<String> duplicates = new HashSet<>();
+
+        for (String mod : modifiers) {
+            if (!seen.add(mod)) {
+                duplicates.add(mod);
+            }
+        }
 
         if (!duplicates.isEmpty()) {
             throw new SA_SemanticError("Repeated modifiers: " + duplicates);
@@ -28,12 +35,10 @@ public class ModifierLoader {
             }
 
             List<String> conflictingModifiers = allowedRules.get(modifier);
-            List<String> conflicts = modifiers.stream()
-                .filter(conflictingModifiers::contains)
-                .toList();
-
-            if (!conflicts.isEmpty()) {
-                throw new SA_SemanticError("Modifier '" + modifier + "' cannot be used with: " + conflicts);
+            for (String conflict : conflictingModifiers) {
+                if (modifiers.contains(conflict)) {
+                    throw new SA_SemanticError("Modifier '" + modifier + "' cannot be used with: " + conflict);
+                }
             }
         }
     }
@@ -72,8 +77,10 @@ public class ModifierLoader {
         );
 
         private final Map<String, List<String>> restrictions;
+
         ModifierType(Map<String, List<String>> restrictions) {
             this.restrictions = restrictions;
         }
     }
 }
+

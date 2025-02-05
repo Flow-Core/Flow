@@ -7,7 +7,7 @@ import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.statements.ReturnStatementNode;
 import parser.nodes.variable.InitializedVariableNode;
 import parser.nodes.variable.VariableDeclarationNode;
-import semantic_analysis.SymbolTable;
+import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.exceptions.SA_SemanticError;
 import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 import semantic_analysis.scopes.Scope;

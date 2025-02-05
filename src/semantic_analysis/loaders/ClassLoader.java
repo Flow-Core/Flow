@@ -10,7 +10,7 @@ import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableReferenceNode;
-import semantic_analysis.SymbolTable;
+import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.exceptions.SA_SemanticError;
 
 import java.util.ArrayList;

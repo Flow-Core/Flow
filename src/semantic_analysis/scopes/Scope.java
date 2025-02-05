@@ -6,7 +6,6 @@ import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.InterfaceNode;
 import parser.nodes.classes.TypeDeclarationNode;
 import parser.nodes.functions.FunctionDeclarationNode;
-import semantic_analysis.SymbolTable;
 
 public record Scope (
     Scope parent,
