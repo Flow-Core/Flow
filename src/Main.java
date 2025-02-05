@@ -4,8 +4,8 @@ import logger.LoggerFacade;
 import logger.impl.ConsoleLogger;
 import parser.Parser;
 import parser.nodes.components.BlockNode;
-import semantic_analysis.PackageWrapper;
 import semantic_analysis.SemanticAnalysis;
+import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.loaders.PackageMapper;
 
 import java.util.List;
@@ -128,7 +128,7 @@ public class Main {
 
         final Parser parser = new Parser(tokens, fileName);
         final BlockNode root = parser.parse();
-        parser.printTree(root);
+        Parser.printTree(root);
 
         return root;
     }

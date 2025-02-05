@@ -20,4 +20,8 @@ public final class LoggerFacade {
             throw new LoggerException("Logger was already initialized");
         }
     }
+
+    public static void clearLogger() {
+        LoggerFacade.logger = null;
+    }
 }

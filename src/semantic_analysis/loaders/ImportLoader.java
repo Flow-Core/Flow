@@ -1,5 +1,8 @@
 package semantic_analysis.loaders;
 
+import logger.Logger;
+import logger.LoggerFacade;
+import parser.ASTMetaDataStore;
 import parser.nodes.ASTNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.packages.ImportNode;
@@ -7,7 +10,6 @@ import parser.nodes.packages.PackageNode;
 import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.exceptions.SA_SemanticError;
-import semantic_analysis.exceptions.SA_UnresolvedPackageException;
 
 import java.util.Map;
 

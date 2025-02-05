@@ -1,19 +1,22 @@
 package semantic_analysis.loaders;
 
+import fakes.LoggerFake;
 import generators.ast.classes.ClassNodeGenerator;
 import generators.ast.classes.FieldNodeGenerator;
 import generators.ast.components.ParameterNodeGenerator;
 import generators.ast.functions.FunctionNodeGenerator;
 import generators.ast.variables.InitializedVariableNodeGenerator;
 import generators.ast.variables.VariableDeclarationNodeGenerator;
+import logger.LoggerFacade;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.InterfaceNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.functions.FunctionDeclarationNode;
-import semantic_analysis.exceptions.SA_RedefinitionException;
 import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
@@ -22,6 +25,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 class SignatureLoaderTest {
+
+    @BeforeEach
+    void setUp() {
+        LoggerFacade.initLogger(new LoggerFake());
+    }
+
+    @AfterEach
+    void tearDown() {
+        LoggerFacade.clearLogger();
+    }
 
     @Test
     void test_valid_class_should_be_added_to_package_scope() {
@@ -63,8 +76,9 @@ class SignatureLoaderTest {
         ClassDeclarationNode class2 = ClassNodeGenerator.builder().name("MyClass").modifiers(List.of("public")).build();
 
         SignatureLoader.load(List.of(class1), fileSymbolTable, packageWrapper);
+        SignatureLoader.load(List.of(class2), fileSymbolTable, packageWrapper);
 
-        Assertions.assertThrows(SA_RedefinitionException.class, () -> SignatureLoader.load(List.of(class2), fileSymbolTable, packageWrapper), "Duplicate class should fail");
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Duplicate class should fail");
     }
 
     @Test

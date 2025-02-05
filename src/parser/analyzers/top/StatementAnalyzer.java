@@ -1,6 +1,8 @@
 package parser.analyzers.top;
 
+import lexer.token.Token;
 import lexer.token.TokenType;
+import parser.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
@@ -39,13 +41,9 @@ public class StatementAnalyzer extends TopAnalyzer {
                 }
 
                 return new AnalyzerResult(
-                    new IfStatementNode(
-                        new ExpressionBaseNode(ifCondition),
-                        trueBranch,
-                        falseBranch
                     ASTMetaDataStore.getInstance().addMetadata(
                         new IfStatementNode(
-                            ifCondition,
+                            new ExpressionBaseNode(ifCondition),
                             trueBranch,
                             falseBranch
                         ),
@@ -72,16 +70,11 @@ public class StatementAnalyzer extends TopAnalyzer {
                 final BlockNode forBlock = getBlock(parser);
 
                 return new AnalyzerResult(
-                    new ForStatementNode(
-                        loopVariable,
-                        new ExpressionBaseNode(forCondition),
-                        loopActionBlock,
-                        forBlock
                     ASTMetaDataStore.getInstance().addMetadata(
                         new ForStatementNode(
                             loopVariable,
-                            forCondition,
-                            loopUpdate,
+                            new ExpressionBaseNode(forCondition),
+                            loopActionBlock,
                             forBlock
                         ),
                         line,
@@ -120,12 +113,10 @@ public class StatementAnalyzer extends TopAnalyzer {
                 final BlockNode whileBlock = getBlock(parser);
 
                 return new AnalyzerResult(
-                    new WhileStatementNode(
-                        new ExpressionBaseNode(whileCondition),
-                        whileBlock
                     ASTMetaDataStore.getInstance().addMetadata(
                         new WhileStatementNode(
-                            whileCondition, whileBlock
+                            new ExpressionBaseNode(whileCondition),
+                            whileBlock
                         ),
                         line,
                         parser.file
@@ -142,22 +133,9 @@ public class StatementAnalyzer extends TopAnalyzer {
                 parser.consume(TokenType.CLOSE_BRACES);
 
                 return new AnalyzerResult(
-                    new SwitchStatementNode(
-                        new ExpressionBaseNode(switchCondition),
-                        switchBlock.children
-                            .stream()
-                            .filter(node -> node instanceof CaseNode)
-                            .map(node -> (CaseNode) node)
-                            .toList(),
-                        switchBlock.children
-                            .stream()
-                            .filter(node -> node instanceof BlockNode)
-                            .map(node -> (BlockNode) node)
-                            .findFirst()
-                            .orElse(null)
                     ASTMetaDataStore.getInstance().addMetadata(
                         new SwitchStatementNode(
-                            switchCondition,
+                            new ExpressionBaseNode(switchCondition),
                             switchBlock.children
                                 .stream()
                                 .filter(node -> node instanceof CaseNode)

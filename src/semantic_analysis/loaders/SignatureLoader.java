@@ -1,5 +1,8 @@
 package semantic_analysis.loaders;
 
+import logger.Logger;
+import logger.LoggerFacade;
+import parser.ASTMetaDataStore;
 import parser.nodes.ASTNode;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.FieldNode;
@@ -7,7 +10,6 @@ import parser.nodes.classes.InterfaceNode;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
-import semantic_analysis.exceptions.SA_RedefinitionException;
 import semantic_analysis.exceptions.SA_SemanticError;
 import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 import semantic_analysis.files.PackageWrapper;
@@ -40,8 +42,6 @@ public class SignatureLoader {
         boolean isPublic = !classDeclaration.modifiers.contains("private") && !classDeclaration.modifiers.contains("protected");
 
         if (packageWrapper.scope().findSymbol(classDeclaration.name)) {
-            throw new SA_RedefinitionException(classDeclaration.name);
-        if (packageWrapper.symbolTable().findSymbol(classDeclaration.name)) {
             LoggerFacade.getLogger().log(
                 Logger.Severity.ERROR,
                 "Symbol '" + classDeclaration.name + "' redefined",
@@ -62,8 +62,6 @@ public class SignatureLoader {
         boolean isPublic = !interfaceDeclaration.modifiers.contains("private") && !interfaceDeclaration.modifiers.contains("protected");
 
         if (packageWrapper.scope().findSymbol(interfaceDeclaration.name)) {
-            throw new SA_RedefinitionException(interfaceDeclaration.name);
-        if (packageWrapper.symbolTable().findSymbol(interfaceDeclaration.name)) {
             LoggerFacade.getLogger().log(
                 Logger.Severity.ERROR,
                 "Symbol '" + interfaceDeclaration.name + "' redefined",
@@ -83,6 +81,15 @@ public class SignatureLoader {
     private static void handleFunction(final FunctionDeclarationNode functionDeclarationNode, final SymbolTable fileLevel, final PackageWrapper packageWrapper) {
         boolean isPublic = !functionDeclarationNode.modifiers.contains("private") && !functionDeclarationNode.modifiers.contains("protected");
 
+        if (packageWrapper.scope().findSymbol(functionDeclarationNode.name)) {
+            LoggerFacade.getLogger().log(
+                Logger.Severity.ERROR,
+                "Symbol '" + functionDeclarationNode.name + "' redefined",
+                ASTMetaDataStore.getInstance().getLine(functionDeclarationNode),
+                ASTMetaDataStore.getInstance().getFile(functionDeclarationNode)
+            );
+        }
+
         if (isPublic) {
             packageWrapper.scope().symbols().functions().add(functionDeclarationNode);
             packageWrapper.scope().symbols().bindingContext().put(functionDeclarationNode, joinPath(packageWrapper.path(), functionDeclarationNode.name));
@@ -96,8 +103,6 @@ public class SignatureLoader {
 
         final String name = fieldNode.initialization.declaration.name;
         if (packageWrapper.scope().findSymbol(name)) {
-            throw new SA_RedefinitionException(name);
-        if (packageWrapper.symbolTable().findSymbol(name)) {
             LoggerFacade.getLogger().log(
                 Logger.Severity.ERROR,
                 "Symbol '" + fieldNode.initialization.declaration.name + "' redefined",

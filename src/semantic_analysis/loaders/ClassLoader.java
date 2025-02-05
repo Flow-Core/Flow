@@ -1,5 +1,8 @@
 package semantic_analysis.loaders;
 
+import logger.Logger;
+import logger.LoggerFacade;
+import parser.ASTMetaDataStore;
 import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
 import parser.nodes.classes.*;
@@ -18,6 +21,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static semantic_analysis.loaders.SignatureLoader.compareParameterTypes;
+import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
 
 public class ClassLoader implements ASTVisitor<SymbolTable> {
     private final SymbolTable packageLevel;
@@ -145,14 +151,21 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                     ASTMetaDataStore.getInstance().getLine(classDeclaration),
                     ASTMetaDataStore.getInstance().getFile(classDeclaration)
                 );
+                return;
             }
 
             final String baseClassName = classDeclaration.baseClasses.get(0).name;
             final ClassDeclarationNode fileLevelBaseClass = data.getClass(baseClassName);
             final ClassDeclarationNode baseClass = getClassDeclarationNode(classDeclaration, baseClassName, fileLevelBaseClass);
 
-            if (!baseClass.modifiers.contains("open")) {
-                throw new SA_SemanticError("'" + baseClassName + "' is final, so it cannot be extended");
+            if (baseClass == null || !baseClass.modifiers.contains("open")) {
+                LoggerFacade.getLogger().log(
+                    Logger.Severity.ERROR,
+                    "'" + baseClassName + "' is final, so it cannot be extended",
+                    ASTMetaDataStore.getInstance().getLine(classDeclaration),
+                    ASTMetaDataStore.getInstance().getFile(classDeclaration)
+                );
+                return;
             }
 
             checkCircularInheritance(classDeclaration.name, baseClass, new HashSet<>(), data);
@@ -225,7 +238,6 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                     ASTMetaDataStore.getInstance().getFile(interfaceNode)
                 );
                 return;
-                throw new SA_SemanticError("Interface '" + interfaceNode.name + "' was not found");
             }
         }
     }
@@ -271,7 +283,6 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                     ASTMetaDataStore.getInstance().getFile(currentInterface)
                 );
                 return;
-                throw new SA_SemanticError("Interface '" + currentInterface.name + "' was not found");
             }
 
             if (currentInterface.name.equals(interfaceNode.name)) {
@@ -375,6 +386,16 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                 final String baseClassName = classDeclarationNode.baseClasses.get(0).name;
                 final ClassDeclarationNode fileLevelBaseClass = data.getClass(baseClassName);
                 final ClassDeclarationNode baseClass = getClassDeclarationNode(classDeclarationNode, baseClassName, fileLevelBaseClass);
+
+                if (baseClass == null) {
+                    LoggerFacade.getLogger().log(
+                        Logger.Severity.ERROR,
+                        "Unresolved symbol '" + classDeclarationNode.name + "' cannot extend more than one class",
+                        ASTMetaDataStore.getInstance().getLine(classDeclarationNode),
+                        ASTMetaDataStore.getInstance().getFile(classDeclarationNode)
+                    );
+                    return new ArrayList<>();
+                }
                 foundFunctions.addAll(getFunctionsByModifier(modifier, baseClass, data));
             }
         }
