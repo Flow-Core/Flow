@@ -23,7 +23,7 @@ import semantic_analysis.transformers.LiteralTransformer;
 
 import java.util.List;
 
-import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
+import static semantic_analysis.loaders.SignatureLoader.*;
 
 public class ExpressionTraverse {
     public TypeWrapper traverse(ExpressionBaseNode root, Scope scope) {
@@ -134,12 +134,30 @@ public class ExpressionTraverse {
 
             String operatorName = getOperatorName(binaryExpression.operator);
 
-            FunctionDeclarationNode functionDecl = findMethodWithParameters(
+            final List<FunctionDeclarationNode> functions = leftTypeNode.findMethodsWithName(
                 scope,
-                leftTypeNode.methods,
-                operatorName,
-                List.of(rightType)
+                operatorName
             );
+
+            FunctionDeclarationNode functionDecl = functions.stream()
+                .filter(method -> compareParameterTypes(
+                    scope,
+                    method.parameters,
+                    List.of(
+                        new ArgumentNode(
+                            null,
+                            new ExpressionBaseNode(
+                                binaryExpression.left
+                            )
+                        ),
+                        new ArgumentNode(
+                            null,
+                            new ExpressionBaseNode(
+                                binaryExpression.right
+                            )
+                        )
+                    )
+                )).findFirst().orElse(null);
 
             if (functionDecl != null) {
                 return new FunctionCallNode(
@@ -211,29 +229,37 @@ public class ExpressionTraverse {
             throw new SA_UnresolvedSymbolException(variable.variable); // LOG
         }
         if (expression instanceof FunctionCallNode functionCall) {
-            ClassDeclarationNode caller = scope.getClass(functionCall.callerType);
+            final FunctionDeclarationNode function;
 
-            if (caller == null) throw new SA_UnresolvedSymbolException(functionCall.callerType);
+            if (functionCall.callerType != null) {
+                final ClassDeclarationNode caller = scope.getClass(functionCall.callerType);
 
-            List<FunctionDeclarationNode> functions = caller.findMethodsWithName(
-                scope,
-                functionCall.name
-            );
+                if (caller == null) throw new SA_UnresolvedSymbolException(functionCall.callerType);
 
-            FunctionDeclarationNode function = findMethodWithParameters(
-                scope,
-                functions,
-                functionCall.name,
-                functionCall.arguments.stream().map(
-                    argument -> new ExpressionTraverse().traverse(argument.value, scope)
-                ).toList()
-            );
+                final List<FunctionDeclarationNode> functions = caller.findMethodsWithName(
+                    scope,
+                    functionCall.name
+                );
+
+                function = functions.stream()
+                    .filter(method -> compareParameterTypes(
+                        scope,
+                        method.parameters,
+                        functionCall.arguments
+                    )).findFirst().orElse(null);
+            } else {
+                function = findMethodByArguments(
+                    scope,
+                    functionCall.name,
+                    functionCall.arguments
+                );
+            }
 
             if (function == null)
                 throw new SA_UnresolvedSymbolException(functionCall.name); // LOG with parameters for more info
 
-            TypeDeclarationNode containingType = scope.getContainingType();
-            String modifier = ModifierLoader.getAccessModifier(function.modifiers);
+            final TypeDeclarationNode containingType = scope.getContainingType();
+            final String modifier = ModifierLoader.getAccessModifier(function.modifiers);
 
             if (modifier.equals("private") && (containingType == null || !containingType.name.equals(functionCall.callerType)) ||
                 modifier.equals("protected") && (containingType == null || !scope.isSameType(
