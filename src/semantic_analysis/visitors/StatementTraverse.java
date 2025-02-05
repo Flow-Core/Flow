@@ -7,9 +7,9 @@ import parser.nodes.statements.*;
 import parser.nodes.variable.InitializedVariableNode;
 import parser.nodes.variable.VariableDeclarationNode;
 import parser.nodes.variable.VariableReferenceNode;
-import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.exceptions.SA_SemanticError;
 import semantic_analysis.scopes.Scope;
+import semantic_analysis.scopes.SymbolTable;
 
 import java.util.ArrayList;
 
@@ -29,8 +29,8 @@ public class StatementTraverse {
     }
 
     private static void handleIfStatement(final IfStatementNode ifStatementNode, final Scope scope) {
-        final String conditionType = new ExpressionTraverse().traverse(ifStatementNode.condition, scope);
-        if (!conditionType.equals("Bool")) {
+        final ExpressionTraverse.TypeWrapper conditionType = new ExpressionTraverse().traverse(ifStatementNode.condition, scope);
+        if (!conditionType.type().equals("Bool") && !conditionType.isNullable()) {
             throw new SA_SemanticError("Condition type mismatch: 'Bool' was expected");
         }
 
@@ -42,8 +42,8 @@ public class StatementTraverse {
     }
 
     private static void handleWhileStatement(final WhileStatementNode whileStatementNode, final Scope scope) {
-        final String conditionType = new ExpressionTraverse().traverse(whileStatementNode.condition, scope);
-        if (!conditionType.equals("Bool")) {
+        final ExpressionTraverse.TypeWrapper conditionType = new ExpressionTraverse().traverse(whileStatementNode.condition, scope);
+        if (!conditionType.type().equals("Bool") && !conditionType.isNullable()) {
             throw new SA_SemanticError("Loop condition type mismatch: must be of type 'Bool'");
         }
 
@@ -51,21 +51,23 @@ public class StatementTraverse {
     }
 
     private static void handleForStatement(final ForStatementNode forStatementNode, final Scope scope) {
-        final String conditionType = new ExpressionTraverse().traverse(forStatementNode.condition, scope);
-        if (!conditionType.equals("Bool")) {
+        final ExpressionTraverse.TypeWrapper conditionType = new ExpressionTraverse().traverse(forStatementNode.condition, scope);
+        if (!conditionType.type().equals("Bool") && !conditionType.isNullable()) {
             throw new SA_SemanticError("Loop condition type mismatch: must be of type 'Bool'");
         }
 
         final Scope forScope = new Scope(scope, SymbolTable.getEmptySymbolTable(), scope.currentParent(), Scope.Type.FUNCTION);
+
+        final ExpressionTraverse.TypeWrapper varType = new ExpressionTraverse().traverse(forStatementNode.initialization.value, scope);
 
         final FieldNode localVariable = new FieldNode(
             new ArrayList<>(),
             new InitializedVariableNode(
                 new VariableDeclarationNode(
                     "var",
-                    new ExpressionTraverse().traverse(forStatementNode.initialization.value, scope),
+                    varType.type(),
                     ((VariableReferenceNode) forStatementNode.initialization.variable.expression).variable,
-                    false
+                    varType.isNullable()
                 ),
                 forStatementNode.initialization
             )
@@ -77,10 +79,10 @@ public class StatementTraverse {
     }
 
     private static void handleSwitchStatement(final SwitchStatementNode switchStatementNode, final Scope scope) {
-        final String switchType = new ExpressionTraverse().traverse(switchStatementNode.condition, scope);
+        final ExpressionTraverse.TypeWrapper switchType = new ExpressionTraverse().traverse(switchStatementNode.condition, scope);
 
         for (CaseNode caseNode : switchStatementNode.cases) {
-            final String caseType = new ExpressionTraverse().traverse(caseNode.value, scope);
+            final ExpressionTraverse.TypeWrapper caseType = new ExpressionTraverse().traverse(caseNode.value, scope);
 
             if (!scope.isSameType(caseType, switchType)) {
                 throw new SA_SemanticError("Switch case type mismatch: Expected '" + switchType + "' but found '" + caseType + "'");
@@ -95,17 +97,23 @@ public class StatementTraverse {
     }
 
     private static void handleReturnStatement(final ReturnStatementNode returnStatementNode, final Scope scope) {
-        final String returnType = new ExpressionTraverse().traverse(returnStatementNode.returnValue, scope);
+        final ExpressionTraverse.TypeWrapper returnType = new ExpressionTraverse().traverse(returnStatementNode.returnValue, scope);
         final ASTNode currentParent = scope.currentParent();
         if (!(currentParent instanceof FunctionDeclarationNode functionDeclarationNode)) {
             throw new SA_SemanticError("Return statement is not allowed here");
         }
 
-        if (returnType.equals("null")) {
+        if (returnType.type().equals("null")) {
             if (!functionDeclarationNode.isReturnTypeNullable) {
                 throw new SA_SemanticError("Null cannot be a value of a non-null type '" + functionDeclarationNode.returnType + "'");
             }
-        } else if (!scope.isSameType(returnType, functionDeclarationNode.returnType)) {
+        } else if (!scope.isSameType(
+            returnType,
+            new ExpressionTraverse.TypeWrapper(
+                functionDeclarationNode.returnType,
+                false,
+                functionDeclarationNode.isReturnTypeNullable)
+        )) {
             throw new SA_SemanticError("Type mismatch: expected '"  + functionDeclarationNode.returnType + "' but received '" + returnType + "'");
         }
     }

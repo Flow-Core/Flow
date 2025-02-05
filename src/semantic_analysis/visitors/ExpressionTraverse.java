@@ -24,7 +24,7 @@ import java.util.List;
 import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
 
 public class ExpressionTraverse {
-    public String traverse(ExpressionBaseNode root, Scope scope) {
+    public TypeWrapper traverse(ExpressionBaseNode root, Scope scope) {
         root.expression = transformValue(root.expression, scope);
 
         TypeWrapper type = determineType(root.expression, scope);
@@ -32,7 +32,7 @@ public class ExpressionTraverse {
         if (type.isTypeReference)
             throw new SA_SemanticError("Expression expected"); // Log
 
-        return type.type;
+        return type;
     }
 
     private static ExpressionNode transformValue(ExpressionNode expression, Scope scope) {
@@ -136,7 +136,7 @@ public class ExpressionTraverse {
                 scope,
                 leftTypeNode.methods,
                 operatorName,
-                List.of(rightType.type)
+                List.of(rightType)
             );
 
             if (functionDecl != null) {
@@ -189,19 +189,21 @@ public class ExpressionTraverse {
 
     private static TypeWrapper determineType(ExpressionNode expression, Scope scope) {
         if (expression instanceof ObjectNode objectNode) {
-            return new TypeWrapper(objectNode.className, false);
+            return new TypeWrapper(objectNode.className, false, false);
         }
         if (expression instanceof VariableReferenceNode variable) {
-            // TODO: Also check for nullability
-
             if (scope.findTypeDeclaration(variable.variable)) {
-                return new TypeWrapper(variable.variable, true); //TODO: Make it differentiate between static and instance members
+                return new TypeWrapper(variable.variable, true, false);
             }
 
             FieldNode field = scope.getField(variable.variable);
 
             if (field != null) {
-                return new TypeWrapper(field.initialization.declaration.type, false);
+                return new TypeWrapper(
+                    field.initialization.declaration.type,
+                    false,
+                    field.initialization.declaration.isNullable
+                );
             }
 
             throw new SA_UnresolvedSymbolException(variable.variable); // LOG
@@ -216,7 +218,7 @@ public class ExpressionTraverse {
             );
 
             if (function != null) {
-                return new TypeWrapper(function.returnType, false);
+                return new TypeWrapper(function.returnType, false, function.isReturnTypeNullable);
             }
 
             throw new SA_UnresolvedSymbolException(functionCall.name); // LOG with parameters for more info
@@ -232,19 +234,29 @@ public class ExpressionTraverse {
             if (actualField == null)
                 throw new SA_UnresolvedSymbolException(field.holderType + "." + field.name); // Log
 
-            return new TypeWrapper(actualField.initialization.declaration.type, false);
+            return new TypeWrapper(
+                actualField.initialization.declaration.type,
+                false,
+                actualField.initialization.declaration.isNullable
+            );
         }
         if (expression instanceof NullLiteral) {
-            return new TypeWrapper("null", false);
+            return new TypeWrapper("null", false, true);
         }
 
         throw new SA_SemanticError("Could not resolve type: '" + expression + "'"); // Log and return something
     }
 
-    private record TypeWrapper(
+    public record TypeWrapper(
         String type,
-        boolean isTypeReference
-    ) {}
+        boolean isTypeReference,
+        boolean isNullable
+    ) {
+        @Override
+        public String toString() {
+            return type + (isNullable ? "?" : "");
+        }
+    }
 
     private static String getOperatorName(String operator) {
         return switch (operator) {

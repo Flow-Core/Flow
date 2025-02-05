@@ -9,6 +9,7 @@ import semantic_analysis.exceptions.SA_SemanticError;
 import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.visitors.ExpressionTraverse;
+import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
 
 import java.util.Objects;
 
@@ -17,26 +18,30 @@ public class VariableLoader {
         final FieldNode fieldNode,
         final Scope scope
     ) {
-        final String varType = fieldNode.initialization.declaration.type;
-        String actualType = null;
+        final TypeWrapper varType = new TypeWrapper(
+            fieldNode.initialization.declaration.type,
+            false,
+            fieldNode.initialization.declaration.isNullable
+        );
+        TypeWrapper actualType = null;
         if (fieldNode.initialization.assignment != null) {
             actualType = new ExpressionTraverse().traverse(fieldNode.initialization.assignment.value, scope);
             fieldNode.isInitialized = true;
-        } else if (varType == null) {
+        } else if (varType.type() == null) {
             throw new SA_SemanticError("Variable must either have an explicit type or be initialized");
         }
 
-        if (varType != null) {
-            if (!scope.findTypeDeclaration(varType)) {
-                throw new SA_UnresolvedSymbolException(varType);
+        if (varType.type() != null) {
+            if (!scope.findTypeDeclaration(varType.type())) {
+                throw new SA_UnresolvedSymbolException(varType.type());
             }
 
-            if (actualType == null) {
+            if (actualType == null || actualType.type() == null) {
                 scope.symbols().fields().add(fieldNode);
                 return;
             }
 
-            if (actualType.equals("null")) {
+            if (actualType.type().equals("null")) {
                 if (!fieldNode.initialization.declaration.isNullable) {
                     throw new SA_SemanticError("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'");
                 }
@@ -44,10 +49,11 @@ public class VariableLoader {
                 throw new SA_SemanticError("Type mismatch: expected '"  + varType + "' but received '" + actualType + "'");
             }
         } else {
-            if (actualType.equals("null")) {
-                throw new SA_SemanticError("Variable must either have an explicit type or be initialized");
+            if (actualType.type().equals("null")) {
+                throw new SA_SemanticError("Cannot infer variable type from 'null'");
             }
-            fieldNode.initialization.declaration.type = actualType;
+            fieldNode.initialization.declaration.type = actualType.type();
+            fieldNode.initialization.declaration.isNullable = actualType.isNullable();
         }
 
         scope.symbols().fields().add(fieldNode);
@@ -59,7 +65,11 @@ public class VariableLoader {
     ) {
         final FieldNode fieldNode = getFieldNode(variableAssignment, scope);
 
-        final String varType = fieldNode.initialization.declaration.type;
+        final TypeWrapper varType = new TypeWrapper(
+            fieldNode.initialization.declaration.type,
+            false,
+            fieldNode.initialization.declaration.isNullable
+        );
         ExpressionBaseNode expressionBase = variableAssignment.value;
         if (!Objects.equals(variableAssignment.operator, "=")) {
             final String[] operators = variableAssignment.operator.split("");
@@ -72,10 +82,10 @@ public class VariableLoader {
             );
             variableAssignment.operator = "=";
         }
-        String actualType = new ExpressionTraverse().traverse(expressionBase, scope);
+        TypeWrapper actualType = new ExpressionTraverse().traverse(expressionBase, scope);
         fieldNode.isInitialized = true;
 
-        if (actualType.equals("null")) {
+        if (actualType.type().equals("null")) {
             if (!fieldNode.initialization.declaration.isNullable) {
                 throw new SA_SemanticError("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'");
             }

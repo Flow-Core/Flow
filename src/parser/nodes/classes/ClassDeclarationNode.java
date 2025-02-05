@@ -4,6 +4,7 @@ import parser.nodes.ASTVisitor;
 import parser.nodes.components.BlockNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.scopes.Scope;
+import semantic_analysis.visitors.ExpressionTraverse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +71,7 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
     public FunctionDeclarationNode findMethod(
         Scope scope,
         String name,
-        List<String> parameterTypes
+        List<ExpressionTraverse.TypeWrapper> parameterTypes
     ) {
         ClassDeclarationNode caller = this;
         FunctionDeclarationNode function = findMethodWithParameters(

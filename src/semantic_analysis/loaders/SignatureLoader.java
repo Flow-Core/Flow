@@ -6,10 +6,11 @@ import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.InterfaceNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
-import semantic_analysis.files.PackageWrapper;
-import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.exceptions.SA_RedefinitionException;
+import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.scopes.Scope;
+import semantic_analysis.scopes.SymbolTable;
+import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
 
 import java.util.List;
 
@@ -91,7 +92,7 @@ public class SignatureLoader {
         Scope scope,
         List<FunctionDeclarationNode> methods,
         String name,
-        List<String> parameterTypes,
+        List<TypeWrapper> parameterTypes,
         boolean ignoreThis
     ) {
         return methods.stream()
@@ -104,7 +105,7 @@ public class SignatureLoader {
         SymbolTable symbols,
         List<FunctionDeclarationNode> methods,
         String name,
-        List<String> parameterTypes,
+        List<TypeWrapper> parameterTypes,
         boolean ignoreThis
     ) {
         return methods.stream()
@@ -117,7 +118,7 @@ public class SignatureLoader {
         Scope scope,
         List<FunctionDeclarationNode> methods,
         String name,
-        List<String> parameterTypes
+        List<TypeWrapper> parameterTypes
     ) {
         return methods.stream()
             .filter(method -> method.name.equals(name))
@@ -129,7 +130,7 @@ public class SignatureLoader {
         SymbolTable symbols,
         List<FunctionDeclarationNode> methods,
         String name,
-        List<String> parameterTypes
+        List<TypeWrapper> parameterTypes
     ) {
         return methods.stream()
             .filter(method -> method.name.equals(name))
@@ -140,7 +141,7 @@ public class SignatureLoader {
     public static FunctionDeclarationNode findMethodWithParameters(
         Scope scope,
         String name,
-        List<String> parameterTypes
+        List<TypeWrapper> parameterTypes
     ) {
         FunctionDeclarationNode declaration = null;
 
@@ -156,13 +157,20 @@ public class SignatureLoader {
     public static boolean compareParameterTypes(
         Scope scope,
         List<ParameterNode> parameters,
-        List<String> parameterTypes,
+        List<TypeWrapper> parameterTypes,
         boolean ignoreThis
     ) {
         if (parameterTypes.size() != parameters.size()) return false;
 
         for (int i = ignoreThis ? 1 : 0; i < parameters.size(); i++) {
-            if (!scope.isSameType(parameterTypes.get(i), parameters.get(i).type))
+            if (!scope.isSameType(
+                parameterTypes.get(i),
+                new TypeWrapper(
+                    parameters.get(i).type,
+                    false,
+                    parameters.get(i).isNullable
+                )
+            ))
                 return false;
         }
 
@@ -172,13 +180,20 @@ public class SignatureLoader {
     public static boolean compareParameterTypes(
         SymbolTable symbols,
         List<ParameterNode> parameters,
-        List<String> parameterTypes,
+        List<TypeWrapper> parameterTypes,
         boolean ignoreThis
     ) {
         if (parameterTypes.size() != parameters.size()) return false;
 
         for (int i = ignoreThis ? 1 : 0; i < parameters.size(); i++) {
-            if (!symbols.isSameType(parameters.get(i).type, parameterTypes.get(i)))
+            if (!symbols.isSameType(
+                parameterTypes.get(i),
+                new TypeWrapper(
+                    parameters.get(i).type,
+                    false,
+                    parameters.get(i).isNullable
+                )
+            ))
                 return false;
         }
 

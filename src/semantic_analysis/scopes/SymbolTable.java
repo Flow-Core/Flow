@@ -3,6 +3,7 @@ package semantic_analysis.scopes;
 import parser.nodes.ASTNode;
 import parser.nodes.classes.*;
 import parser.nodes.functions.FunctionDeclarationNode;
+import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
 
 import java.util.*;
 
@@ -17,25 +18,45 @@ public record SymbolTable(
         return new SymbolTable(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new HashMap<>());
     }
 
-    public boolean isSameType(String type, String superType) {
-        if (Objects.equals(type, superType)) {
+    public boolean isSameType(TypeWrapper type, TypeWrapper superType) {
+        if (!superType.isNullable() && type.isNullable())
+            return false;
+
+        if (Objects.equals(type.type(), superType.type())) {
             return true;
         }
 
-        final ClassDeclarationNode classDeclarationNode = getClass(type);
+        final ClassDeclarationNode classDeclarationNode = getClass(type.type());
         if (classDeclarationNode != null) {
-            if (!classDeclarationNode.baseClasses.isEmpty() && classDeclarationNode.baseClasses.get(0).name.equals(superType)) {
+            if (!classDeclarationNode.baseClasses.isEmpty() && classDeclarationNode.baseClasses.get(0).name.equals(superType.type())) {
                 return true;
             }
-            if (!classDeclarationNode.baseClasses.isEmpty() && isSameType(classDeclarationNode.baseClasses.get(0).name, superType)) {
+            if (!classDeclarationNode.baseClasses.isEmpty() &&
+                isSameType(
+                    new TypeWrapper(
+                        classDeclarationNode.baseClasses.get(0).name,
+                        false,
+                        type.isNullable()
+                    ),
+                    superType)
+            ) {
                 return true;
             }
         }
 
-        final TypeDeclarationNode typeDeclarationNode = getTypeDeclaration(type);
+        final TypeDeclarationNode typeDeclarationNode = getTypeDeclaration(type.type());
         if (typeDeclarationNode != null) {
-            for (final BaseInterfaceNode baseInterfaceNode : getTypeDeclaration(type).implementedInterfaces) {
-                if (baseInterfaceNode.name.equals(superType) || isSameType(baseInterfaceNode.name, superType)) {
+            for (final BaseInterfaceNode baseInterfaceNode : getTypeDeclaration(type.type()).implementedInterfaces) {
+                if (baseInterfaceNode.name.equals(superType.type()) ||
+                    isSameType(
+                        new TypeWrapper(
+                            baseInterfaceNode.name,
+                            false,
+                            type.isNullable()
+                        ),
+                        superType
+                    )
+                ) {
                     return true;
                 }
             }

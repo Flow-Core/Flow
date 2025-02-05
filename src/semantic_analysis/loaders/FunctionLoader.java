@@ -7,11 +7,12 @@ import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.statements.ReturnStatementNode;
 import parser.nodes.variable.InitializedVariableNode;
 import parser.nodes.variable.VariableDeclarationNode;
-import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.exceptions.SA_SemanticError;
 import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 import semantic_analysis.scopes.Scope;
+import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.visitors.BlockTraverse;
+import semantic_analysis.visitors.ExpressionTraverse;
 
 import java.util.ArrayList;
 
@@ -30,7 +31,8 @@ public class FunctionLoader {
                 scope,
                 scope.symbols().functions(),
                 functionDeclarationNode.name,
-                functionDeclarationNode.parameters.stream().map(parameterNode -> parameterNode.type).toList()
+                functionDeclarationNode.parameters.stream()
+                    .map(parameterNode -> new ExpressionTraverse.TypeWrapper(parameterNode.type, false, parameterNode.isNullable)).toList()
             ) != null
         ) {
             throw new SA_SemanticError("Conflicting overloads: ");

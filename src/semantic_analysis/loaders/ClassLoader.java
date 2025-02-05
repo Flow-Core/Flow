@@ -10,8 +10,9 @@ import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableReferenceNode;
-import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.exceptions.SA_SemanticError;
+import semantic_analysis.scopes.SymbolTable;
+import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -67,7 +68,8 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                         constructor -> compareParameterTypes(
                             packageLevel,
                             constructor.parameters,
-                            constructorNode.parameters.stream().map(parameter -> parameter.type).toList(),
+                            constructorNode.parameters.stream()
+                                .map(parameter -> new TypeWrapper(parameter.type, false, parameter.isNullable)).toList(),
                             false
                         )
                     ).toList().size() > 1
@@ -86,15 +88,36 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                 data,
                 overriddenFunctions,
                 abstractFunction.name,
-                abstractFunction.parameters.stream().map(functionNode -> functionNode.name).toList(),
+                abstractFunction.parameters.stream()
+                    .map(parameter -> new TypeWrapper(parameter.name, false, parameter.isNullable)).toList(),
                 true
             );
             if (method == null) {
                 throw new SA_SemanticError("Class '" + classDeclaration.name + "' is not abstract and does not implement abstract base class member '" + abstractFunction.name + "'");
             } else if (
                 (method.isReturnTypeNullable != abstractFunction.isReturnTypeNullable) ||
-                    !data.isSameType(method.returnType, abstractFunction.returnType)
-                        && !packageLevel.isSameType(method.returnType, abstractFunction.returnType)
+                    !data.isSameType(
+                        new TypeWrapper(method.returnType,
+                            false,
+                            method.isReturnTypeNullable
+                        ),
+                        new TypeWrapper(
+                            abstractFunction.returnType,
+                            false,
+                            abstractFunction.isReturnTypeNullable
+                        )
+                    )
+                    && !packageLevel.isSameType(
+                        new TypeWrapper(method.returnType,
+                            false,
+                            method.isReturnTypeNullable
+                        ),
+                        new TypeWrapper(
+                            abstractFunction.returnType,
+                            false,
+                            abstractFunction.isReturnTypeNullable
+                        )
+                    )
             ) {
                 throw new SA_SemanticError("Return type of function '" + abstractFunction.name + "' is not a subtype of the overridden member, expected a subtype of: '" + abstractFunction.returnType + (abstractFunction.isReturnTypeNullable ? "?" : "") + "' but found '" + method.returnType + (method.isReturnTypeNullable ? "?" : "") + "'");
             }
@@ -106,7 +129,8 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                     data,
                     abstractFunctions,
                     overriddenFunction.name,
-                    overriddenFunction.parameters.stream().map(functionNode -> functionNode.name).toList(),
+                    overriddenFunction.parameters.stream()
+                        .map(parameter -> new TypeWrapper(parameter.name, false, parameter.isNullable)).toList(),
                     true
                 ) == null
             ) {
