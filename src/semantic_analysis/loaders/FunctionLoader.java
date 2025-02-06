@@ -44,6 +44,10 @@ public class FunctionLoader {
             }
         }
 
+        if (scope.type() == Scope.Type.TOP && !functionDeclarationNode.modifiers.contains("static")) {
+            functionDeclarationNode.modifiers.add("static");
+        }
+
         scope.symbols().functions().add(functionDeclarationNode);
     }
 
