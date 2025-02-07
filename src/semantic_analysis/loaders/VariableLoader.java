@@ -59,6 +59,9 @@ public class VariableLoader {
                 }
         }
 
+        if (scope.type() == Scope.Type.TOP && !fieldNode.modifiers.contains("static")) {
+            fieldNode.modifiers.add("static");
+        }
         scope.symbols().fields().add(fieldNode);
     }
 

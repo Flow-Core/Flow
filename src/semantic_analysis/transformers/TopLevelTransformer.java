@@ -10,9 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TopLevelTransformer {
-    public static ClassDeclarationNode transform(final FileWrapper file) {
+    public static void transform(final FileWrapper file) {
         final ClassDeclarationNode topLevelClass = new ClassDeclarationNode(
-            "", // TODO: class name as the name of the file
+            file.name() + "Fl",
             List.of("public"),
             new ArrayList<>(),
             new ArrayList<>(),
@@ -32,6 +32,6 @@ public class TopLevelTransformer {
             }
         }
 
-        return topLevelClass;
+        file.scope().symbols().classes().add(topLevelClass);
     }
 }

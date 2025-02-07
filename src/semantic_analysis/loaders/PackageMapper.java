@@ -14,10 +14,16 @@ import java.util.List;
 import java.util.Map;
 
 public class PackageMapper {
-    public static Map<String, PackageWrapper> map(final List<BlockNode> roots) {
+    public static Map<String, PackageWrapper> map(final List<BlockNode> roots, final List<String> fileNames) {
+        if (roots.size() != fileNames.size()) {
+            throw new IllegalArgumentException("Roots should be the same size as the file names");
+        }
+
         final Map<String, PackageWrapper> packages = new HashMap<>();
 
-        for (BlockNode root : roots) {
+        for (int i = 0; i < roots.size(); i++) {
+            BlockNode root = roots.get(i);
+            String fileName = fileNames.get(i);
             if (root.children.isEmpty()) {
                 continue;
             }
@@ -34,7 +40,7 @@ public class PackageMapper {
             );
 
             Scope fileScope = new Scope(packageWrapper.scope(), SymbolTable.getEmptySymbolTable(), null, Scope.Type.TOP);
-            FileWrapper fileWrapper = new FileWrapper(root, fileScope);
+            FileWrapper fileWrapper = new FileWrapper(root, fileScope, fileName);
 
             packageWrapper.files().add(fileWrapper);
         }

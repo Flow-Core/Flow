@@ -8,6 +8,7 @@ import semantic_analysis.scopes.Scope;
 public class FileWrapperGenerator {
     private BlockNode root;
     private Scope scope = ScopeGenerator.builder().build();
+    private String name = "";
 
     public static FileWrapperGenerator builder() {
         return new FileWrapperGenerator();
@@ -23,7 +24,12 @@ public class FileWrapperGenerator {
         return this;
     }
 
+    public FileWrapperGenerator name(String name) {
+        this.name = name;
+        return this;
+    }
+
     public FileWrapper build() {
-        return new FileWrapper(root, scope);
+        return new FileWrapper(root, scope, name);
     }
 }
