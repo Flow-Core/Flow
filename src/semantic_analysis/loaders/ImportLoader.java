@@ -1,6 +1,9 @@
 package semantic_analysis.loaders;
 
 import parser.nodes.ASTNode;
+import parser.nodes.classes.BaseInterfaceNode;
+import parser.nodes.classes.ClassDeclarationNode;
+import parser.nodes.classes.InterfaceNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.packages.ImportNode;
 import parser.nodes.packages.PackageNode;
@@ -55,6 +58,17 @@ public class ImportLoader {
             if (optionalClass.isPresent()) {
                 data.classes().add(optionalClass.get());
                 data.bindingContext().put(optionalClass.get(), importNode.module);
+
+                if (!optionalClass.get().baseClasses.isEmpty()) {
+                    final ClassDeclarationNode baseClass = importedSymbols.getClass(optionalClass.get().baseClasses.get(0).name);
+                    data.classes().add(baseClass);
+                }
+
+                for (final BaseInterfaceNode baseInterfaceNode : optionalClass.get().implementedInterfaces) {
+                    final InterfaceNode interfaceNode = importedSymbols.getInterface(baseInterfaceNode.name);
+                    data.interfaces().add(interfaceNode);
+                }
+
                 return;
             }
 
@@ -65,6 +79,12 @@ public class ImportLoader {
             if (optionalInterface.isPresent()) {
                 data.interfaces().add(optionalInterface.get());
                 data.bindingContext().put(optionalInterface.get(), importNode.module);
+
+                for (final BaseInterfaceNode baseInterfaceNode : optionalInterface.get().implementedInterfaces) {
+                    final InterfaceNode interfaceNode = importedSymbols.getInterface(baseInterfaceNode.name);
+                    data.interfaces().add(interfaceNode);
+                }
+
                 return;
             }
 
