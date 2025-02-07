@@ -5,5 +5,6 @@ import semantic_analysis.scopes.Scope;
 
 public record FileWrapper(
     BlockNode root,
-    Scope scope
+    Scope scope,
+    String name
 ) { }

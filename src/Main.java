@@ -42,7 +42,10 @@ public class Main {
         final BlockNode file1Root = getFileAST(file1);
         final BlockNode file2Root = getFileAST(file2);
         final BlockNode file3Root = getFileAST(file3);
-        final Map<String, PackageWrapper> files = PackageMapper.map(List.of(file1Root, file2Root, file3Root));
+        final Map<String, PackageWrapper> files = PackageMapper.map(
+            List.of(file1Root, file2Root, file3Root),
+            List.of("file1.fl", "file2.fl", "file3.fl")
+        );
 
         final SemanticAnalysis semanticAnalysis = new SemanticAnalysis(files);
         semanticAnalysis.analyze();

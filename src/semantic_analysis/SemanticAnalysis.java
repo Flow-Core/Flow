@@ -14,6 +14,7 @@ import semantic_analysis.loaders.SignatureLoader;
 import semantic_analysis.loaders.VariableLoader;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
+import semantic_analysis.transformers.TopLevelTransformer;
 import semantic_analysis.visitors.ClassTraverse;
 import semantic_analysis.loaders.FunctionLoader;
 
@@ -99,6 +100,12 @@ public class SemanticAnalysis {
                 for (final ClassDeclarationNode classDeclaration : file.scope().symbols().classes()) {
                     ClassTraverse.loadMethodBodies(classDeclaration, typeScopes.get(classDeclaration));
                 }
+            }
+        }
+
+        for (final PackageWrapper currentPackageWrapper : packages.values()) {
+            for (final FileWrapper file : currentPackageWrapper.files()) {
+                TopLevelTransformer.transform(file);
             }
         }
     }

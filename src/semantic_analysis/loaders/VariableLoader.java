@@ -56,6 +56,9 @@ public class VariableLoader {
             fieldNode.initialization.declaration.isNullable = actualType.isNullable();
         }
 
+        if (scope.type() == Scope.Type.TOP && !fieldNode.modifiers.contains("static")) {
+            fieldNode.modifiers.add("static");
+        }
         scope.symbols().fields().add(fieldNode);
     }
 
