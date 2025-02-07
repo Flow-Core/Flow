@@ -230,6 +230,9 @@ public class ExpressionTraverse {
             return null;
         }
         if (expression instanceof ObjectNode objectNode) {
+            if (!scope.findTypeDeclaration(objectNode.className))
+                throw new SA_UnresolvedSymbolException(objectNode.className); //Log
+
             return new TypeWrapper(objectNode.className, false, false);
         }
         if (expression instanceof VariableReferenceNode variable) {
