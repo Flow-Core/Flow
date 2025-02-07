@@ -42,7 +42,7 @@ class StatementTraverseTest {
     }
 
     @Test
-    void test_invalid_if_statement_should_throw_error() {
+    void test_invalid_if_statement_should_fail() {
         SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
         Scope scope = new Scope(null, symbolTable, null, Scope.Type.FUNCTION);
         symbolTable.classes().add(ClassNodeGenerator.builder().name("Bool").build());
@@ -78,7 +78,7 @@ class StatementTraverseTest {
     }
 
     @Test
-    void test_invalid_while_statement_should_throw_error() {
+    void test_invalid_while_statement_should_fail() {
         SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
         Scope scope = new Scope(null, symbolTable, null, Scope.Type.FUNCTION);
         symbolTable.classes().add(ClassNodeGenerator.builder().name("Bool").build());
@@ -122,7 +122,7 @@ class StatementTraverseTest {
     }
 
     @Test
-    void test_invalid_for_loop_should_throw_error() {
+    void test_invalid_for_loop_should_fail() {
         SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
         Scope scope = new Scope(null, symbolTable, null, Scope.Type.FUNCTION);
         symbolTable.classes().add(ClassNodeGenerator.builder().name("Bool").build());

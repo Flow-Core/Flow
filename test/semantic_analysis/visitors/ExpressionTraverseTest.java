@@ -96,7 +96,7 @@ class ExpressionTraverseTest {
     }
 
     @Test
-    void test_unknown_variable_should_throw_error() {
+    void test_unknown_variable_should_fail() {
         Assertions.assertThrows(SA_UnresolvedSymbolException.class, () ->
                 new ExpressionTraverse().traverse(
                     new ExpressionBaseNode(new VariableReferenceNode("y")),
@@ -119,7 +119,7 @@ class ExpressionTraverseTest {
     }
 
     @Test
-    void test_invalid_binary_expression_should_throw_error() {
+    void test_invalid_binary_expression_should_fail() {
         ExpressionNode left = LiteralTransformer.transform(new IntegerLiteralNode(5));
         ExpressionNode right = new VariableReferenceNode("undefinedVar");
 
@@ -152,7 +152,7 @@ class ExpressionTraverseTest {
     }
 
     @Test
-    void test_function_call_with_wrong_arguments_should_throw_error() {
+    void test_function_call_with_wrong_arguments_should_fail() {
         FunctionDeclarationNode function = FunctionNodeGenerator.builder()
             .name("doubleNumber")
             .returnType("Int")
@@ -209,7 +209,7 @@ class ExpressionTraverseTest {
     }
 
     @Test
-    void test_field_reference_with_invalid_field_should_throw_error() {
+    void test_field_reference_with_invalid_field_should_fail() {
         FieldReferenceNode fieldRef = FieldReferenceNodeGenerator.builder().holderType("Person").name("unknownField").holder(new VariableReferenceNode("person")).build();
 
         Assertions.assertThrows(SA_UnresolvedSymbolException.class, () ->
