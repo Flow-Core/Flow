@@ -50,7 +50,9 @@ class StatementTraverseTest {
             .falseBranch(BlockNodeGenerator.builder().children(List.of()).build())
             .build();
 
-        Assertions.assertDoesNotThrow(() -> StatementTraverse.traverse(ifStatement, scope),
+        StatementTraverse.traverse(ifStatement, scope);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(),
             "Valid if statement should pass");
     }
 
@@ -86,7 +88,9 @@ class StatementTraverseTest {
             .loopBlock(BlockNodeGenerator.builder().children(List.of()).build())
             .build();
 
-        Assertions.assertDoesNotThrow(() -> StatementTraverse.traverse(whileStatement, scope),
+        StatementTraverse.traverse(whileStatement, scope);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(),
             "Valid while loop should pass");
     }
 
@@ -130,7 +134,11 @@ class StatementTraverseTest {
             .loopBlock(BlockNodeGenerator.builder().children(List.of()).build())
             .build();
 
-        Assertions.assertDoesNotThrow(() -> StatementTraverse.traverse(forStatement, scope),
+        StatementTraverse.traverse(forStatement, scope);
+
+        LoggerFacade.getLogger().dump();
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(),
             "Valid for loop should pass");
     }
 
@@ -180,7 +188,9 @@ class StatementTraverseTest {
             .defaultBlock(BlockNodeGenerator.builder().children(List.of()).build())
             .build();
 
-        Assertions.assertDoesNotThrow(() -> StatementTraverse.traverse(switchStatement, scope),
+        StatementTraverse.traverse(switchStatement, scope);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(),
             "Valid switch statement should pass");
     }
 
@@ -205,7 +215,9 @@ class StatementTraverseTest {
                 .build())
             .build();
 
-        Assertions.assertDoesNotThrow(() -> StatementTraverse.traverse(returnStatement, scope),
+        StatementTraverse.traverse(returnStatement, scope);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(),
             "Return type should match function return type");
     }
 

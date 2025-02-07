@@ -20,7 +20,9 @@ public class LoggerFake implements Logger {
 
     @Override
     public void dump() {
-        logs.clear();
+        for (String log : logs) {
+            System.out.println(log);
+        }
     }
 
     @Override

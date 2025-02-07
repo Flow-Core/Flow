@@ -26,30 +26,30 @@ import static semantic_analysis.loaders.SignatureLoader.*;
 
 public class ExpressionTraverse {
     public TypeWrapper traverse(ExpressionBaseNode root, Scope scope) {
-        root.expression = transformValue(root.expression, scope);
+        root.expression = transformValue(root, root.expression, scope);
 
-        TypeWrapper type = determineType(root.expression, scope);
+        TypeWrapper type = determineType(root, root.expression, scope);
         if (type == null || type.isTypeReference) {
-            LoggerFacade.error("Expression expected", root.expression);
+            LoggerFacade.error("Expression expected", root);
             return null;
         }
 
         return type;
     }
 
-    private static ExpressionNode transformValue(ExpressionNode expression, Scope scope) {
+    private static ExpressionNode transformValue(ExpressionBaseNode root, ExpressionNode expression, Scope scope) {
         if (expression instanceof LiteralNode literalNode) {
             return LiteralTransformer.transform(literalNode);
         }
 
-        return transformOperators(expression, scope);
+        return transformOperators(root, expression, scope);
     }
 
-    private static ExpressionNode transformOperators(ExpressionNode expression, Scope scope) {
+    private static ExpressionNode transformOperators(ExpressionBaseNode root, ExpressionNode expression, Scope scope) {
         if (expression instanceof BinaryExpressionNode binaryExpression) {
-            binaryExpression.left = transformValue(binaryExpression.left, scope);
+            binaryExpression.left = transformValue(root, binaryExpression.left, scope);
 
-            TypeWrapper leftType = determineType(binaryExpression.left, scope);
+            TypeWrapper leftType = determineType(root, binaryExpression.left, scope);
             if (leftType == null) {
                 return null;
             }
@@ -127,19 +127,19 @@ public class ExpressionTraverse {
                         call.arguments
                     );
                 } else {
-                    LoggerFacade.error("Expected field or function", expression);
+                    LoggerFacade.error("Expected field or function", root);
                     return null;
                 }
             }
 
             if (leftType.isTypeReference) {
-                LoggerFacade.error("Expression expected", expression);
+                LoggerFacade.error("Expression expected", root);
                 return null;
             }
 
-            binaryExpression.right = transformValue(binaryExpression.right, scope);
+            binaryExpression.right = transformValue(root, binaryExpression.right, scope);
 
-            TypeWrapper rightType = determineType(binaryExpression.right, scope);
+            TypeWrapper rightType = determineType(root, binaryExpression.right, scope);
 
             if (rightType == null || rightType.isTypeReference) {
                 LoggerFacade.error("Expression expected", expression);
@@ -186,19 +186,19 @@ public class ExpressionTraverse {
 
 
         } else if (expression instanceof UnaryOperatorNode unaryExpression) {
-            unaryExpression.operand = transformValue(unaryExpression.operand, scope);
+            unaryExpression.operand = transformValue(root, unaryExpression.operand, scope);
 
-            TypeWrapper operandType = determineType(unaryExpression.operand, scope);
+            TypeWrapper operandType = determineType(root, unaryExpression.operand, scope);
 
             if (operandType == null || operandType.isTypeReference) {
-                LoggerFacade.error("Expression expected", expression);
+                LoggerFacade.error("Expression expected", root);
                 return null;
             }
 
             ClassDeclarationNode operandTypeNode = scope.getClass(operandType.type);
 
             if (operandTypeNode == null) {
-                LoggerFacade.error("Unresolved symbol: '" + operandType.type + "'", expression);
+                LoggerFacade.error("Unresolved symbol: '" + operandType.type + "'", root);
                 return null;
             }
 
@@ -225,13 +225,15 @@ public class ExpressionTraverse {
         return expression;
     }
 
-    private static TypeWrapper determineType(ExpressionNode expression, Scope scope) {
+    private static TypeWrapper determineType(ExpressionBaseNode root, ExpressionNode expression, Scope scope) {
         if (expression == null) {
             return null;
         }
         if (expression instanceof ObjectNode objectNode) {
-            if (!scope.findTypeDeclaration(objectNode.className))
-                throw new SA_UnresolvedSymbolException(objectNode.className); //Log
+            if (!scope.findTypeDeclaration(objectNode.className)) {
+                LoggerFacade.error("Unresolved symbol: '" + objectNode.className + "'", root);
+                return null;
+            }
 
             return new TypeWrapper(objectNode.className, false, false);
         }
@@ -250,7 +252,7 @@ public class ExpressionTraverse {
                 );
             }
 
-            LoggerFacade.error("Unresolved symbol: '" + variable.variable + "'", expression);
+            LoggerFacade.error("Unresolved symbol: '" + variable.variable + "'", root);
             return null;
         }
         if (expression instanceof FunctionCallNode functionCall) {
@@ -260,7 +262,7 @@ public class ExpressionTraverse {
                 final ClassDeclarationNode caller = scope.getClass(functionCall.callerType);
 
                 if (caller == null) {
-                    LoggerFacade.error("Unresolved symbol: '" + functionCall.callerType + "'", expression);
+                    LoggerFacade.error("Unresolved symbol: '" + functionCall.callerType + "'", root);
                     return null;
                 }
 
@@ -284,7 +286,7 @@ public class ExpressionTraverse {
             }
 
             if (function == null) {
-                LoggerFacade.error("No overload found for: '" + functionCall.name + "', with the specified arguments", expression);
+                LoggerFacade.error("No overload found for: '" + functionCall.name + "', with the specified arguments", root);
                 return null;
             }
 
@@ -297,7 +299,7 @@ public class ExpressionTraverse {
                     new TypeWrapper(functionCall.callerType, false, false)
                 ))
             ) {
-                LoggerFacade.error("Cannot access '" + function.name + "', it is " + modifier + " in '" + functionCall.callerType + "'", expression);
+                LoggerFacade.error("Cannot access '" + function.name + "', it is " + modifier + " in '" + functionCall.callerType + "'", root);
                 return null;
             }
 
@@ -307,14 +309,14 @@ public class ExpressionTraverse {
             ClassDeclarationNode holder = scope.getClass(field.holderType);
 
             if (holder == null) {
-                LoggerFacade.error("Unresolved symbol: '" + field.holderType + "'", expression);
+                LoggerFacade.error("Unresolved symbol: '" + field.holderType + "'", root);
                 return null;
             }
 
             FieldNode actualField = holder.findField(scope, field.name);
 
             if (actualField == null) {
-                LoggerFacade.error("Unresolved symbol: '" + field.holderType + "." + field.name + "'", expression);
+                LoggerFacade.error("Unresolved symbol: '" + field.holderType + "." + field.name + "'", root);
                 return null;
             }
 
@@ -328,7 +330,7 @@ public class ExpressionTraverse {
                     new TypeWrapper(holder.name, false, false)
                 ))
             ) {
-                LoggerFacade.error("Cannot access '" + field.name + "', it is " + modifier + " in '" + holder.name + "'", expression);
+                LoggerFacade.error("Cannot access '" + field.name + "', it is " + modifier + " in '" + holder.name + "'", root);
                 return null;
             }
 
@@ -342,7 +344,7 @@ public class ExpressionTraverse {
             return new TypeWrapper("null", false, true);
         }
 
-        LoggerFacade.error("Could not resolve type: '" + expression + "'", expression);
+        LoggerFacade.error("Could not resolve type: '" + expression + "'", root);
         return null;
     }
 

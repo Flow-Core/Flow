@@ -44,10 +44,10 @@ public class IdentifierReferenceAnalyzer {
                 parser.consume(TokenType.EQUAL_OPERATOR);
                 final ExpressionNode value = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
 
-                args.add((ArgumentNode) ASTMetaDataStore.getInstance().addMetadata(new ArgumentNode(argumentName.value(), new ExpressionBaseNode(value)), parser.peek().line(), parser.file));
+                args.add((ArgumentNode) ASTMetaDataStore.getInstance().addMetadata(new ArgumentNode(argumentName.value(), new ExpressionBaseNode(value, parser.peek().line(), parser.file)), parser.peek().line(), parser.file));
             } else {
                 final ExpressionNode value = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
-                args.add((ArgumentNode) ASTMetaDataStore.getInstance().addMetadata(new ArgumentNode(null, new ExpressionBaseNode(value)), parser.peek().line(), parser.file));
+                args.add((ArgumentNode) ASTMetaDataStore.getInstance().addMetadata(new ArgumentNode(null, new ExpressionBaseNode(value, parser.peek().line(), parser.file)), parser.peek().line(), parser.file));
             }
 
             if (!parser.check(TokenType.CLOSE_PARENTHESES)) {

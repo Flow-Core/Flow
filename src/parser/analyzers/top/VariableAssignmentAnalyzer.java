@@ -30,7 +30,7 @@ public class VariableAssignmentAnalyzer extends TopAnalyzer {
 
         return new AnalyzerResult(
             ASTMetaDataStore.getInstance().addMetadata(
-                new VariableAssignmentNode(new ExpressionBaseNode(variable), operator, new ExpressionBaseNode(expr)),
+                new VariableAssignmentNode(new ExpressionBaseNode(variable, line, parser.file), operator, new ExpressionBaseNode(expr, line, parser.file)),
                 line,
                 parser.file
             ),

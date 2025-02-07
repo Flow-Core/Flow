@@ -50,11 +50,13 @@ public class VariableLoader {
                 LoggerFacade.error("Type mismatch: expected '"  + varType + "' but received '" + actualType + "'", fieldNode);
             }
         } else {
-            if (actualType.type().equals("null")) {
-                LoggerFacade.error("Cannot infer variable type from 'null'", fieldNode);
-            }
-            fieldNode.initialization.declaration.type = actualType.type();
-            fieldNode.initialization.declaration.isNullable = actualType.isNullable();
+            if (actualType != null)
+                if (actualType.type().equals("null")) {
+                    LoggerFacade.error("Cannot infer variable type from 'null'", fieldNode);
+                } else {
+                    fieldNode.initialization.declaration.type = actualType.type();
+                    fieldNode.initialization.declaration.isNullable = actualType.isNullable();
+                }
         }
 
         scope.symbols().fields().add(fieldNode);

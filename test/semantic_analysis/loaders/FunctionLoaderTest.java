@@ -96,7 +96,9 @@ class FunctionLoaderTest {
                 .build()
         );
 
-        Assertions.assertDoesNotThrow(() -> FunctionLoader.loadSignature(function1, scope), "Duplicate function in different scopes should not throw an error");
+        FunctionLoader.loadSignature(function1, scope);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(), "Duplicate function in different scopes should not throw an error");
     }
 
     @Test
@@ -150,7 +152,9 @@ class FunctionLoaderTest {
 
         FunctionLoader.loadSignature(function, scope);
 
-        Assertions.assertDoesNotThrow(() -> FunctionLoader.loadBody(function, scope), "Valid function body should pass");
+        FunctionLoader.loadBody(function, scope);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(), "Valid function body should pass");
     }
 
     @Test
@@ -193,7 +197,9 @@ class FunctionLoaderTest {
 
         FunctionLoader.loadSignature(function, scope);
 
-        Assertions.assertDoesNotThrow(() -> FunctionLoader.loadBody(function, scope), "Void function can have empty return");
+        FunctionLoader.loadBody(function, scope);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(), "Void function can have empty return");
     }
 
     @Test
@@ -213,7 +219,9 @@ class FunctionLoaderTest {
 
         FunctionLoader.loadSignature(function, scope);
 
-        Assertions.assertDoesNotThrow(() -> FunctionLoader.loadBody(function, scope), "Void function should not require return");
+        FunctionLoader.loadBody(function, scope);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(), "Void function should not require return");
     }
 
     @Test
@@ -258,8 +266,13 @@ class FunctionLoaderTest {
             ))
             .build();
 
-        Assertions.assertDoesNotThrow(() -> FunctionLoader.loadSignature(function1, scope));
-        Assertions.assertDoesNotThrow(() -> FunctionLoader.loadSignature(function2, scope),
+        FunctionLoader.loadSignature(function1, scope);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors());
+
+        FunctionLoader.loadSignature(function2, scope);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(),
             "Overloaded function should be allowed but failed.");
     }
 }

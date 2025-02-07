@@ -60,6 +60,9 @@ public class StatementTraverse {
 
         final ExpressionTraverse.TypeWrapper varType = new ExpressionTraverse().traverse(forStatementNode.initialization.value, scope);
 
+        if (varType == null)
+            return;
+
         final FieldNode localVariable = new FieldNode(
             new ArrayList<>(),
             new InitializedVariableNode(
@@ -81,8 +84,14 @@ public class StatementTraverse {
     private static void handleSwitchStatement(final SwitchStatementNode switchStatementNode, final Scope scope) {
         final ExpressionTraverse.TypeWrapper switchType = new ExpressionTraverse().traverse(switchStatementNode.condition, scope);
 
+        if (switchType == null)
+            return;
+
         for (CaseNode caseNode : switchStatementNode.cases) {
             final ExpressionTraverse.TypeWrapper caseType = new ExpressionTraverse().traverse(caseNode.value, scope);
+
+            if (caseType == null)
+                continue;
 
             if (!scope.isSameType(caseType, switchType)) {
                 LoggerFacade.error("Switch case type mismatch: Expected '" + switchType + "' but found '" + caseType + "'", caseNode);
@@ -98,6 +107,10 @@ public class StatementTraverse {
 
     private static void handleReturnStatement(final ReturnStatementNode returnStatementNode, final Scope scope) {
         final ExpressionTraverse.TypeWrapper returnType = new ExpressionTraverse().traverse(returnStatementNode.returnValue, scope);
+
+        if (returnType == null)
+            return;
+
         final ASTNode currentParent = scope.currentParent();
         if (!(currentParent instanceof FunctionDeclarationNode functionDeclarationNode)) {
             LoggerFacade.error("Return statement is not allowed here", returnStatementNode);

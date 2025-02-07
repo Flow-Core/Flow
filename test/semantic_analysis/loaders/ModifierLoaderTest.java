@@ -23,10 +23,12 @@ class ModifierLoaderTest {
 
     @Test
     void test_valid_class_modifiers_should_pass() {
-        Assertions.assertDoesNotThrow(() -> ModifierLoader.load(
+        ModifierLoader.load(
             List.of("public", "open"),
             ModifierLoader.ModifierType.CLASS
-        ));
+        );
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors());
     }
 
     @Test

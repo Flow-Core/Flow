@@ -92,6 +92,8 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
                 parser.advance();
             }
 
+            int line = parser.peek().line();
+
             ExpressionNode defaultValue = null;
             if (parser.peek().type() == TokenType.EQUAL_OPERATOR) {
                 parser.advance();
@@ -102,7 +104,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
                 type,
                 isNullable,
                 name,
-                new ExpressionBaseNode(defaultValue)
+                new ExpressionBaseNode(defaultValue, line, parser.file)
             );
 
             parameters.add(arg);

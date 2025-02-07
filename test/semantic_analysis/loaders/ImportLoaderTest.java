@@ -48,7 +48,9 @@ class ImportLoaderTest {
             ))
             .build();
 
-        Assertions.assertDoesNotThrow(() -> importLoader.load(block, fileSymbols, globalPackages));
+        importLoader.load(block, fileSymbols, globalPackages);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors());
 
         Assertions.assertTrue(fileSymbols.findClass("MyClass"), "Class should be imported");
     }
@@ -69,7 +71,9 @@ class ImportLoaderTest {
             ))
             .build();
 
-        Assertions.assertDoesNotThrow(() -> importLoader.load(block, fileSymbols, globalPackages));
+        importLoader.load(block, fileSymbols, globalPackages);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors());
 
         Assertions.assertTrue(fileSymbols.findFunction("myFunction"), "Function should be imported");
     }
@@ -91,7 +95,9 @@ class ImportLoaderTest {
             ))
             .build();
 
-        Assertions.assertDoesNotThrow(() -> importLoader.load(block, fileSymbols, globalPackages));
+        importLoader.load(block, fileSymbols, globalPackages);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors());
 
         Assertions.assertTrue(fileSymbols.findClass("MyClass"), "Wildcard import should include classes");
         Assertions.assertTrue(fileSymbols.findFunction("myFunction"), "Wildcard import should include functions");

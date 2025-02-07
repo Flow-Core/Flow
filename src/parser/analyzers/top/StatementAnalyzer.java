@@ -43,7 +43,7 @@ public class StatementAnalyzer extends TopAnalyzer {
                 return new AnalyzerResult(
                     ASTMetaDataStore.getInstance().addMetadata(
                         new IfStatementNode(
-                            new ExpressionBaseNode(ifCondition),
+                            new ExpressionBaseNode(ifCondition, line, parser.file),
                             trueBranch,
                             falseBranch
                         ),
@@ -73,7 +73,7 @@ public class StatementAnalyzer extends TopAnalyzer {
                     ASTMetaDataStore.getInstance().addMetadata(
                         new ForStatementNode(
                             loopVariable,
-                            new ExpressionBaseNode(forCondition),
+                            new ExpressionBaseNode(forCondition, line, parser.file),
                             loopActionBlock,
                             forBlock
                         ),
@@ -115,7 +115,7 @@ public class StatementAnalyzer extends TopAnalyzer {
                 return new AnalyzerResult(
                     ASTMetaDataStore.getInstance().addMetadata(
                         new WhileStatementNode(
-                            new ExpressionBaseNode(whileCondition),
+                            new ExpressionBaseNode(whileCondition, line, parser.file),
                             whileBlock
                         ),
                         line,
@@ -135,7 +135,7 @@ public class StatementAnalyzer extends TopAnalyzer {
                 return new AnalyzerResult(
                     ASTMetaDataStore.getInstance().addMetadata(
                         new SwitchStatementNode(
-                            new ExpressionBaseNode(switchCondition),
+                            new ExpressionBaseNode(switchCondition, line, parser.file),
                             switchBlock.children
                                 .stream()
                                 .filter(node -> node instanceof CaseNode)
@@ -190,7 +190,9 @@ public class StatementAnalyzer extends TopAnalyzer {
                 return new AnalyzerResult(
                     new ThrowNode(
                         new ExpressionBaseNode(
-                            (ExpressionNode) new ExpressionAnalyzer().parse(parser).node()
+                            (ExpressionNode) new ExpressionAnalyzer().parse(parser).node(),
+                            line,
+                            parser.file
                         )
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
@@ -202,7 +204,9 @@ public class StatementAnalyzer extends TopAnalyzer {
                             new ReturnStatementNode(
                                 (ExpressionBaseNode) ASTMetaDataStore.getInstance().addMetadata(
                                     new ExpressionBaseNode(
-                                        new VoidLiteralNode()
+                                        new VoidLiteralNode(),
+                                        line,
+                                        parser.file
                                     ),
                                     line,
                                     parser.file
@@ -219,7 +223,9 @@ public class StatementAnalyzer extends TopAnalyzer {
                     ASTMetaDataStore.getInstance().addMetadata(
                         new ReturnStatementNode(
                             new ExpressionBaseNode(
-                                (ExpressionNode) new ExpressionAnalyzer().parse(parser).node()
+                                (ExpressionNode) new ExpressionAnalyzer().parse(parser).node(),
+                                line,
+                                parser.file
                             )
                         ),
                         line,

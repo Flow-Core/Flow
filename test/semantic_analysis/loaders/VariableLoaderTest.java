@@ -171,7 +171,9 @@ class VariableLoaderTest {
                         .build()
                 ).build()).build();
 
-        Assertions.assertDoesNotThrow(() -> VariableLoader.loadDeclaration(fieldNode, scope), "Nullable variable should allow null");
+        VariableLoader.loadDeclaration(fieldNode, scope);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(), "Nullable variable should allow null");
     }
 
     @Test

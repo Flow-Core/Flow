@@ -29,7 +29,7 @@ public class CaseAnalyzer extends TopAnalyzer {
         return new AnalyzerResult(
             ASTMetaDataStore.getInstance().addMetadata(
                 new CaseNode(
-                    (ExpressionBaseNode) ASTMetaDataStore.getInstance().addMetadata(new ExpressionBaseNode(expression), line, parser.file),
+                    new ExpressionBaseNode(expression, line, parser.file),
                     block
                 ),
                 line,
