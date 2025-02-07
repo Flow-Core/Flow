@@ -31,9 +31,8 @@ class VariableLoaderTest {
         symbolTable.classes().add(new ClassDeclarationNode("Int", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), new BlockNode(new ArrayList<>()), new BlockNode(new ArrayList<>())));
 
         FieldNode fieldNode = FieldNodeGenerator.builder()
-            .modifiers(List.of("var"))
             .initialization(
-                InitializedVariableNodeGenerator.builder().declaration(VariableDeclarationNodeGenerator.builder().name("x").type("Int").build()).build()
+                InitializedVariableNodeGenerator.builder().declaration(VariableDeclarationNodeGenerator.builder().modifier("var").name("x").type("Int").build()).build()
             ).build();
 
         VariableLoader.loadDeclaration(fieldNode, scope);
@@ -48,10 +47,9 @@ class VariableLoaderTest {
         symbolTable.classes().add(new ClassDeclarationNode("Int", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), new BlockNode(new ArrayList<>()), new BlockNode(new ArrayList<>())));
 
         FieldNode fieldNode = FieldNodeGenerator.builder()
-            .modifiers(List.of("var"))
             .initialization(
                 InitializedVariableNodeGenerator.builder().declaration(
-                    VariableDeclarationNodeGenerator.builder().name("x").type("Int").build()
+                    VariableDeclarationNodeGenerator.builder().modifier("var").name("x").type("Int").build()
                 ).assignment(
                     VariableAssignmentNodeGenerator.builder()
                         .variable(ExpressionBaseNodeGenerator.builder()
@@ -75,10 +73,10 @@ class VariableLoaderTest {
         Scope scope = new Scope(null, symbolTable, null, Scope.Type.TOP);
 
         FieldNode fieldNode = FieldNodeGenerator.builder()
-            .modifiers(List.of("var"))
             .initialization(
                 InitializedVariableNodeGenerator.builder().declaration(
                     VariableDeclarationNodeGenerator.builder()
+                        .modifier("var")
                         .name("x")
                         .build()
                 ).build()
@@ -93,11 +91,11 @@ class VariableLoaderTest {
         Scope scope = new Scope(null, symbolTable, null, Scope.Type.TOP);
 
         FieldNode fieldNode = FieldNodeGenerator.builder()
-            .modifiers(List.of("var"))
             .initialization(
                 InitializedVariableNodeGenerator.builder().declaration(
                     VariableDeclarationNodeGenerator.builder()
                         .name("x")
+                        .modifier("var")
                         .type("UnknownType")
                         .build()
                 ).build()).build();
@@ -112,10 +110,10 @@ class VariableLoaderTest {
         symbolTable.classes().add(new ClassDeclarationNode("Int", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), new BlockNode(new ArrayList<>()), new BlockNode(new ArrayList<>())));
 
         FieldNode fieldNode = FieldNodeGenerator.builder()
-            .modifiers(List.of("var"))
             .initialization(
                 InitializedVariableNodeGenerator.builder().declaration(
                     VariableDeclarationNodeGenerator.builder()
+                        .modifier("var")
                         .name("x")
                         .type("Int")
                         .build()
@@ -138,10 +136,10 @@ class VariableLoaderTest {
         symbolTable.classes().add(new ClassDeclarationNode("Int", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), new BlockNode(new ArrayList<>()), new BlockNode(new ArrayList<>())));
 
         FieldNode fieldNode = FieldNodeGenerator.builder()
-            .modifiers(List.of("var"))
             .initialization(
                 InitializedVariableNodeGenerator.builder().declaration(
                     VariableDeclarationNodeGenerator.builder()
+                        .modifier("var")
                         .name("x")
                         .type("Int")
                         .isNullable(true)
@@ -164,10 +162,10 @@ class VariableLoaderTest {
         symbolTable.classes().add(new ClassDeclarationNode("Int", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), new BlockNode(new ArrayList<>()), new BlockNode(new ArrayList<>())));
 
         FieldNode fieldNode = FieldNodeGenerator.builder()
-            .modifiers(List.of("val"))
             .initialization(
                 InitializedVariableNodeGenerator.builder().declaration(
                     VariableDeclarationNodeGenerator.builder()
+                        .modifier("val")
                         .name("x")
                         .type("Int")
                         .build()
