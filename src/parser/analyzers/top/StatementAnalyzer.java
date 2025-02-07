@@ -2,7 +2,7 @@ package parser.analyzers.top;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
-import parser.ASTMetaDataStore;
+import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
@@ -198,20 +198,32 @@ public class StatementAnalyzer extends TopAnalyzer {
             case RETURN:
                 if (parser.peek().isLineTerminator()) {
                     return new AnalyzerResult(
-                        new ReturnStatementNode(
-                            new ExpressionBaseNode(
-                                new VoidLiteralNode()
-                            )
+                        ASTMetaDataStore.getInstance().addMetadata(
+                            new ReturnStatementNode(
+                                (ExpressionBaseNode) ASTMetaDataStore.getInstance().addMetadata(
+                                    new ExpressionBaseNode(
+                                        new VoidLiteralNode()
+                                    ),
+                                    line,
+                                    parser.file
+                                )
+                            ),
+                            line,
+                            parser.file
                         ),
                         parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                     );
                 }
 
                 return new AnalyzerResult(
-                    new ReturnStatementNode(
-                        new ExpressionBaseNode(
-                            (ExpressionNode) new ExpressionAnalyzer().parse(parser).node()
-                        )
+                    ASTMetaDataStore.getInstance().addMetadata(
+                        new ReturnStatementNode(
+                            new ExpressionBaseNode(
+                                (ExpressionNode) new ExpressionAnalyzer().parse(parser).node()
+                            )
+                        ),
+                        line,
+                        parser.file
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );

@@ -1,8 +1,6 @@
 package semantic_analysis.loaders;
 
-import logger.Logger;
 import logger.LoggerFacade;
-import parser.ASTMetaDataStore;
 import parser.nodes.ASTNode;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.FieldNode;
@@ -10,8 +8,6 @@ import parser.nodes.classes.InterfaceNode;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
-import semantic_analysis.exceptions.SA_SemanticError;
-import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
@@ -42,12 +38,7 @@ public class SignatureLoader {
         boolean isPublic = !classDeclaration.modifiers.contains("private") && !classDeclaration.modifiers.contains("protected");
 
         if (packageWrapper.scope().findSymbol(classDeclaration.name)) {
-            LoggerFacade.getLogger().log(
-                Logger.Severity.ERROR,
-                "Symbol '" + classDeclaration.name + "' redefined",
-                ASTMetaDataStore.getInstance().getLine(classDeclaration),
-                ASTMetaDataStore.getInstance().getFile(classDeclaration)
-            );
+            LoggerFacade.error("Symbol '" + classDeclaration.name + "' redefined", classDeclaration);
         }
 
         if (isPublic) {
@@ -62,12 +53,7 @@ public class SignatureLoader {
         boolean isPublic = !interfaceDeclaration.modifiers.contains("private") && !interfaceDeclaration.modifiers.contains("protected");
 
         if (packageWrapper.scope().findSymbol(interfaceDeclaration.name)) {
-            LoggerFacade.getLogger().log(
-                Logger.Severity.ERROR,
-                "Symbol '" + interfaceDeclaration.name + "' redefined",
-                ASTMetaDataStore.getInstance().getLine(interfaceDeclaration),
-                ASTMetaDataStore.getInstance().getFile(interfaceDeclaration)
-            );
+            LoggerFacade.error("Symbol '" + interfaceDeclaration.name + "' redefined", interfaceDeclaration);
         }
 
         if (isPublic) {
@@ -82,12 +68,7 @@ public class SignatureLoader {
         boolean isPublic = !functionDeclarationNode.modifiers.contains("private") && !functionDeclarationNode.modifiers.contains("protected");
 
         if (packageWrapper.scope().findSymbol(functionDeclarationNode.name)) {
-            LoggerFacade.getLogger().log(
-                Logger.Severity.ERROR,
-                "Symbol '" + functionDeclarationNode.name + "' redefined",
-                ASTMetaDataStore.getInstance().getLine(functionDeclarationNode),
-                ASTMetaDataStore.getInstance().getFile(functionDeclarationNode)
-            );
+            LoggerFacade.error("Symbol '" + functionDeclarationNode.name + "' redefined", functionDeclarationNode);
         }
 
         if (isPublic) {
@@ -103,12 +84,7 @@ public class SignatureLoader {
 
         final String name = fieldNode.initialization.declaration.name;
         if (packageWrapper.scope().findSymbol(name)) {
-            LoggerFacade.getLogger().log(
-                Logger.Severity.ERROR,
-                "Symbol '" + fieldNode.initialization.declaration.name + "' redefined",
-                ASTMetaDataStore.getInstance().getLine(fieldNode.initialization),
-                ASTMetaDataStore.getInstance().getFile(fieldNode.initialization)
-            );
+            LoggerFacade.error("Symbol '" + fieldNode.initialization.declaration.name + "' redefined", fieldNode);
         }
 
         if (isPublic) {
@@ -279,11 +255,14 @@ public class SignatureLoader {
                     .filter(parameter -> parameter.name.equals(argumentNode.name))
                     .findFirst().orElse(null);
 
-                if (parameterNode == null)
-                    throw new SA_UnresolvedSymbolException(argumentNode.name);
-            } else if (foundNamed)
-                throw new SA_SemanticError("Unnamed arguments cannot follow named arguments"); // Log
-            else {
+                if (parameterNode == null) {
+                    LoggerFacade.error("Unresolved symbol: '" + argumentNode.name + "'", argumentNode);
+                    return false;
+                }
+            } else if (foundNamed) {
+                LoggerFacade.error("Unnamed arguments cannot follow named arguments", argumentNode);
+                return false;
+            } else {
                 parameterNode = parameters.get(i);
             }
 

@@ -1,5 +1,6 @@
 package semantic_analysis.loaders;
 
+import logger.LoggerFacade;
 import parser.nodes.ASTNode;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.components.ParameterNode;
@@ -7,8 +8,6 @@ import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.statements.ReturnStatementNode;
 import parser.nodes.variable.InitializedVariableNode;
 import parser.nodes.variable.VariableDeclarationNode;
-import semantic_analysis.exceptions.SA_SemanticError;
-import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.visitors.BlockTraverse;
@@ -20,10 +19,11 @@ import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters
 
 public class FunctionLoader {
     public static void loadSignature(final FunctionDeclarationNode functionDeclarationNode, final Scope scope) {
-        ModifierLoader.load(functionDeclarationNode.modifiers, ModifierLoader.ModifierType.FUNCTION);
+        ModifierLoader.load(functionDeclarationNode, functionDeclarationNode.modifiers, ModifierLoader.ModifierType.FUNCTION);
 
         if (!scope.findTypeDeclaration(functionDeclarationNode.returnType)) {
-            throw new SA_UnresolvedSymbolException(functionDeclarationNode.returnType);
+            LoggerFacade.error("Unresolved symbol: '" + functionDeclarationNode.returnType + "'", functionDeclarationNode);
+            return;
         }
 
         if (
@@ -35,12 +35,13 @@ public class FunctionLoader {
                     .map(parameterNode -> new ExpressionTraverse.TypeWrapper(parameterNode.type, false, parameterNode.isNullable)).toList()
             ) != null
         ) {
-            throw new SA_SemanticError("Conflicting overloads: ");
+            LoggerFacade.error("Conflicting overloads for: '" + functionDeclarationNode.name + "'", functionDeclarationNode);
         }
 
         for (final ParameterNode parameter : functionDeclarationNode.parameters) {
             if (!scope.findTypeDeclaration(parameter.type)) {
-                throw new SA_UnresolvedSymbolException(parameter.type);
+                LoggerFacade.error("Unresolved symbol: '" + parameter.type + "'", parameter);
+                return;
             }
         }
 
@@ -83,7 +84,7 @@ public class FunctionLoader {
                 }
 
                 if (!haveReturn) {
-                    throw new SA_SemanticError("Missing return statement");
+                    LoggerFacade.error("Missing return statement", functionDeclarationNode);
                 }
             }
         }

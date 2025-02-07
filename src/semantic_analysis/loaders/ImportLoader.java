@@ -1,15 +1,12 @@
 package semantic_analysis.loaders;
 
-import logger.Logger;
 import logger.LoggerFacade;
-import parser.ASTMetaDataStore;
 import parser.nodes.ASTNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.packages.ImportNode;
 import parser.nodes.packages.PackageNode;
 import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.scopes.SymbolTable;
-import semantic_analysis.exceptions.SA_SemanticError;
 
 import java.util.Map;
 
@@ -20,7 +17,7 @@ public class ImportLoader {
             if (node instanceof ImportNode importNode) {
                 validateImport(importNode, data, globalPackages);
             } else if (i != 0 && node instanceof PackageNode) {
-                throw new SA_SemanticError("Package must be on top of the file");
+                LoggerFacade.error("Package must be on top of the file", node);
             }
         }
     }
@@ -30,31 +27,21 @@ public class ImportLoader {
 
         final int lastDotIndex = modulePath.lastIndexOf(".");
         if (lastDotIndex == -1) {
-            throw new SA_SemanticError("No module included in import (use wildcard: '*' to import all)");
+            LoggerFacade.error("No module included in import (use wildcard: '*' to import all)", importNode);
         }
 
         final String packagePath = modulePath.substring(0, lastDotIndex);
         final String module = modulePath.substring(lastDotIndex + 1);
 
         if (!globalPackages.containsKey(packagePath)) {
-            LoggerFacade.getLogger().log(
-                Logger.Severity.ERROR,
-                "Package not found: '" + packagePath + "'",
-                ASTMetaDataStore.getInstance().getLine(importNode),
-                ASTMetaDataStore.getInstance().getFile(importNode)
-            );
+            LoggerFacade.error("Package not found: '" + packagePath + "'", importNode);
             return;
         }
 
         final SymbolTable importedSymbols = globalPackages.get(packagePath).scope().symbols();
         if (importNode.isWildcard) {
             if (!importNode.alias.equals("*")) {
-                LoggerFacade.getLogger().log(
-                    Logger.Severity.ERROR,
-                    "Cannot rename all imported items to one identifier",
-                    ASTMetaDataStore.getInstance().getLine(importNode),
-                    ASTMetaDataStore.getInstance().getFile(importNode)
-                );
+                LoggerFacade.error("Cannot rename all imported items to one identifier" + packagePath + "'", importNode);
             }
 
             data.recognizeSymbolTable(importedSymbols);
@@ -101,12 +88,7 @@ public class ImportLoader {
                 return;
             }
 
-            LoggerFacade.getLogger().log(
-                Logger.Severity.ERROR,
-                "Symbol not found in package: " + module,
-                ASTMetaDataStore.getInstance().getLine(importNode),
-                ASTMetaDataStore.getInstance().getFile(importNode)
-            );
+            LoggerFacade.error("Symbol not found in package: " + module, importNode);
         }
     }
 }

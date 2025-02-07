@@ -17,7 +17,7 @@ public class Main {
             package main.first
             \s
             func main() {
-                for (x = 10, x < 15, x += 1)
+                for (x = 10, x < 15, x += 12 * 1)
                     print(x)
             \s
                 val x = 10
@@ -56,7 +56,7 @@ public class Main {
                 }
             }
             func test(x: Int) {
-                val y: C = C()
+                val y: C = new C()
                 var x = 10
                 switch (x) {
                     case (10) {
@@ -75,7 +75,7 @@ public class Main {
                 func test()
             }
            \s
-            class B: A {
+            open class B: A {
                 init {
                     print("B created!")
                 }

@@ -1,5 +1,6 @@
 package semantic_analysis.visitors;
 
+import logger.LoggerFacade;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.ObjectNode;
@@ -15,8 +16,6 @@ import parser.nodes.literals.LiteralNode;
 import parser.nodes.literals.NullLiteral;
 import parser.nodes.variable.FieldReferenceNode;
 import parser.nodes.variable.VariableReferenceNode;
-import semantic_analysis.exceptions.SA_SemanticError;
-import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 import semantic_analysis.loaders.ModifierLoader;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.transformers.LiteralTransformer;
@@ -30,9 +29,10 @@ public class ExpressionTraverse {
         root.expression = transformValue(root.expression, scope);
 
         TypeWrapper type = determineType(root.expression, scope);
-
-        if (type.isTypeReference)
-            throw new SA_SemanticError("Expression expected"); // Log
+        if (type == null || type.isTypeReference) {
+            LoggerFacade.error("Expression expected", root.expression);
+            return null;
+        }
 
         return type;
     }
@@ -50,16 +50,22 @@ public class ExpressionTraverse {
             binaryExpression.left = transformValue(binaryExpression.left, scope);
 
             TypeWrapper leftType = determineType(binaryExpression.left, scope);
+            if (leftType == null) {
+                return null;
+            }
 
             ClassDeclarationNode leftTypeNode = scope.getClass(leftType.type);
 
-            if (leftTypeNode == null)
-                throw new SA_UnresolvedSymbolException(leftType.type); // Log
+            if (leftTypeNode == null) {
+                LoggerFacade.error("Unresolved symbol: '" + leftType.type + "'", expression);
+                return null;
+            }
 
             if (binaryExpression.operator.equals(".")) {
                 if (binaryExpression.right instanceof VariableReferenceNode reference) {
                     if (scope.findTypeDeclaration(reference.variable)) {
-                        throw new SA_SemanticError("Cannot access nested types"); // Log
+                        LoggerFacade.error("Cannot access nested types", expression);
+                        return null;
                     }
 
                     FieldNode field = leftTypeNode.findField(
@@ -68,7 +74,8 @@ public class ExpressionTraverse {
                     );
 
                     if (field == null) {
-                        throw new SA_UnresolvedSymbolException(leftType.type + "." + reference.variable); // Log
+                        LoggerFacade.error("Unresolved symbol: '" + leftType.type + "." + reference.variable + "'", expression);
+                        return null;
                     }
 
                     return new FieldReferenceNode(
@@ -104,12 +111,14 @@ public class ExpressionTraverse {
                     );
 
                     if (function == null) {
-                        if (functions.isEmpty())
-                            throw new SA_UnresolvedSymbolException(leftType.type + "." + call.name); // Log
-                        else
-                            throw new SA_SemanticError("None of the overrides for '" +
+                        if (functions.isEmpty()) {
+                            LoggerFacade.error("Unresolved symbol: '" + leftType.type + "." + call.name + "'", expression);
+                        } else {
+                            LoggerFacade.error("None of the overrides for '" +
                                 leftType.type + "." + call.name +
-                                "' match the argument list");
+                                "' match the argument list", expression);
+                        }
+                        return null;
                     }
 
                     return new FunctionCallNode(
@@ -118,19 +127,24 @@ public class ExpressionTraverse {
                         call.arguments
                     );
                 } else {
-                    throw new SA_SemanticError("Expected field or function"); // Log
+                    LoggerFacade.error("Expected field or function", expression);
+                    return null;
                 }
             }
 
-            if (leftType.isTypeReference)
-                throw new SA_SemanticError("Expression expected");
+            if (leftType.isTypeReference) {
+                LoggerFacade.error("Expression expected", expression);
+                return null;
+            }
 
             binaryExpression.right = transformValue(binaryExpression.right, scope);
 
             TypeWrapper rightType = determineType(binaryExpression.right, scope);
 
-            if (rightType.isTypeReference)
-                throw new SA_SemanticError("Expression expected");
+            if (rightType == null || rightType.isTypeReference) {
+                LoggerFacade.error("Expression expected", expression);
+                return null;
+            }
 
             String operatorName = getOperatorName(binaryExpression.operator);
 
@@ -176,13 +190,17 @@ public class ExpressionTraverse {
 
             TypeWrapper operandType = determineType(unaryExpression.operand, scope);
 
-            if (operandType.isTypeReference)
-                throw new SA_SemanticError("Expression expected");
+            if (operandType == null || operandType.isTypeReference) {
+                LoggerFacade.error("Expression expected", expression);
+                return null;
+            }
 
             ClassDeclarationNode operandTypeNode = scope.getClass(operandType.type);
 
-            if (operandTypeNode == null)
-                throw new SA_UnresolvedSymbolException(operandType.type);
+            if (operandTypeNode == null) {
+                LoggerFacade.error("Unresolved symbol: '" + operandType.type + "'", expression);
+                return null;
+            }
 
             String operatorName = getOperatorName(unaryExpression.operator);
 
@@ -208,6 +226,9 @@ public class ExpressionTraverse {
     }
 
     private static TypeWrapper determineType(ExpressionNode expression, Scope scope) {
+        if (expression == null) {
+            return null;
+        }
         if (expression instanceof ObjectNode objectNode) {
             return new TypeWrapper(objectNode.className, false, false);
         }
@@ -226,7 +247,8 @@ public class ExpressionTraverse {
                 );
             }
 
-            throw new SA_UnresolvedSymbolException(variable.variable); // LOG
+            LoggerFacade.error("Unresolved symbol: '" + variable.variable + "'", expression);
+            return null;
         }
         if (expression instanceof FunctionCallNode functionCall) {
             final FunctionDeclarationNode function;
@@ -234,7 +256,10 @@ public class ExpressionTraverse {
             if (functionCall.callerType != null) {
                 final ClassDeclarationNode caller = scope.getClass(functionCall.callerType);
 
-                if (caller == null) throw new SA_UnresolvedSymbolException(functionCall.callerType);
+                if (caller == null) {
+                    LoggerFacade.error("Unresolved symbol: '" + functionCall.callerType + "'", expression);
+                    return null;
+                }
 
                 final List<FunctionDeclarationNode> functions = caller.findMethodsWithName(
                     scope,
@@ -255,8 +280,10 @@ public class ExpressionTraverse {
                 );
             }
 
-            if (function == null)
-                throw new SA_UnresolvedSymbolException(functionCall.name); // LOG with parameters for more info
+            if (function == null) {
+                LoggerFacade.error("No overload found for: '" + functionCall.name + "', with the specified arguments", expression);
+                return null;
+            }
 
             final TypeDeclarationNode containingType = scope.getContainingType();
             final String modifier = ModifierLoader.getAccessModifier(function.modifiers);
@@ -266,20 +293,27 @@ public class ExpressionTraverse {
                     new TypeWrapper(containingType.name, false, false),
                     new TypeWrapper(functionCall.callerType, false, false)
                 ))
-            ) throw new SA_SemanticError("Cannot access '" + function.name + "', it is " + modifier + " in '" + functionCall.callerType + "'");
+            ) {
+                LoggerFacade.error("Cannot access '" + function.name + "', it is " + modifier + " in '" + functionCall.callerType + "'", expression);
+                return null;
+            }
 
             return new TypeWrapper(function.returnType, false, function.isReturnTypeNullable);
         }
         if (expression instanceof FieldReferenceNode field) {
             ClassDeclarationNode holder = scope.getClass(field.holderType);
 
-            if (holder == null)
-                throw new SA_UnresolvedSymbolException(field.holderType); // Log (unknown type)
+            if (holder == null) {
+                LoggerFacade.error("Unresolved symbol: '" + field.holderType + "'", expression);
+                return null;
+            }
 
             FieldNode actualField = holder.findField(scope, field.name);
 
-            if (actualField == null)
-                throw new SA_UnresolvedSymbolException(field.holderType + "." + field.name); // Log
+            if (actualField == null) {
+                LoggerFacade.error("Unresolved symbol: '" + field.holderType + "." + field.name + "'", expression);
+                return null;
+            }
 
             String modifier = ModifierLoader.getAccessModifier(actualField.modifiers);
 
@@ -290,7 +324,10 @@ public class ExpressionTraverse {
                     new TypeWrapper(containingType.name, false, false),
                     new TypeWrapper(holder.name, false, false)
                 ))
-            ) throw new SA_SemanticError("Cannot access '" + field.name + "', it is " + modifier + " in '" + holder.name + "'");
+            ) {
+                LoggerFacade.error("Cannot access '" + field.name + "', it is " + modifier + " in '" + holder.name + "'", expression);
+                return null;
+            }
 
             return new TypeWrapper(
                 actualField.initialization.declaration.type,
@@ -302,7 +339,8 @@ public class ExpressionTraverse {
             return new TypeWrapper("null", false, true);
         }
 
-        throw new SA_SemanticError("Could not resolve type: '" + expression + "'"); // Log and return something
+        LoggerFacade.error("Could not resolve type: '" + expression + "'", expression);
+        return null;
     }
 
     public record TypeWrapper(

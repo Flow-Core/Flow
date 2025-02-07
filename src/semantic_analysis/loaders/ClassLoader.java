@@ -1,8 +1,6 @@
 package semantic_analysis.loaders;
 
-import logger.Logger;
 import logger.LoggerFacade;
-import parser.ASTMetaDataStore;
 import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
 import parser.nodes.classes.*;
@@ -13,7 +11,6 @@ import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableReferenceNode;
-import semantic_analysis.exceptions.SA_SemanticError;
 import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
 
@@ -42,7 +39,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     }
 
     private void handleClass(final ClassDeclarationNode classDeclaration, final SymbolTable data) {
-        ModifierLoader.load(classDeclaration.modifiers, ModifierLoader.ModifierType.CLASS);
+        ModifierLoader.load(classDeclaration, classDeclaration.modifiers, ModifierLoader.ModifierType.CLASS);
 
         validateBaseClass(classDeclaration, data);
         validateInterfaces(classDeclaration.implementedInterfaces, data);
@@ -61,7 +58,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
 
     private void loadConstructors(final ClassDeclarationNode classDeclaration) {
         for (final ConstructorNode constructorNode : classDeclaration.constructors) {
-            ModifierLoader.load(List.of(constructorNode.accessModifier), ModifierLoader.ModifierType.CONSTRUCTOR);
+            ModifierLoader.load(constructorNode, List.of(constructorNode.accessModifier), ModifierLoader.ModifierType.CONSTRUCTOR);
 
             constructorNode.parameters.add(0, new ParameterNode(classDeclaration.name, false, "this", null));
 
@@ -77,7 +74,8 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                         )
                     ).toList().size() > 1
             ) {
-                throw new SA_SemanticError("Cannot have more than one constructor with the same signature");
+                LoggerFacade.error("Cannot have more than one constructor with the same signature", classDeclaration);
+                return;
             }
         }
     }
@@ -96,7 +94,8 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                 true
             );
             if (method == null) {
-                throw new SA_SemanticError("Class '" + classDeclaration.name + "' is not abstract and does not implement abstract base class member '" + abstractFunction.name + "'");
+                LoggerFacade.error("Class '" + classDeclaration.name + "' is not abstract and does not implement abstract base class member '" + abstractFunction.name + "'", classDeclaration);
+                return;
             } else if (
                 (method.isReturnTypeNullable != abstractFunction.isReturnTypeNullable) ||
                     !data.isSameType(
@@ -122,7 +121,8 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                         )
                     )
             ) {
-                throw new SA_SemanticError("Return type of function '" + abstractFunction.name + "' is not a subtype of the overridden member, expected a subtype of: '" + abstractFunction.returnType + (abstractFunction.isReturnTypeNullable ? "?" : "") + "' but found '" + method.returnType + (method.isReturnTypeNullable ? "?" : "") + "'");
+                LoggerFacade.error("Return type of function '" + abstractFunction.name + "' is not a subtype of the overridden member, expected a subtype of: '" + abstractFunction.returnType + (abstractFunction.isReturnTypeNullable ? "?" : "") + "' but found '" + method.returnType + (method.isReturnTypeNullable ? "?" : "") + "'", abstractFunction);
+                return;
             }
         }
 
@@ -137,7 +137,8 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                     true
                 ) == null
             ) {
-                throw new SA_SemanticError("'" + overriddenFunction.name + "' overrides nothing");
+                LoggerFacade.error("'" + overriddenFunction.name + "' overrides nothing", overriddenFunction);
+                return;
             }
         }
     }
@@ -145,12 +146,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     private void validateBaseClass(ClassDeclarationNode classDeclaration, SymbolTable data) {
         if (!classDeclaration.baseClasses.isEmpty()) {
             if (classDeclaration.baseClasses.size() > 1) {
-                LoggerFacade.getLogger().log(
-                    Logger.Severity.ERROR,
-                    "Class '" + classDeclaration.name + "' cannot extend more than one class",
-                    ASTMetaDataStore.getInstance().getLine(classDeclaration),
-                    ASTMetaDataStore.getInstance().getFile(classDeclaration)
-                );
+                LoggerFacade.error("Class '" + classDeclaration.name + "' cannot extend more than one class", classDeclaration);
                 return;
             }
 
@@ -159,12 +155,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
             final ClassDeclarationNode baseClass = getClassDeclarationNode(classDeclaration, baseClassName, fileLevelBaseClass);
 
             if (baseClass == null || !baseClass.modifiers.contains("open")) {
-                LoggerFacade.getLogger().log(
-                    Logger.Severity.ERROR,
-                    "'" + baseClassName + "' is final, so it cannot be extended",
-                    ASTMetaDataStore.getInstance().getLine(classDeclaration),
-                    ASTMetaDataStore.getInstance().getFile(classDeclaration)
-                );
+                LoggerFacade.error("'" + baseClassName + "' is final, so it cannot be extended", classDeclaration);
                 return;
             }
 
@@ -175,22 +166,12 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     private ClassDeclarationNode getClassDeclarationNode(ClassDeclarationNode classDeclaration, String baseClassName, ClassDeclarationNode fileLevelBaseClass) {
         final ClassDeclarationNode packageLevelBaseClass = packageLevel.getClass(baseClassName);
         if (fileLevelBaseClass == null && packageLevelBaseClass == null) {
-            LoggerFacade.getLogger().log(
-                Logger.Severity.ERROR,
-                "Base class '" + baseClassName + "' for class '" + classDeclaration.name + "' was not found.",
-                ASTMetaDataStore.getInstance().getLine(classDeclaration),
-                ASTMetaDataStore.getInstance().getFile(classDeclaration)
-            );
-            throw new SA_SemanticError("Base class '" + baseClassName + "' for class '" + classDeclaration.name + "' was not found");
+            LoggerFacade.error("Base class '" + baseClassName + "' for class '" + classDeclaration.name + "' was not found.", classDeclaration);
+            return null;
         }
 
         if (classDeclaration.name.equals(baseClassName)) {
-            LoggerFacade.getLogger().log(
-                Logger.Severity.ERROR,
-                "Class cannot extend itself: " + classDeclaration.name,
-                ASTMetaDataStore.getInstance().getLine(classDeclaration),
-                ASTMetaDataStore.getInstance().getFile(classDeclaration)
-            );
+            LoggerFacade.error("Class cannot extend itself: " + classDeclaration.name, classDeclaration);
             return null;
         }
 
@@ -204,12 +185,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
         SymbolTable data
     ) {
         if (visited.contains(currentClass.name)) {
-            LoggerFacade.getLogger().log(
-                Logger.Severity.ERROR,
-                "Circular inheritance detected: " + originalClass + " -> " + currentClass.name,
-                ASTMetaDataStore.getInstance().getLine(currentClass),
-                ASTMetaDataStore.getInstance().getFile(currentClass)
-            );
+            LoggerFacade.error("Circular inheritance detected: '" + originalClass + "' -> '" + currentClass.name + "'", currentClass);
             return;
         }
 
@@ -231,12 +207,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     private void validateInterfaces(List<BaseInterfaceNode> interfaces, SymbolTable data) {
         for (final BaseInterfaceNode interfaceNode : interfaces) {
             if (data.getInterface(interfaceNode.name) == null && packageLevel.getInterface(interfaceNode.name) == null) {
-                LoggerFacade.getLogger().log(
-                    Logger.Severity.ERROR,
-                    "Interface '" + interfaceNode.name + "' was not found.",
-                    ASTMetaDataStore.getInstance().getLine(interfaceNode),
-                    ASTMetaDataStore.getInstance().getFile(interfaceNode)
-                );
+                LoggerFacade.error("Interface '" + interfaceNode.name + "' was not found", interfaceNode);
                 return;
             }
         }
@@ -249,12 +220,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
         SymbolTable data
     ) {
         if (visited.contains(currentInterface.name)) {
-            LoggerFacade.getLogger().log(
-                Logger.Severity.ERROR,
-                "Circular inheritance detected: " + currentInterface.name + " -> " + originalInterface,
-                ASTMetaDataStore.getInstance().getLine(currentInterface),
-                ASTMetaDataStore.getInstance().getFile(currentInterface)
-            );
+            LoggerFacade.error("Circular inheritance detected: '" + originalInterface + "' -> '" + currentInterface.name + "'", currentInterface);
             return;
         }
 
@@ -276,22 +242,12 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     private void validateInterfaces(InterfaceNode interfaceNode, SymbolTable data) {
         for (final BaseInterfaceNode currentInterface : interfaceNode.implementedInterfaces) {
             if (data.getInterface(currentInterface.name) == null && packageLevel.getInterface(currentInterface.name) == null) {
-                LoggerFacade.getLogger().log(
-                    Logger.Severity.ERROR,
-                    "Interface '" + currentInterface.name + "' was not found.",
-                    ASTMetaDataStore.getInstance().getLine(currentInterface),
-                    ASTMetaDataStore.getInstance().getFile(currentInterface)
-                );
+                LoggerFacade.error("Interface '" + currentInterface.name + "' was not found", currentInterface);
                 return;
             }
 
             if (currentInterface.name.equals(interfaceNode.name)) {
-                LoggerFacade.getLogger().log(
-                    Logger.Severity.ERROR,
-                    "Interface cannot extend itself: " + interfaceNode.name,
-                    ASTMetaDataStore.getInstance().getLine(interfaceNode),
-                    ASTMetaDataStore.getInstance().getFile(interfaceNode)
-                );
+                LoggerFacade.error("Interface cannot extend itself: " + interfaceNode.name, currentInterface);
                 return;
             }
 
@@ -345,13 +301,16 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
             }
             if (functionDeclaration.modifiers.contains("abstract")) {
                 if (!classDeclaration.modifiers.contains("abstract")) {
-                    throw new SA_SemanticError("Abstract function '" + functionDeclaration.name + "' in non-abstract class '" + classDeclaration.name + "'");
+                    LoggerFacade.error("Abstract function '" + functionDeclaration.name + "' in non-abstract class '" + classDeclaration.name + "'", functionDeclaration);
+                    return;
                 }
                 if (functionDeclaration.block != null) {
-                    throw new SA_SemanticError("Abstract function '" + functionDeclaration.name + "' cannot have a block");
+                    LoggerFacade.error("Abstract function '" + functionDeclaration.name + "' cannot have a block", functionDeclaration);
+                    return;
                 }
             } else if (functionDeclaration.block == null) {
-                throw new SA_SemanticError("Function '" + functionDeclaration.name + "' without a body must be abstract");
+                LoggerFacade.error("Function '" + functionDeclaration.name + "' without a body must be abstract", functionDeclaration);
+                return;
             }
         }
     }
@@ -388,12 +347,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                 final ClassDeclarationNode baseClass = getClassDeclarationNode(classDeclarationNode, baseClassName, fileLevelBaseClass);
 
                 if (baseClass == null) {
-                    LoggerFacade.getLogger().log(
-                        Logger.Severity.ERROR,
-                        "Unresolved symbol '" + classDeclarationNode.name + "' cannot extend more than one class",
-                        ASTMetaDataStore.getInstance().getLine(classDeclarationNode),
-                        ASTMetaDataStore.getInstance().getFile(classDeclarationNode)
-                    );
+                    LoggerFacade.error("Unresolved symbol '" + classDeclarationNode.name + "' cannot extend more than one class", classDeclarationNode);
                     return new ArrayList<>();
                 }
                 foundFunctions.addAll(getFunctionsByModifier(modifier, baseClass, data));
@@ -403,6 +357,9 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
         if (modifier.equals("abstract")) {
             for (final BaseInterfaceNode baseInterfaceNode : typeDeclarationNode.implementedInterfaces) {
                 final InterfaceNode interfaceNode = getInterfaceNode(data, baseInterfaceNode);
+                if (interfaceNode == null) {
+                    return new ArrayList<>();
+                }
 
                 foundFunctions.addAll(interfaceNode.methods);
                 foundFunctions.addAll(getFunctionsByModifier(modifier, interfaceNode, data));
@@ -418,7 +375,8 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
 
         final InterfaceNode interfaceNode = fileLevelInterfaceNode != null ? fileLevelInterfaceNode : packageLevelInterfaceNode;
         if (interfaceNode == null) {
-            throw new SA_SemanticError("Interface '" + baseInterfaceNode.name + "' was not found");
+            LoggerFacade.error("Interface '" + baseInterfaceNode.name + "' was not found", baseInterfaceNode);
+            return null;
         }
 
         return interfaceNode;

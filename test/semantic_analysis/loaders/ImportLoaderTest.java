@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import parser.nodes.components.BlockNode;
-import semantic_analysis.exceptions.SA_SemanticError;
 import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
@@ -165,7 +164,7 @@ class ImportLoaderTest {
             ))
             .build();
 
-        Assertions.assertThrows(SA_SemanticError.class, () ->
-            importLoader.load(block, fileSymbols, globalPackages), "Package declaration after imports should fail");
+        importLoader.load(block, fileSymbols, globalPackages);
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Package declaration after imports should fail");
     }
 }

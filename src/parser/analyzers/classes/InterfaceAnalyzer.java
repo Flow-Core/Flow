@@ -2,7 +2,7 @@ package parser.analyzers.classes;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
-import parser.ASTMetaDataStore;
+import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;

@@ -1,5 +1,6 @@
 package semantic_analysis.visitors;
 
+import fakes.LoggerFake;
 import generators.ast.classes.ClassNodeGenerator;
 import generators.ast.classes.FieldNodeGenerator;
 import generators.ast.components.ArgumentNodeGenerator;
@@ -10,6 +11,8 @@ import generators.ast.functions.FunctionNodeGenerator;
 import generators.ast.variables.FieldReferenceNodeGenerator;
 import generators.ast.variables.InitializedVariableNodeGenerator;
 import generators.ast.variables.VariableDeclarationNodeGenerator;
+import logger.LoggerFacade;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,8 +28,6 @@ import parser.nodes.literals.NullLiteral;
 import parser.nodes.variable.FieldReferenceNode;
 import parser.nodes.variable.VariableDeclarationNode;
 import parser.nodes.variable.VariableReferenceNode;
-import semantic_analysis.exceptions.SA_SemanticError;
-import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.transformers.LiteralTransformer;
@@ -38,6 +39,16 @@ class ExpressionTraverseTest {
 
     private SymbolTable symbolTable;
     private Scope scope;
+
+    @BeforeEach
+    void setUp() {
+        LoggerFacade.initLogger(new LoggerFake());
+    }
+
+    @AfterEach
+    void tearDown() {
+        LoggerFacade.clearLogger();
+    }
 
     @BeforeEach
     void setup() {
@@ -97,13 +108,11 @@ class ExpressionTraverseTest {
 
     @Test
     void test_unknown_variable_should_throw_error() {
-        Assertions.assertThrows(SA_UnresolvedSymbolException.class, () ->
-                new ExpressionTraverse().traverse(
-                    new ExpressionBaseNode(new VariableReferenceNode("y")),
-                    scope
-                ),
-            "Referencing an undeclared variable should throw an error"
+        new ExpressionTraverse().traverse(
+            new ExpressionBaseNode(new VariableReferenceNode("y")),
+            scope
         );
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Referencing an undeclared variable should throw an error");
     }
 
     @Test
@@ -125,9 +134,8 @@ class ExpressionTraverseTest {
 
         ExpressionBaseNode binaryExpression = ExpressionBaseNodeGenerator.builder().expression(new BinaryExpressionNode(left, right, "+")).build();
 
-        Assertions.assertThrows(SA_UnresolvedSymbolException.class, () ->
-                new ExpressionTraverse().traverse(binaryExpression, scope),
-            "Using an undefined variable in a binary expression should throw an error"
+        new ExpressionTraverse().traverse(binaryExpression, scope);
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Using an undefined variable in a binary expression should throw an error"
         );
     }
 
@@ -165,10 +173,8 @@ class ExpressionTraverseTest {
 
         FunctionCallNode functionCall = FunctionCallNodeGenerator.builder().callerType("MyClass").name("doubleNumber").build();
 
-        Assertions.assertThrows(SA_SemanticError.class, () ->
-                new ExpressionTraverse().traverse(new ExpressionBaseNode(functionCall), scope),
-            "Calling a function without required arguments should throw an error"
-        );
+        new ExpressionTraverse().traverse(new ExpressionBaseNode(functionCall), scope);
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Calling a function without required arguments should throw an error");
     }
 
     @Test
@@ -212,10 +218,8 @@ class ExpressionTraverseTest {
     void test_field_reference_with_invalid_field_should_throw_error() {
         FieldReferenceNode fieldRef = FieldReferenceNodeGenerator.builder().holderType("Person").name("unknownField").holder(new VariableReferenceNode("person")).build();
 
-        Assertions.assertThrows(SA_UnresolvedSymbolException.class, () ->
-                new ExpressionTraverse().traverse(new ExpressionBaseNode(fieldRef), scope),
-            "Accessing an unknown field should throw an error"
-        );
+        new ExpressionTraverse().traverse(new ExpressionBaseNode(fieldRef), scope);
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Accessing an unknown field should throw an error");
     }
 
     @Test
@@ -235,9 +239,8 @@ class ExpressionTraverseTest {
 
         FieldReferenceNode fieldRef = FieldReferenceNodeGenerator.builder().holderType("Person").name("secret").holder(new VariableReferenceNode("person")).build();
 
-        Assertions.assertThrows(SA_SemanticError.class, () ->
-                new ExpressionTraverse().traverse(new ExpressionBaseNode(fieldRef), scope),
-            "Accessing a private field should throw an error"
+        new ExpressionTraverse().traverse(new ExpressionBaseNode(fieldRef), scope);
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Accessing a private field should throw an error"
         );
     }
 
@@ -261,10 +264,8 @@ class ExpressionTraverseTest {
 
         FieldReferenceNode fieldRef = FieldReferenceNodeGenerator.builder().holderType("Base").name("protectedField").holder(new VariableReferenceNode("otherInstance")).build();
 
-        Assertions.assertThrows(SA_SemanticError.class, () ->
-                new ExpressionTraverse().traverse(new ExpressionBaseNode(fieldRef), scope),
-            "Accessing a protected field from a non-subclass should throw an error"
-        );
+        new ExpressionTraverse().traverse(new ExpressionBaseNode(fieldRef), scope);
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Accessing a protected field from a non-subclass should throw an error");
     }
 
 
@@ -305,10 +306,8 @@ class ExpressionTraverseTest {
 
         FunctionCallNode functionCall = FunctionCallNodeGenerator.builder().callerType("Person").name("internalMethod").build();
 
-        Assertions.assertThrows(SA_SemanticError.class, () ->
-                new ExpressionTraverse().traverse(new ExpressionBaseNode(functionCall), scope),
-            "Calling a private method should throw an error"
-        );
+        new ExpressionTraverse().traverse(new ExpressionBaseNode(functionCall), scope);
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Calling a private method should throw an error");
     }
 
     @Test
@@ -356,9 +355,7 @@ class ExpressionTraverseTest {
 
         FunctionCallNode functionCall = FunctionCallNodeGenerator.builder().callerType("BaseClass").name("secretMethod").build();
 
-        Assertions.assertThrows(SA_SemanticError.class, () ->
-                new ExpressionTraverse().traverse(new ExpressionBaseNode(functionCall), scope),
-            "Subclass should not be able to access private method from base class"
-        );
+        new ExpressionTraverse().traverse(new ExpressionBaseNode(functionCall), scope);
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Subclass should not be able to access private method from base class");
     }
 }

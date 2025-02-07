@@ -2,7 +2,7 @@ package parser.analyzers.top;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
-import parser.ASTMetaDataStore;
+import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.TopAnalyzer;
 import parser.analyzers.inline.IdentifierReferenceAnalyzer;
@@ -16,7 +16,7 @@ import java.util.HashMap;
 public class ExpressionAnalyzer extends TopAnalyzer {
     public AnalyzerResult parse(final Parser parser) {
         final int line = parser.peek().line();
-        ExpressionNode currValue = parseValue(parser);
+        ExpressionNode currValue = (ExpressionNode) ASTMetaDataStore.getInstance().addMetadata(parseValue(parser), line, parser.file);
         if (currValue == null) return null;
 
         return new AnalyzerResult(

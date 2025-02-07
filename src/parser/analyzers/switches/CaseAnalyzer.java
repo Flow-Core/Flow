@@ -1,7 +1,7 @@
 package parser.analyzers.switches;
 
 import lexer.token.TokenType;
-import parser.ASTMetaDataStore;
+import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
@@ -27,10 +27,9 @@ public class CaseAnalyzer extends TopAnalyzer {
         parser.consume(TokenType.CLOSE_BRACES);
 
         return new AnalyzerResult(
-
             ASTMetaDataStore.getInstance().addMetadata(
                 new CaseNode(
-                    new ExpressionBaseNode(expression),
+                    (ExpressionBaseNode) ASTMetaDataStore.getInstance().addMetadata(new ExpressionBaseNode(expression), line, parser.file),
                     block
                 ),
                 line,

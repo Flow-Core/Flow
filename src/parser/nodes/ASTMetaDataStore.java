@@ -1,6 +1,4 @@
-package parser;
-
-import parser.nodes.ASTNode;
+package parser.nodes;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -18,10 +16,6 @@ public final class ASTMetaDataStore {
     public ASTNode addMetadata(ASTNode node, int line, String file) {
         metadataMap.put(node, new ASTMetaData(line, file));
         return node;
-    }
-
-    public ASTMetaData getMetadata(ASTNode node) {
-        return metadataMap.get(node);
     }
 
     public int getLine(ASTNode node) {

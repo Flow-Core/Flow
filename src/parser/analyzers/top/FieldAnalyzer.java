@@ -1,7 +1,7 @@
 package parser.analyzers.top;
 
 import lexer.token.TokenType;
-import parser.ASTMetaDataStore;
+import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.TopAnalyzer;
 import parser.analyzers.inline.VariableAnalyzer;
