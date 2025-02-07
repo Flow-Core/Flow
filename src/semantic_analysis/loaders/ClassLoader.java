@@ -149,7 +149,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
             final ClassDeclarationNode fileLevelBaseClass = data.getClass(baseClassName);
             final ClassDeclarationNode baseClass = getClassDeclarationNode(classDeclaration, baseClassName, fileLevelBaseClass);
 
-            if (!baseClass.modifiers.contains("open") || !baseClass.modifiers.contains("abstract")) {
+            if (!baseClass.modifiers.contains("open") && !baseClass.modifiers.contains("abstract")) {
                 throw new SA_SemanticError("'" + baseClassName + "' is final, so it cannot be extended");
             }
 
