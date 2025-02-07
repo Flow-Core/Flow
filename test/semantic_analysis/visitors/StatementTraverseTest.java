@@ -1,5 +1,6 @@
 package semantic_analysis.visitors;
 
+import generators.ast.classes.ClassNodeGenerator;
 import fakes.LoggerFake;
 import generators.ast.components.BlockNodeGenerator;
 import generators.ast.expressions.ExpressionBaseNodeGenerator;
@@ -18,6 +19,7 @@ import parser.nodes.statements.*;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
+import semantic_analysis.transformers.LiteralTransformer;
 
 import java.util.List;
 
@@ -37,10 +39,12 @@ class StatementTraverseTest {
     void test_valid_if_statement_should_pass() {
         SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
         Scope scope = new Scope(null, symbolTable, null, Scope.Type.FUNCTION);
+        symbolTable.classes().add(ClassNodeGenerator.builder().name("Bool").build());
+        symbolTable.classes().add(ClassNodeGenerator.builder().name("Int").build());
 
         IfStatementNode ifStatement = IfStatementNodeGenerator.builder()
             .condition(ExpressionBaseNodeGenerator.builder()
-                .expression(new BooleanLiteralNode(true))
+                .expression(LiteralTransformer.transform(new BooleanLiteralNode(true)))
                 .build())
             .trueBranch(BlockNodeGenerator.builder().children(List.of()).build())
             .falseBranch(BlockNodeGenerator.builder().children(List.of()).build())
@@ -54,6 +58,8 @@ class StatementTraverseTest {
     void test_invalid_if_statement_should_throw_error() {
         SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
         Scope scope = new Scope(null, symbolTable, null, Scope.Type.FUNCTION);
+        symbolTable.classes().add(ClassNodeGenerator.builder().name("Bool").build());
+        symbolTable.classes().add(ClassNodeGenerator.builder().name("Int").build());
 
         IfStatementNode ifStatement = IfStatementNodeGenerator.builder()
             .condition(ExpressionBaseNodeGenerator.builder()
@@ -70,6 +76,8 @@ class StatementTraverseTest {
     void test_valid_while_statement_should_pass() {
         SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
         Scope scope = new Scope(null, symbolTable, null, Scope.Type.FUNCTION);
+        symbolTable.classes().add(ClassNodeGenerator.builder().name("Bool").build());
+        symbolTable.classes().add(ClassNodeGenerator.builder().name("Int").build());
 
         WhileStatementNode whileStatement = WhileStatementNodeGenerator.builder()
             .condition(ExpressionBaseNodeGenerator.builder()
@@ -86,6 +94,8 @@ class StatementTraverseTest {
     void test_invalid_while_statement_should_throw_error() {
         SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
         Scope scope = new Scope(null, symbolTable, null, Scope.Type.FUNCTION);
+        symbolTable.classes().add(ClassNodeGenerator.builder().name("Bool").build());
+        symbolTable.classes().add(ClassNodeGenerator.builder().name("Int").build());
 
         WhileStatementNode whileStatement = WhileStatementNodeGenerator.builder()
             .condition(ExpressionBaseNodeGenerator.builder()
@@ -102,6 +112,8 @@ class StatementTraverseTest {
     void test_valid_for_loop_should_pass() {
         SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
         Scope scope = new Scope(null, symbolTable, null, Scope.Type.FUNCTION);
+        symbolTable.classes().add(ClassNodeGenerator.builder().name("Bool").build());
+        symbolTable.classes().add(ClassNodeGenerator.builder().name("Int").build());
 
         ForStatementNode forStatement = ForStatementNodeGenerator.builder()
             .initialization(VariableAssignmentNodeGenerator.builder()
@@ -126,6 +138,8 @@ class StatementTraverseTest {
     void test_invalid_for_loop_should_throw_error() {
         SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
         Scope scope = new Scope(null, symbolTable, null, Scope.Type.FUNCTION);
+        symbolTable.classes().add(ClassNodeGenerator.builder().name("Bool").build());
+        symbolTable.classes().add(ClassNodeGenerator.builder().name("Int").build());
 
         ForStatementNode forStatement = ForStatementNodeGenerator.builder()
             .initialization(VariableAssignmentNodeGenerator.builder()
@@ -150,6 +164,8 @@ class StatementTraverseTest {
     void test_switch_statement_should_pass() {
         SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
         Scope scope = new Scope(null, symbolTable, null, Scope.Type.FUNCTION);
+        symbolTable.classes().add(ClassNodeGenerator.builder().name("Bool").build());
+        symbolTable.classes().add(ClassNodeGenerator.builder().name("Int").build());
 
         SwitchStatementNode switchStatement = SwitchStatementNodeGenerator.builder()
             .condition(ExpressionBaseNodeGenerator.builder()
@@ -171,6 +187,9 @@ class StatementTraverseTest {
     @Test
     void test_return_statement_should_match_function_return_type() {
         SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
+        symbolTable.classes().add(ClassNodeGenerator.builder().name("Bool").build());
+        symbolTable.classes().add(ClassNodeGenerator.builder().name("Int").build());
+
         FunctionDeclarationNode function = FunctionNodeGenerator.builder()
             .name("sum")
             .returnType("Int")
@@ -193,6 +212,9 @@ class StatementTraverseTest {
     @Test
     void test_return_statement_should_fail_for_mismatch() {
         SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
+        symbolTable.classes().add(ClassNodeGenerator.builder().name("Bool").build());
+        symbolTable.classes().add(ClassNodeGenerator.builder().name("Int").build());
+
         FunctionDeclarationNode function = FunctionNodeGenerator.builder()
             .name("sum")
             .returnType("Int")
