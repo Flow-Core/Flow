@@ -14,6 +14,17 @@ public record Scope (
     ASTNode currentParent,
     Type type
 ) {
+    public String getFQName(ASTNode node) {
+        if (symbols.bindingContext().containsKey(node)) {
+            return symbols.bindingContext().get(node);
+        }
+        if (parent == null) {
+            return null;
+        }
+
+        return parent.getFQName(node);
+    }
+
     public boolean findSymbol(String symbol) {
         return findInterface(symbol) || findClass(symbol) || findFunction(symbol) || findField(symbol);
     }
