@@ -11,8 +11,8 @@ import semantic_analysis.scopes.Scope;
 
 public class FunctionGenerator {
     public static MethodVisitor generate(FunctionDeclarationNode functionDeclarationNode, Scope scope, ClassWriter classWriter, boolean isSignature) {
-        final MethodVisitor methodVisitor = classWriter.visitMethod(
-            ModifierMapper.map(functionDeclarationNode.modifiers) | (isSignature ? Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC : 0),
+        final MethodVisitor mv = classWriter.visitMethod(
+            ModifierMapper.map(functionDeclarationNode.modifiers) | (isSignature ? (Opcodes.ACC_ABSTRACT | Opcodes.ACC_PUBLIC) : 0),
             functionDeclarationNode.name,
             getDescriptor(functionDeclarationNode, scope),
             null,
@@ -23,7 +23,9 @@ public class FunctionGenerator {
             // TODO: generate body
         }
 
-        return methodVisitor;
+        mv.visitEnd();
+
+        return mv;
     }
 
     private static String getDescriptor(FunctionDeclarationNode functionDeclarationNode, Scope scope) {
@@ -33,12 +35,16 @@ public class FunctionGenerator {
             sb.append(getJVMName(parameterNode.type, scope));
         }
 
-        sb.append(")").append(functionDeclarationNode.returnType.equals("Void") ? "V" : getJVMName(functionDeclarationNode.returnType, scope));
+        sb.append(")").append(getJVMName(functionDeclarationNode.returnType, scope));
 
         return sb.toString();
     }
 
     private static String getJVMName(String type, Scope scope) {
+        if (type.equals("Void")) {
+            return "V";
+        }
+
         return "L" + FQNameMapper.getFQName(type, scope) + ";";
     }
 }
