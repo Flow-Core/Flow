@@ -24,7 +24,7 @@ public class InterfaceGenerator {
             ModifierMapper.map(interfaceNode.modifiers) | Opcodes.ACC_INTERFACE | Opcodes.ACC_ABSTRACT,
             interfaceName,
             null,
-            "java/lang/Object",
+            CodeGenerationConstant.defaultBaseObjectFQName,
             implementedInterfaces
         );
 

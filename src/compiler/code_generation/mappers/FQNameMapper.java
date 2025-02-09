@@ -13,6 +13,15 @@ public class FQNameMapper {
         return map(fqName);
     }
 
+    public static String getFQName(String name, Scope scope) {
+        ASTNode node = scope.getTypeDeclaration(name);
+        if (node == null) {
+            throw new IllegalArgumentException("Class should be loaded in the current scope");
+        }
+
+        return getFQName(node, scope);
+    }
+
     private static String map(String name) {
         return name.replace('.', '/');
     }
