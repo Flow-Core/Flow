@@ -11,23 +11,20 @@ public class ClassGenerator {
     public static ClassWriter generate(ClassDeclarationNode classDeclarationNode, Scope scope) {
         final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
 
+
         String baseClassName = CodeGenerationConstant.baseObjectFQName;
         if (!classDeclarationNode.baseClasses.isEmpty()) {
-            baseClassName = scope.getFQName(classDeclarationNode.baseClasses.get(0));
-            if (baseClassName == null) {
-                throw new IllegalArgumentException("Class should be loaded in the binding context");
-            }
-
-            baseClassName = FQNameMapper.map(baseClassName);
+            baseClassName = FQNameMapper.getFQName(classDeclarationNode.baseClasses.get(0), scope);
         }
 
-        final String[] baseInterfaceNames = (String[]) classDeclarationNode.implementedInterfaces
-            .stream().map(baseInterfaceNode -> FQNameMapper.map(baseInterfaceNode.name)).toArray();
+        final String[] baseInterfaceNames = classDeclarationNode.implementedInterfaces
+            .stream().map(baseInterfaceNode -> FQNameMapper.getFQName(baseInterfaceNode, scope))
+            .toArray(String[]::new);
 
         cw.visit(
             CodeGenerationConstant.byteCodeVersion,
             ModifierMapper.map(classDeclarationNode.modifiers),
-            classDeclarationNode.name,
+            FQNameMapper.getFQName(classDeclarationNode, scope),
             null,
             baseClassName,
             baseInterfaceNames
