@@ -13,7 +13,8 @@ public class ModifierMapper {
         "static", Opcodes.ACC_STATIC,
         "final", Opcodes.ACC_FINAL,
         "abstract", Opcodes.ACC_ABSTRACT,
-        "open", Opcodes.ACC_OPEN
+        "data", Opcodes.ACC_RECORD,
+        "sealed", Opcodes.ACC_ABSTRACT | Opcodes.ACC_FINAL
     );
 
     public static int map(List<String> modifiers) {

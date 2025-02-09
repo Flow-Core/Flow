@@ -304,6 +304,8 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     }
 
     private void handleInterface(final InterfaceNode interfaceDeclaration, final SymbolTable data) {
+        ModifierLoader.load(interfaceDeclaration.modifiers, ModifierLoader.ModifierType.INTERFACE);
+
         validateInterfaces(interfaceDeclaration, data);
 
         for (FunctionDeclarationNode functionDeclaration : interfaceDeclaration.methods) {

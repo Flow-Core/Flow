@@ -55,13 +55,19 @@ public class ModifierLoader {
                 "private", List.of("public", "protected"),
                 "public", List.of("private", "protected"),
                 "protected", List.of("public", "private"),
-                "static", List.of("abstract", "final", "open"),
-                "abstract", List.of("static", "final", "open"),
-                "final", List.of("static", "abstract", "open"),
-                "open", List.of("static", "abstract", "final")
+                "abstract", List.of("final", "open"),
+                "final", List.of("abstract", "open"),
+                "open", List.of("abstract", "final"),
+                "data", List.of("abstract", "open", "final")
             )
         ),
-
+        INTERFACE(
+            Map.of(
+                "private", List.of("public", "protected"),
+                "public", List.of("private", "protected"),
+                "protected", List.of("public", "private")
+            )
+        ),
         FUNCTION(
             Map.of(
                 "private", List.of("public", "protected"),
