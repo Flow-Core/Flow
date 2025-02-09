@@ -11,7 +11,6 @@ public class ClassGenerator {
     public static ClassWriter generate(ClassDeclarationNode classDeclarationNode, Scope scope) {
         final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
 
-
         String baseClassName = CodeGenerationConstant.baseObjectFQName;
         if (!classDeclarationNode.baseClasses.isEmpty()) {
             baseClassName = FQNameMapper.getFQName(classDeclarationNode.baseClasses.get(0), scope);
