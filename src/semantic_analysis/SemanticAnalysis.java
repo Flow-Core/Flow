@@ -99,6 +99,7 @@ public class SemanticAnalysis {
 
                 for (final ClassDeclarationNode classDeclaration : file.scope().symbols().classes()) {
                     ClassTraverse.loadMethodBodies(classDeclaration, typeScopes.get(classDeclaration));
+                    ClassTraverse.loadConstructors(classDeclaration, typeScopes.get(classDeclaration));
                 }
             }
         }

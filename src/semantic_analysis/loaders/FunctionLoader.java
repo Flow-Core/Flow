@@ -15,6 +15,7 @@ import semantic_analysis.visitors.BlockTraverse;
 import semantic_analysis.visitors.ExpressionTraverse;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
 
@@ -38,11 +39,7 @@ public class FunctionLoader {
             throw new SA_SemanticError("Conflicting overloads: ");
         }
 
-        for (final ParameterNode parameter : functionDeclarationNode.parameters) {
-            if (!scope.findTypeDeclaration(parameter.type)) {
-                throw new SA_UnresolvedSymbolException(parameter.type);
-            }
-        }
+        checkParameters(functionDeclarationNode.parameters, scope);
 
         if (scope.type() == Scope.Type.TOP && !functionDeclarationNode.modifiers.contains("static")) {
             functionDeclarationNode.modifiers.add("static");
@@ -51,9 +48,41 @@ public class FunctionLoader {
         scope.symbols().functions().add(functionDeclarationNode);
     }
 
+    public static void checkParameters(final List<ParameterNode> parameters, final Scope scope)  {
+        for (final ParameterNode parameter : parameters) {
+            if (!scope.findTypeDeclaration(parameter.type)) {
+                throw new SA_UnresolvedSymbolException(parameter.type);
+            }
+        }
+    }
+
     public static void loadBody(final FunctionDeclarationNode functionDeclarationNode, final Scope scope) {
+        final SymbolTable symbolTable = loadParameters(functionDeclarationNode.parameters);
+
+        if (functionDeclarationNode.block == null) {
+            return;
+        }
+
+        BlockTraverse.traverse(functionDeclarationNode.block, new Scope(scope, symbolTable, functionDeclarationNode, Scope.Type.FUNCTION));
+
+        if (!functionDeclarationNode.returnType.equals("Void")) {
+            boolean haveReturn = false;
+            for (final ASTNode node : functionDeclarationNode.block.children) {
+                if (node instanceof ReturnStatementNode) {
+                    haveReturn = true;
+                    break;
+                }
+            }
+
+            if (!haveReturn) {
+                throw new SA_SemanticError("Missing return statement");
+            }
+        }
+    }
+
+    public static SymbolTable loadParameters(final List<ParameterNode> parameters) {
         final SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
-        for (final ParameterNode parameter : functionDeclarationNode.parameters) {
+        for (final ParameterNode parameter : parameters) {
             symbolTable.fields().add(
                 new FieldNode(
                     new ArrayList<>(),
@@ -70,22 +99,6 @@ public class FunctionLoader {
             );
         }
 
-        if (functionDeclarationNode.block != null) {
-            BlockTraverse.traverse(functionDeclarationNode.block, new Scope(scope, symbolTable, functionDeclarationNode, Scope.Type.FUNCTION));
-
-            if (!functionDeclarationNode.returnType.equals("Void")) {
-                boolean haveReturn = false;
-                for (final ASTNode node : functionDeclarationNode.block.children) {
-                    if (node instanceof ReturnStatementNode) {
-                        haveReturn = true;
-                        break;
-                    }
-                }
-
-                if (!haveReturn) {
-                    throw new SA_SemanticError("Missing return statement");
-                }
-            }
-        }
+        return symbolTable;
     }
 }
