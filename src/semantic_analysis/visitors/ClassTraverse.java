@@ -1,11 +1,11 @@
 package semantic_analysis.visitors;
 
+import logger.LoggerFacade;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.ConstructorNode;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.TypeDeclarationNode;
 import parser.nodes.functions.FunctionDeclarationNode;
-import semantic_analysis.exceptions.SA_SemanticError;
 import semantic_analysis.loaders.FunctionLoader;
 import semantic_analysis.loaders.VariableLoader;
 import semantic_analysis.scopes.Scope;
@@ -37,7 +37,7 @@ public class ClassTraverse {
             final SymbolTable symbolTable = FunctionLoader.loadParameters(constructorNode.parameters);
 
             if (constructorNode.body == null) {
-                throw new SA_SemanticError("Constructor should have a body");
+                LoggerFacade.error("Constructor must have a body", constructorNode);
             }
 
             BlockTraverse.traverse(constructorNode.body, new Scope(scope, symbolTable, classDeclaration, Scope.Type.FUNCTION));
