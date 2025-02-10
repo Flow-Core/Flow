@@ -3,16 +3,25 @@ package parser.nodes.components;
 import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
 import parser.nodes.expressions.ExpressionBaseNode;
+import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
 
 import java.util.Objects;
 
 public class ArgumentNode implements ASTNode {
     public String name;
     public ExpressionBaseNode value;
+    public TypeWrapper type;
 
     public ArgumentNode(String name, ExpressionBaseNode value) {
         this.name = name;
         this.value = value;
+        type = null;
+    }
+
+    public ArgumentNode(String name, ExpressionBaseNode value, TypeWrapper type) {
+        this.name = name;
+        this.value = value;
+        this.type = type;
     }
 
     @Override

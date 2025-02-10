@@ -20,12 +20,11 @@ public class VariableManager {
         mv.visitVarInsn(Opcodes.ASTORE, availableCell++);
     }
 
-    public void loadVariable(String name) {
+    public int loadVariable(String name) {
         if (!variables.containsKey(name)) {
             throw new IllegalArgumentException("Variable '" + name + "' does not exist");
         }
 
-        int index = variables.get(name);
-        mv.visitVarInsn(Opcodes.ALOAD, index);
+        return variables.get(name);
     }
 }

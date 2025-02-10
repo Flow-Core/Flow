@@ -74,7 +74,12 @@ public class ExpressionTraverse {
                     return new FieldReferenceNode(
                         leftType.type,
                         reference.variable,
-                        binaryExpression.left
+                        binaryExpression.left,
+                        new TypeWrapper(
+                            field.initialization.declaration.type,
+                            false,
+                            field.initialization.declaration.isNullable
+                        )
                     );
                 } else
                 if (binaryExpression.right instanceof FunctionCallNode call) {
@@ -148,13 +153,15 @@ public class ExpressionTraverse {
                             null,
                             new ExpressionBaseNode(
                                 binaryExpression.left
-                            )
+                            ),
+                            leftType
                         ),
                         new ArgumentNode(
                             null,
                             new ExpressionBaseNode(
                                 binaryExpression.right
-                            )
+                            ),
+                            rightType
                         )
                     )
                 )).findFirst().orElse(null);
@@ -243,6 +250,10 @@ public class ExpressionTraverse {
                     scope,
                     functionCall.name
                 );
+
+                for (final ArgumentNode argNode : functionCall.arguments) {
+                    argNode.type = new ExpressionTraverse().traverse(argNode.value, scope);
+                }
 
                 function = functions.stream()
                     .filter(method -> compareParameterTypes(

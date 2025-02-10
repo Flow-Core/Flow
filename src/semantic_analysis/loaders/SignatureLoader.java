@@ -13,7 +13,6 @@ import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
-import semantic_analysis.visitors.ExpressionTraverse;
 import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
 
 import java.util.ArrayList;
@@ -263,10 +262,8 @@ public class SignatureLoader {
 
             passedArgument.add(parameterNode);
 
-            final TypeWrapper argType = new ExpressionTraverse().traverse(argumentNode.value, scope);
-
             if (!scope.isSameType(
-                argType,
+                argumentNode.type,
                 new TypeWrapper(
                     parameterNode.type,
                     false,

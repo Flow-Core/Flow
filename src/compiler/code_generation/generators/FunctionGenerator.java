@@ -28,7 +28,7 @@ public class FunctionGenerator {
         return mv;
     }
 
-    private static String getDescriptor(FunctionDeclarationNode functionDeclarationNode, Scope scope) {
+    public static String getDescriptor(FunctionDeclarationNode functionDeclarationNode, Scope scope) {
         final StringBuilder sb = new StringBuilder("(");
 
         for (final ParameterNode parameterNode : functionDeclarationNode.parameters) {
@@ -40,7 +40,7 @@ public class FunctionGenerator {
         return sb.toString();
     }
 
-    private static String getJVMName(String type, Scope scope) {
+    public static String getJVMName(String type, Scope scope) {
         if (type.equals("Void")) {
             return "V";
         }
