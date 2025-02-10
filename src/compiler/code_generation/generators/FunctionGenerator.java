@@ -9,12 +9,14 @@ import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.scopes.Scope;
 
+import java.util.List;
+
 public class FunctionGenerator {
     public static MethodVisitor generate(FunctionDeclarationNode functionDeclarationNode, Scope scope, ClassWriter classWriter, boolean isSignature) {
         final MethodVisitor mv = classWriter.visitMethod(
             ModifierMapper.map(functionDeclarationNode.modifiers) | (isSignature ? (Opcodes.ACC_ABSTRACT | Opcodes.ACC_PUBLIC) : 0),
             functionDeclarationNode.name,
-            getDescriptor(functionDeclarationNode, scope),
+            getDescriptor(functionDeclarationNode.parameters, functionDeclarationNode.returnType, scope),
             null,
             null
         );
@@ -28,14 +30,14 @@ public class FunctionGenerator {
         return mv;
     }
 
-    public static String getDescriptor(FunctionDeclarationNode functionDeclarationNode, Scope scope) {
+    public static String getDescriptor(List<ParameterNode> parameters, String returnType, Scope scope) {
         final StringBuilder sb = new StringBuilder("(");
 
-        for (final ParameterNode parameterNode : functionDeclarationNode.parameters) {
+        for (final ParameterNode parameterNode : parameters) {
             sb.append(getJVMName(parameterNode.type, scope));
         }
 
-        sb.append(")").append(getJVMName(functionDeclarationNode.returnType, scope));
+        sb.append(")").append(getJVMName(returnType, scope));
 
         return sb.toString();
     }
