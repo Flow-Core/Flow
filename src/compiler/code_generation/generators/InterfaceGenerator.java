@@ -6,17 +6,20 @@ import compiler.code_generation.mappers.ModifierMapper;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import parser.nodes.classes.InterfaceNode;
-import semantic_analysis.scopes.Scope;
+import parser.nodes.functions.FunctionDeclarationNode;
+import semantic_analysis.files.FileWrapper;
+
+import java.util.List;
 
 public class InterfaceGenerator {
-    public static ClassWriter generate(InterfaceNode interfaceNode, Scope scope) {
+    public static List<ClassWriter> generate(InterfaceNode interfaceNode, FileWrapper file) {
         final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
 
-        String interfaceName = FQNameMapper.getFQName(interfaceNode, scope);
+        String interfaceName = FQNameMapper.getFQName(interfaceNode, file.scope());
 
         final String[] implementedInterfaces = interfaceNode.implementedInterfaces
             .stream()
-            .map(interfaceBase -> FQNameMapper.getFQName(interfaceBase, scope))
+            .map(interfaceBase -> FQNameMapper.getFQName(interfaceBase, file.scope()))
             .toArray(String[]::new);
 
         cw.visit(
@@ -28,8 +31,15 @@ public class InterfaceGenerator {
             implementedInterfaces
         );
 
-        // TODO: Generate ABSTRACT methods, and block
+        final List<ClassWriter> classes = BlockGenerator.generateClassBlock(interfaceNode.block, file);
+        classes.add(cw);
 
-        return cw;
+        for (final FunctionDeclarationNode functionDeclarationNode : interfaceNode.methods) {
+            FunctionGenerator.generate(functionDeclarationNode, file, cw, true);
+        }
+
+        cw.visitEnd();
+
+        return classes;
     }
 }

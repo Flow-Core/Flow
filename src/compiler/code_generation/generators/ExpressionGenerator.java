@@ -19,7 +19,7 @@ import static compiler.code_generation.generators.FunctionGenerator.getJVMName;
 import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
 
 public class ExpressionGenerator {
-    public static void generate(MethodVisitor mv, ExpressionNode expression, VariableManager vm, FileWrapper file) {
+    public static void generate(ExpressionNode expression, MethodVisitor mv, VariableManager vm, FileWrapper file) {
         if (expression instanceof VariableReferenceNode referenceNode) {
             generateVarReference(referenceNode, vm, mv);
         } else if (expression instanceof FunctionCallNode functionCallNode) {
@@ -48,7 +48,7 @@ public class ExpressionGenerator {
         final boolean isStatic = declaration.modifiers.contains("static");
 
         for (ArgumentNode arg : funcCallNode.arguments) {
-            generate(mv, arg.value.expression, vm, file);
+            generate(arg.value.expression, mv, vm, file);
         }
 
         if (funcCallNode.callerType == null) {
@@ -100,7 +100,7 @@ public class ExpressionGenerator {
         mv.visitInsn(Opcodes.DUP);
 
         for (ArgumentNode arg : objNode.arguments) {
-            generate(mv, arg.value.expression, vm, file);
+            generate(arg.value.expression, mv, vm, file);
         }
 
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, fqObjectName, "<init>", constructorDescriptor, false);
