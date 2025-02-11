@@ -28,7 +28,7 @@ public class SemanticAnalysis {
         this.packages = packages;
     }
 
-    public void analyze() {
+    public Map<String, PackageWrapper> analyze() {
         for (final PackageWrapper currentPackageWrapper : packages.values()) {
             for (final FileWrapper file : currentPackageWrapper.files()) {
                 SignatureLoader.load(file.root().children, file.scope().symbols(), currentPackageWrapper);
@@ -106,8 +106,10 @@ public class SemanticAnalysis {
 
         for (final PackageWrapper currentPackageWrapper : packages.values()) {
             for (final FileWrapper file : currentPackageWrapper.files()) {
-                TopLevelTransformer.transform(file);
+                TopLevelTransformer.transform(file, currentPackageWrapper.path());
             }
         }
+
+        return packages;
     }
 }

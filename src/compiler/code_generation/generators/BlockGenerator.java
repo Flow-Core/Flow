@@ -1,7 +1,7 @@
 package compiler.code_generation.generators;
 
+import compiler.code_generation.CodeGeneration;
 import compiler.code_generation.manager.VariableManager;
-import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import parser.nodes.ASTNode;
 import parser.nodes.classes.ClassDeclarationNode;
@@ -33,8 +33,8 @@ public class BlockGenerator {
         }
     }
 
-    public static List<ClassWriter> generateClassBlock(BlockNode blockNode, FileWrapper file) {
-        final List<ClassWriter> classes = new ArrayList<>();
+    public static List<CodeGeneration.ClassFile> generateClassBlock(BlockNode blockNode, FileWrapper file) {
+        final List<CodeGeneration.ClassFile> classes = new ArrayList<>();
 
         for (final ASTNode node : blockNode.children) {
             if (node instanceof ClassDeclarationNode classDeclarationNode) {

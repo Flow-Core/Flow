@@ -9,6 +9,7 @@ import parser.nodes.components.ArgumentNode;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.literals.*;
 import parser.nodes.variable.FieldReferenceNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.files.FileWrapper;
@@ -28,6 +29,8 @@ public class ExpressionGenerator {
             generateObjectInstantiation(objectNode, file.scope(), file, vm, mv);
         } else if (expression instanceof FieldReferenceNode fieldReferenceNode) {
             generateFieldReference(fieldReferenceNode, file.scope(), mv);
+        } else if (expression instanceof LiteralNode literalNode) {
+            generateLiteral(literalNode, mv);
         } else {
             throw new UnsupportedOperationException("Unknown expression type: " + expression.getClass().getSimpleName());
         }
@@ -104,5 +107,9 @@ public class ExpressionGenerator {
         }
 
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, fqObjectName, "<init>", constructorDescriptor, false);
+    }
+
+    public static void generateLiteral(LiteralNode literalNode, MethodVisitor mv) {
+        mv.visitLdcInsn(literalNode.getValue());
     }
 }

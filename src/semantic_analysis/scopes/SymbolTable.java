@@ -15,7 +15,7 @@ public record SymbolTable(
     Map<ASTNode, String> bindingContext
 ) {
     public static SymbolTable getEmptySymbolTable() {
-        return new SymbolTable(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new HashMap<>());
+        return new SymbolTable(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new IdentityHashMap<>());
     }
 
     public boolean isSameType(TypeWrapper type, TypeWrapper superType) {
@@ -81,7 +81,14 @@ public record SymbolTable(
     }
 
     public static String joinPath(String modulePath, String moduleName) {
-        return modulePath + "." + moduleName;
+        String path;
+        if (modulePath.isEmpty()) {
+            path = moduleName;
+        } else {
+            path = modulePath + "." + moduleName;
+        }
+
+        return path;
     }
 
     public boolean findSymbol(String symbol) {
