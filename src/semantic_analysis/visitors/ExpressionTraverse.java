@@ -219,6 +219,10 @@ public class ExpressionTraverse {
             if (!scope.findTypeDeclaration(objectNode.className))
                 throw new SA_UnresolvedSymbolException(objectNode.className); //Log
 
+            for (final ArgumentNode argNode : objectNode.arguments) {
+                argNode.type = new ExpressionTraverse().traverse(argNode.value, scope);
+            }
+
             return new TypeWrapper(objectNode.className, false, false);
         }
         if (expression instanceof VariableReferenceNode variable) {
