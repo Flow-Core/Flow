@@ -21,7 +21,6 @@ public class CodeGeneration {
         List<ClassFile> generated = new ArrayList<>();
 
         for (final ASTNode node : file.root().children) {
-            System.out.println(node);
             if (node instanceof ClassDeclarationNode classDeclarationNode) {
                 generated.addAll(
                     ClassGenerator.generate(

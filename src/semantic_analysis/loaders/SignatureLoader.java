@@ -179,6 +179,32 @@ public class SignatureLoader {
 
         while (declaration == null && scope != null && scope.parent() != null) {
             declaration = findMethodWithParameters(scope, scope.symbols().functions(), name, parameterTypes);
+            System.out.println(scope.symbols().functions());
+
+            scope = scope.parent();
+        }
+
+        return declaration;
+    }
+
+    public static FunctionDeclarationNode findMethodWithParametersInAll(
+        Scope scope,
+        String name,
+        List<TypeWrapper> parameterTypes
+    ) {
+        FunctionDeclarationNode declaration = null;
+
+        while (declaration == null && scope != null && scope.parent() != null) {
+
+            final List<FunctionDeclarationNode> methods = new ArrayList<>(scope.symbols().functions());
+            for (final ClassDeclarationNode classDeclarationNode : scope.symbols().classes()) {
+                methods.addAll(classDeclarationNode.methods);
+            }
+            for (final InterfaceNode interfaceNode : scope.symbols().interfaces()) {
+                methods.addAll(interfaceNode.methods);
+            }
+
+            declaration = findMethodWithParameters(scope, methods, name, parameterTypes);
 
             scope = scope.parent();
         }
@@ -274,6 +300,56 @@ public class SignatureLoader {
         }
 
         for (ParameterNode parameter : parameters) {
+            if (parameter.defaultValue == null && !passedArgument.contains(parameter))
+                return false;
+        }
+
+        return true;
+    }
+
+    public static boolean compareParameterTypesWithoutThis(
+        Scope scope,
+        List<ParameterNode> parameters,
+        List<ArgumentNode> arguments
+    ) {
+        boolean foundNamed = false;
+
+        List<ParameterNode> passedArgument = new ArrayList<>();
+
+        for (int i = 1; i < arguments.size(); i++) {
+            final ArgumentNode argumentNode = arguments.get(i);
+            final ParameterNode parameterNode;
+
+            if (argumentNode.name != null) {
+                foundNamed = true;
+
+                parameterNode = parameters.stream()
+                    .filter(parameter -> parameter.name.equals(argumentNode.name))
+                    .findFirst().orElse(null);
+
+                if (parameterNode == null)
+                    throw new SA_UnresolvedSymbolException(argumentNode.name);
+            } else if (foundNamed)
+                throw new SA_SemanticError("Unnamed arguments cannot follow named arguments"); // Log
+            else {
+                parameterNode = parameters.get(i);
+            }
+
+            passedArgument.add(parameterNode);
+
+            if (!scope.isSameType(
+                argumentNode.type,
+                new TypeWrapper(
+                    parameterNode.type,
+                    false,
+                    parameterNode.isNullable
+                )
+            ))
+                return false;
+        }
+
+        for (int i = 1; i < parameters.size(); i++) {
+            ParameterNode parameter = parameters.get(i);
             if (parameter.defaultValue == null && !passedArgument.contains(parameter))
                 return false;
         }

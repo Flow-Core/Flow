@@ -25,7 +25,7 @@ public class VariableDeclarationGenerator {
         if (assignment != null) {
             ExpressionGenerator.generate(assignment.value.expression, mv, vm, file);
         } else {
-            mv.visitVarInsn(Opcodes.ACONST_NULL, vm.loadVariable(fieldName));
+            mv.visitInsn(Opcodes.ACONST_NULL);
         }
 
         vm.declareVariable(fieldName);

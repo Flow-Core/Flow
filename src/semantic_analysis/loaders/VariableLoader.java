@@ -18,6 +18,10 @@ public class VariableLoader {
         final FieldNode fieldNode,
         final Scope scope
     ) {
+        if (fieldNode.initialization == null) {
+            throw new SA_SemanticError("Variable must either have an explicit type or be initialized");
+        }
+
         final TypeWrapper varType = new TypeWrapper(
             fieldNode.initialization.declaration.type,
             false,

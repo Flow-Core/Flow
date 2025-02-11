@@ -17,7 +17,6 @@ import semantic_analysis.loaders.SignatureLoader;
 import semantic_analysis.scopes.Scope;
 
 import static compiler.code_generation.generators.FunctionGenerator.getJVMName;
-import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
 
 public class ExpressionGenerator {
     public static void generate(ExpressionNode expression, MethodVisitor mv, VariableManager vm, FileWrapper file) {
@@ -31,6 +30,8 @@ public class ExpressionGenerator {
             generateFieldReference(fieldReferenceNode, file.scope(), mv);
         } else if (expression instanceof LiteralNode literalNode) {
             generateLiteral(literalNode, mv);
+        } else if (expression instanceof NullLiteral) {
+            mv.visitInsn(Opcodes.ACONST_NULL);
         } else {
             throw new UnsupportedOperationException("Unknown expression type: " + expression.getClass().getSimpleName());
         }
@@ -41,7 +42,9 @@ public class ExpressionGenerator {
     }
 
     private static void generateFuncCall(FunctionCallNode funcCallNode, FileWrapper file, VariableManager vm, MethodVisitor mv) {
-        final FunctionDeclarationNode declaration = findMethodWithParameters(
+        System.out.println(funcCallNode.name);
+        System.out.println(funcCallNode.arguments);
+        final FunctionDeclarationNode declaration = SignatureLoader.findMethodWithParametersInAll(
             file.scope(),
             funcCallNode.name,
             funcCallNode.arguments.stream()
@@ -88,7 +91,7 @@ public class ExpressionGenerator {
 
         ConstructorNode constructorNode = null;
         for (final ConstructorNode currentConstructor : objClass.constructors) {
-            if (SignatureLoader.compareParameterTypes(scope, currentConstructor.parameters, objNode.arguments)) {
+            if (SignatureLoader.compareParameterTypesWithoutThis(scope, currentConstructor.parameters, objNode.arguments)) {
                 constructorNode = currentConstructor;
             }
         }

@@ -16,10 +16,19 @@ public class Main {
     public static void main(String[] args) {
         final String file1 = """
         class Void {}
-        class Int {}
+        class Int {
+            func equals(current: Int, other: Int): Bool {
+                return true
+            }
+        }
+        class Double {}
+        class Bool {}
         
         func main() {
-            var x = 10
+            val x = 10
+            
+            if (x == 10) {
+            }
         }
         \s""";
 
