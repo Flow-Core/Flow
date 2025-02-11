@@ -26,8 +26,9 @@ import java.util.List;
 import static semantic_analysis.loaders.SignatureLoader.*;
 
 public class ExpressionTraverse {
-    public TypeWrapper traverse(ExpressionBaseNode root, Scope scope) {
-        root.expression = transformValue(root.expression, scope);
+    public TypeWrapper traverse(ExpressionBaseNode root, Scope scope, boolean keepCompileTime) {
+        if (!keepCompileTime)
+            root.expression = transformValue(root.expression, scope);
 
         TypeWrapper type = determineType(root.expression, scope);
 
@@ -35,6 +36,10 @@ public class ExpressionTraverse {
             throw new SA_SemanticError("Expression expected"); // Log
 
         return type;
+    }
+
+    public TypeWrapper traverse(ExpressionBaseNode root, Scope scope) {
+        return traverse(root, scope, false);
     }
 
     private static ExpressionNode transformValue(ExpressionNode expression, Scope scope) {
@@ -220,7 +225,7 @@ public class ExpressionTraverse {
                 throw new SA_UnresolvedSymbolException(objectNode.className); //Log
 
             for (final ArgumentNode argNode : objectNode.arguments) {
-                argNode.type = new ExpressionTraverse().traverse(argNode.value, scope);
+                argNode.type = new ExpressionTraverse().traverse(argNode.value, scope, true);
             }
 
             return new TypeWrapper(objectNode.className, false, false);
@@ -315,6 +320,9 @@ public class ExpressionTraverse {
                 false,
                 actualField.initialization.declaration.isNullable
             );
+        }
+        if (expression instanceof LiteralNode literalNode) {
+            return new TypeWrapper(literalNode.getClassName(), false, false);
         }
         if (expression instanceof NullLiteral) {
             return new TypeWrapper("null", false, true);
