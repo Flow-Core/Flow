@@ -24,9 +24,9 @@ public class BlockGenerator {
             } else if (node instanceof StatementNode statementNode) {
                 StatementGenerator.generate(statementNode, mv, vm, file);
             } else if (node instanceof FieldNode fieldNode) {
-                // TODO: field node generator
+                VariableDeclarationGenerator.generateLocalVariable(fieldNode, mv, vm, file);
             } else if (node instanceof VariableAssignmentNode variableAssignmentNode) {
-                // TODO: variable assignment node generator
+                VariableAssignmentGenerator.generate(variableAssignmentNode, mv, vm, file);
             } else {
                 throw new UnsupportedOperationException("Invalid operation");
             }
