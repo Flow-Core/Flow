@@ -5,6 +5,7 @@ import compiler.code_generation.mappers.FQNameMapper;
 import compiler.code_generation.mappers.ModifierMapper;
 import org.objectweb.asm.ClassWriter;
 import parser.nodes.classes.ClassDeclarationNode;
+import parser.nodes.classes.FieldNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.files.FileWrapper;
 
@@ -39,9 +40,13 @@ public class ClassGenerator {
             FunctionGenerator.generate(functionDeclarationNode, file, cw, false);
         }
 
+        for (final FieldNode fieldNode : classDeclarationNode.fields) {
+            VariableDeclarationGenerator.generateField(fieldNode, cw, file);
+        }
+
         cw.visitEnd();
 
-        // TODO: generate methods, ctors, fields
+        // TODO: generate ctors
         return classes;
     }
 }
