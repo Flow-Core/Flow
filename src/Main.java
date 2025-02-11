@@ -12,25 +12,9 @@ import java.util.Map;
 public class Main {
     public static void main(String[] args) {
         final String file1 = """
-        func main(): A? {
-            val x: A = new A()
-            
-            
+        class Int {}
         
-            return null
-        }
-        
-        func foo(a: A): A {
-            return new A()
-        }
-        
-        open class A {
-            static func foo(a: A): A {
-                return new A()
-            }
-        }
-        
-        class B : A() {}
+        const x = 10
         \s""";
 
         final String file2 = """
