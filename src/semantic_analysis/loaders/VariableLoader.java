@@ -3,6 +3,7 @@ package semantic_analysis.loaders;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.expressions.BinaryExpressionNode;
 import parser.nodes.expressions.ExpressionBaseNode;
+import parser.nodes.literals.LiteralNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.exceptions.SA_SemanticError;
@@ -22,6 +23,11 @@ public class VariableLoader {
             throw new SA_SemanticError("Variable must either have an explicit type or be initialized");
         }
 
+        final boolean isConst = fieldNode.initialization.declaration.modifier.equals("const");
+        if (scope.type() == Scope.Type.FUNCTION && isConst) {
+            throw new SA_SemanticError("Local variable cannot be const");
+        }
+
         final TypeWrapper varType = new TypeWrapper(
             fieldNode.initialization.declaration.type,
             false,
@@ -29,10 +35,16 @@ public class VariableLoader {
         );
         TypeWrapper actualType = null;
         if (fieldNode.initialization.assignment != null) {
-            actualType = new ExpressionTraverse().traverse(fieldNode.initialization.assignment.value, scope);
+            actualType = new ExpressionTraverse().traverse(fieldNode.initialization.assignment.value, scope, isConst);
+            if (isConst && !(fieldNode.initialization.assignment.value.expression instanceof LiteralNode)) {
+                throw new SA_SemanticError("Const must contain a literal");
+            }
+
             fieldNode.isInitialized = true;
         } else if (varType.type() == null) {
             throw new SA_SemanticError("Variable must either have an explicit type or be initialized");
+        } else if (isConst) {
+            throw new SA_SemanticError("Const must be initialized");
         }
 
         if (varType.type() != null) {

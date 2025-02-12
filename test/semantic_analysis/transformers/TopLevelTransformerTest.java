@@ -35,7 +35,7 @@ class TopLevelTransformerTest {
             .block(BlockNodeGenerator.builder().children(new ArrayList<>()).build())
             .build();
 
-        FileWrapper file = new FileWrapper(new BlockNode(List.of(function1, function2)), ScopeGenerator.builder().build(), "Sum");
+        FileWrapper file = new FileWrapper(new BlockNode(new ArrayList<>(List.of(function1, function2))), ScopeGenerator.builder().build(), "Sum");
         TopLevelTransformer.transform(file, "");
 
         final ClassDeclarationNode generatedClass = file.scope().getClass("SumFl");
@@ -61,7 +61,7 @@ class TopLevelTransformerTest {
                 .build())
             .build();
 
-        FileWrapper file = new FileWrapper(new BlockNode(List.of(field1, field2)), ScopeGenerator.builder().build(), "Counter");
+        FileWrapper file = new FileWrapper(new BlockNode(new ArrayList<>(List.of(field1, field2))), ScopeGenerator.builder().build(), "Counter");
         TopLevelTransformer.transform(file, "");
 
         final ClassDeclarationNode generatedClass = file.scope().getClass("CounterFl");
@@ -87,7 +87,7 @@ class TopLevelTransformerTest {
                 .build())
             .build();
 
-        FileWrapper file = new FileWrapper(new BlockNode(List.of(field, function)), ScopeGenerator.builder().build(), "Counter");
+        FileWrapper file = new FileWrapper(new BlockNode(new ArrayList<>(List.of(field, function))), ScopeGenerator.builder().build(), "Counter");
         TopLevelTransformer.transform(file, "");
 
         final ClassDeclarationNode generatedClass = file.scope().getClass("CounterFl");

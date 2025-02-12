@@ -79,6 +79,10 @@ public class SignatureLoader {
     private static void handleField(final FieldNode fieldNode, final SymbolTable fileLevel, final PackageWrapper packageWrapper) {
         boolean isPublic = !fieldNode.modifiers.contains("private") && !fieldNode.modifiers.contains("protected");
 
+        if (fieldNode.initialization == null) {
+            return;
+        }
+
         final String name = fieldNode.initialization.declaration.name;
         if (packageWrapper.scope().findSymbol(name)) {
             throw new SA_RedefinitionException(name);

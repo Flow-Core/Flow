@@ -24,9 +24,10 @@ public class Main {
         class Double {}
         class Bool {}
         
+        const y = 10
+        
         func main() {
             val x = 10
-            
             if (x == 10) {
             }
         }
