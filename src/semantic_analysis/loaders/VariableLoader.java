@@ -24,8 +24,17 @@ public class VariableLoader {
         }
 
         final boolean isConst = fieldNode.initialization.declaration.modifier.equals("const");
-        if (scope.type() == Scope.Type.FUNCTION && isConst) {
-            throw new SA_SemanticError("Local variable cannot be const");
+        if (scope.type() == Scope.Type.FUNCTION) {
+            if (isConst) {
+                throw new SA_SemanticError("Local variable cannot be const");
+            }
+        } else {
+            if (ModifierLoader.isDefaultPublic(fieldNode.modifiers)) {
+                fieldNode.modifiers.add("public");
+            }
+            if (fieldNode.initialization.declaration.modifier.equals("const")) {
+                fieldNode.modifiers.add("final");
+            }
         }
 
         final TypeWrapper varType = new TypeWrapper(
@@ -75,6 +84,7 @@ public class VariableLoader {
         if (scope.type() == Scope.Type.TOP && !fieldNode.modifiers.contains("static")) {
             fieldNode.modifiers.add("static");
         }
+
         scope.symbols().fields().add(fieldNode);
     }
 

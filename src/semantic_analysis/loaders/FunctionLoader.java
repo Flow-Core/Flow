@@ -45,6 +45,10 @@ public class FunctionLoader {
             functionDeclarationNode.modifiers.add("static");
         }
 
+        if (ModifierLoader.isDefaultPublic(functionDeclarationNode.modifiers)) {
+            functionDeclarationNode.modifiers.add("public");
+        }
+
         scope.symbols().functions().add(functionDeclarationNode);
     }
 

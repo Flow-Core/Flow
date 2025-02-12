@@ -9,16 +9,13 @@ import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.files.FileWrapper;
 import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.loaders.ClassLoader;
-import semantic_analysis.loaders.ImportLoader;
-import semantic_analysis.loaders.SignatureLoader;
-import semantic_analysis.loaders.VariableLoader;
+import semantic_analysis.loaders.*;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.transformers.TopLevelTransformer;
 import semantic_analysis.visitors.ClassTraverse;
-import semantic_analysis.loaders.FunctionLoader;
 
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 public class SemanticAnalysis {
@@ -47,7 +44,7 @@ public class SemanticAnalysis {
             }
         }
 
-        Map<TypeDeclarationNode, Scope> typeScopes = new HashMap<>();
+        Map<TypeDeclarationNode, Scope> typeScopes = new IdentityHashMap<>();
 
         for (final PackageWrapper currentPackageWrapper : packages.values()) {
             for (final FileWrapper file : currentPackageWrapper.files()) {

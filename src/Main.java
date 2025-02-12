@@ -18,6 +18,7 @@ public class Main {
         final String file1 = """
         class Void {}
         class Int {
+            val x = 10
             func equals(other: Int): Bool {
                 return true
             }
