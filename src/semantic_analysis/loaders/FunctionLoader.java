@@ -20,8 +20,13 @@ import java.util.List;
 import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
 
 public class FunctionLoader {
-    public static void loadSignature(final FunctionDeclarationNode functionDeclarationNode, final Scope scope) {
-        ModifierLoader.load(functionDeclarationNode.modifiers, ModifierLoader.ModifierType.FUNCTION);
+    public static void loadSignature(final FunctionDeclarationNode functionDeclarationNode, final Scope scope, boolean isInterface) {
+        ModifierLoader.load(
+            functionDeclarationNode.modifiers,
+            isInterface ?
+                ModifierLoader.ModifierType.FUNCTION_INTERFACE
+                : ModifierLoader.ModifierType.FUNCTION
+        );
 
         if (!scope.findTypeDeclaration(functionDeclarationNode.returnType)) {
             throw new SA_UnresolvedSymbolException(functionDeclarationNode.returnType);

@@ -50,7 +50,7 @@ public class SemanticAnalysis {
             for (final FileWrapper file : currentPackageWrapper.files()) {
                 for (final ASTNode node : file.root().children) {
                     if (node instanceof FunctionDeclarationNode function)
-                        FunctionLoader.loadSignature(function, file.scope());
+                        FunctionLoader.loadSignature(function, file.scope(), true);
                 }
 
                 for (final ClassDeclarationNode classDeclaration : file.scope().symbols().classes()) {
@@ -59,7 +59,7 @@ public class SemanticAnalysis {
                         new Scope(file.scope(), SymbolTable.getEmptySymbolTable(), null, Scope.Type.CLASS)
                     );
 
-                    ClassTraverse.loadMethodSignatures(classDeclaration, typeScopes.get(classDeclaration));
+                    ClassTraverse.loadMethodSignatures(classDeclaration, typeScopes.get(classDeclaration), false);
                 }
 
                 for (final InterfaceNode interfaceNode : file.scope().symbols().interfaces()) {
@@ -68,7 +68,7 @@ public class SemanticAnalysis {
                         new Scope(file.scope(), SymbolTable.getEmptySymbolTable(), null, Scope.Type.CLASS)
                     );
 
-                    ClassTraverse.loadMethodSignatures(interfaceNode, typeScopes.get(interfaceNode));
+                    ClassTraverse.loadMethodSignatures(interfaceNode, typeScopes.get(interfaceNode), true);
                 }
             }
         }

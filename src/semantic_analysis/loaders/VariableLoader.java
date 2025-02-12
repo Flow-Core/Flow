@@ -29,6 +29,13 @@ public class VariableLoader {
                 throw new SA_SemanticError("Local variable cannot be const");
             }
         } else {
+            ModifierLoader.load(
+                fieldNode.modifiers,
+                scope.type() == Scope.Type.TOP
+                    ? ModifierLoader.ModifierType.TOP_LEVEL_FIELD
+                    : ModifierLoader.ModifierType.CLASS_FIELD
+            );
+
             if (ModifierLoader.isDefaultPublic(fieldNode.modifiers)) {
                 fieldNode.modifiers.add("public");
             }

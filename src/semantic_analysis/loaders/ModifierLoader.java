@@ -88,6 +88,31 @@ public class ModifierLoader {
                 "override", List.of("abstract", "static", "final")
             )
         ),
+        FUNCTION_INTERFACE(
+            Map.of(
+                "private", List.of("public, protected"),
+                "public", List.of("private", "protected"),
+                "protected", List.of("public", "private")
+            )
+        ),
+        CLASS_FIELD(
+            Map.of(
+                "private", List.of("public", "protected"),
+                "public", List.of("private", "protected"),
+                "protected", List.of("public", "private"),
+                "static", List.of("abstract", "final", "open"),
+                "abstract", List.of("static", "final", "open"),
+                "override", List.of("abstract", "static", "final")
+            )
+        ),
+        TOP_LEVEL_FIELD(
+            Map.of(
+                "private", List.of("public", "protected"),
+                "public", List.of("private", "protected"),
+                "protected", List.of("public", "private"),
+                "static", List.of("abstract", "final", "open")
+            )
+        ),
         CONSTRUCTOR(
             Map.of(
                 "private", List.of("public", "protected"),
