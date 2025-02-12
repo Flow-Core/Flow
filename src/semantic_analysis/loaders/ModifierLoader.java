@@ -49,6 +49,14 @@ public class ModifierLoader {
             .findFirst().orElse("public");
     }
 
+    public static boolean isPublic(List<String> modifiers) {
+        return !modifiers.contains("private") && !modifiers.contains("protected");
+    }
+
+    public static boolean isDefaultPublic(List<String> modifiers) {
+        return isPublic(modifiers) && !modifiers.contains("public");
+    }
+
     public enum ModifierType {
         CLASS(
             Map.of(

@@ -36,13 +36,17 @@ public class SignatureLoader {
     }
 
     private static void handleClass(final ClassDeclarationNode classDeclaration, final SymbolTable fileLevel, final PackageWrapper packageWrapper) {
-        boolean isPublic = !classDeclaration.modifiers.contains("private") && !classDeclaration.modifiers.contains("protected");
+        boolean isPublic = ModifierLoader.isPublic(classDeclaration.modifiers);
 
         if (packageWrapper.scope().findSymbol(classDeclaration.name)) {
             throw new SA_RedefinitionException(classDeclaration.name);
         }
 
         if (isPublic) {
+            if (ModifierLoader.isDefaultPublic(classDeclaration.modifiers)) {
+                classDeclaration.modifiers.add("public");
+            }
+
             packageWrapper.scope().symbols().classes().add(classDeclaration);
             packageWrapper.scope().symbols().bindingContext().put(classDeclaration, joinPath(packageWrapper.path(), classDeclaration.name));
         } else {
@@ -51,13 +55,17 @@ public class SignatureLoader {
     }
 
     private static void handleInterface(final InterfaceNode interfaceDeclaration, final SymbolTable fileLevel, final PackageWrapper packageWrapper) {
-        boolean isPublic = !interfaceDeclaration.modifiers.contains("private") && !interfaceDeclaration.modifiers.contains("protected");
+        boolean isPublic = ModifierLoader.isPublic(interfaceDeclaration.modifiers);
 
         if (packageWrapper.scope().findSymbol(interfaceDeclaration.name)) {
             throw new SA_RedefinitionException(interfaceDeclaration.name);
         }
 
         if (isPublic) {
+            if (ModifierLoader.isDefaultPublic(interfaceDeclaration.modifiers)) {
+                interfaceDeclaration.modifiers.add("public");
+            }
+
             packageWrapper.scope().symbols().interfaces().add(interfaceDeclaration);
             packageWrapper.scope().symbols().bindingContext().put(interfaceDeclaration, joinPath(packageWrapper.path(), interfaceDeclaration.name));
         } else {
@@ -66,9 +74,13 @@ public class SignatureLoader {
     }
 
     private static void handleFunction(final FunctionDeclarationNode functionDeclarationNode, final SymbolTable fileLevel, final PackageWrapper packageWrapper) {
-        boolean isPublic = !functionDeclarationNode.modifiers.contains("private") && !functionDeclarationNode.modifiers.contains("protected");
+        boolean isPublic = ModifierLoader.isPublic(functionDeclarationNode.modifiers);
 
         if (isPublic) {
+            if (ModifierLoader.isDefaultPublic(functionDeclarationNode.modifiers)) {
+                functionDeclarationNode.modifiers.add("public");
+            }
+
             packageWrapper.scope().symbols().functions().add(functionDeclarationNode);
             packageWrapper.scope().symbols().bindingContext().put(functionDeclarationNode, joinPath(packageWrapper.path(), functionDeclarationNode.name));
         } else {
@@ -77,7 +89,7 @@ public class SignatureLoader {
     }
 
     private static void handleField(final FieldNode fieldNode, final SymbolTable fileLevel, final PackageWrapper packageWrapper) {
-        boolean isPublic = !fieldNode.modifiers.contains("private") && !fieldNode.modifiers.contains("protected");
+        boolean isPublic = ModifierLoader.isPublic(fieldNode.modifiers);
 
         if (fieldNode.initialization == null) {
             return;
@@ -89,6 +101,10 @@ public class SignatureLoader {
         }
 
         if (isPublic) {
+            if (ModifierLoader.isDefaultPublic(fieldNode.modifiers)) {
+                fieldNode.modifiers.add("public");
+            }
+
             packageWrapper.scope().symbols().fields().add(fieldNode);
             packageWrapper.scope().symbols().bindingContext().put(fieldNode, joinPath(packageWrapper.path(), fieldNode.initialization.declaration.name));
         } else {
