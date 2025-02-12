@@ -186,31 +186,6 @@ public class SignatureLoader {
         return declaration;
     }
 
-    public static FunctionDeclarationNode findMethodWithParametersInAll(
-        Scope scope,
-        String name,
-        List<TypeWrapper> parameterTypes
-    ) {
-        FunctionDeclarationNode declaration = null;
-
-        while (declaration == null && scope != null && scope.parent() != null) {
-
-            final List<FunctionDeclarationNode> methods = new ArrayList<>(scope.symbols().functions());
-            for (final ClassDeclarationNode classDeclarationNode : scope.symbols().classes()) {
-                methods.addAll(classDeclarationNode.methods);
-            }
-            for (final InterfaceNode interfaceNode : scope.symbols().interfaces()) {
-                methods.addAll(interfaceNode.methods);
-            }
-
-            declaration = findMethodWithParameters(scope, methods, name, parameterTypes);
-
-            scope = scope.parent();
-        }
-
-        return declaration;
-    }
-
     public static boolean compareParameterTypes(
         Scope scope,
         List<ParameterNode> parameters,

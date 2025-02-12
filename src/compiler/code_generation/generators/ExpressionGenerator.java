@@ -42,15 +42,6 @@ public class ExpressionGenerator {
     }
 
     private static void generateFuncCall(FunctionCallNode funcCallNode, FileWrapper file, VariableManager vm, MethodVisitor mv) {
-        final FunctionDeclarationNode declaration = SignatureLoader.findMethodWithParametersInAll(
-            file.scope(),
-            funcCallNode.name,
-            funcCallNode.arguments.stream()
-                .map(argument -> argument.type).toList()
-        );
-        final String descriptor = FunctionGenerator.getDescriptor(declaration.parameters, declaration.returnType, file.scope());
-        final boolean isStatic = declaration.modifiers.contains("static");
-
         for (ArgumentNode arg : funcCallNode.arguments) {
             generate(arg.value.expression, mv, vm, file);
         }
@@ -59,10 +50,32 @@ public class ExpressionGenerator {
             final String topLevelClassName = file.name() + "Fl";
             final String fqTopLevelName = FQNameMapper.getFQName(topLevelClassName, file.scope());
 
+            final FunctionDeclarationNode declaration = SignatureLoader.findMethodWithParameters(
+                file.scope(),
+                funcCallNode.name,
+                funcCallNode.arguments.stream()
+                    .map(argument -> argument.type).toList()
+            );
+            final String descriptor = FunctionGenerator.getDescriptor(declaration.parameters, declaration.returnType, file.scope());
+
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, fqTopLevelName, funcCallNode.name, descriptor, false);
         } else {
             final TypeDeclarationNode caller = file.scope().getTypeDeclaration(funcCallNode.callerType);
+            if (caller == null) {
+                throw new RuntimeException("Caller not found in scope: " + funcCallNode.callerType);
+            }
+
             boolean isInterface = caller instanceof InterfaceNode;
+
+            final FunctionDeclarationNode declaration = SignatureLoader.findMethodWithParameters(
+                file.scope(),
+                caller.methods,
+                funcCallNode.name,
+                funcCallNode.arguments.stream()
+                    .map(argument -> argument.type).toList()
+            );
+            final String descriptor = FunctionGenerator.getDescriptor(declaration.parameters, declaration.returnType, file.scope());
+            final boolean isStatic = declaration.modifiers.contains("static");
 
             final int callType = isInterface ? Opcodes.INVOKEINTERFACE
                 : isStatic ? Opcodes.INVOKESTATIC : Opcodes.INVOKEVIRTUAL;
