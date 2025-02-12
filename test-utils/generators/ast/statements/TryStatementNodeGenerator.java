@@ -9,6 +9,7 @@ import java.util.List;
 public class TryStatementNodeGenerator {
     private BlockNode tryBranch;
     private List<CatchNode> exceptionBranches;
+    private BlockNode finallyBranch;
 
     public static TryStatementNodeGenerator builder() {
         return new TryStatementNodeGenerator();
@@ -24,7 +25,12 @@ public class TryStatementNodeGenerator {
         return this;
     }
 
+    public TryStatementNodeGenerator finallyBranch(BlockNode blockNode) {
+        this.finallyBranch = blockNode;
+        return this;
+    }
+
     public TryStatementNode build() {
-        return new TryStatementNode(tryBranch, exceptionBranches);
+        return new TryStatementNode(tryBranch, exceptionBranches, finallyBranch);
     }
 }

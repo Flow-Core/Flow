@@ -9,10 +9,12 @@ import java.util.Objects;
 public class TryStatementNode implements StatementNode {
     public BlockNode tryBranch;
     public List<CatchNode> exceptionBranches;
+    public BlockNode finallyBranch;
 
-    public TryStatementNode(BlockNode tryBranch, List<CatchNode> exceptionBranches) {
+    public TryStatementNode(BlockNode tryBranch, List<CatchNode> exceptionBranches, BlockNode finallyBranch) {
         this.tryBranch = tryBranch;
         this.exceptionBranches = exceptionBranches;
+        this.finallyBranch = finallyBranch;
     }
 
     @Override
@@ -28,20 +30,14 @@ public class TryStatementNode implements StatementNode {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         TryStatementNode that = (TryStatementNode) o;
-
-        if (!Objects.equals(tryBranch, that.tryBranch)) return false;
-        return Objects.equals(exceptionBranches, that.exceptionBranches);
+        return Objects.equals(tryBranch, that.tryBranch) && Objects.equals(exceptionBranches, that.exceptionBranches) && Objects.equals(finallyBranch, that.finallyBranch);
     }
 
     @Override
     public int hashCode() {
-        int result = tryBranch != null ? tryBranch.hashCode() : 0;
-        result = 31 * result + (exceptionBranches != null ? exceptionBranches.hashCode() : 0);
-        return result;
+        return Objects.hash(tryBranch, exceptionBranches, finallyBranch);
     }
 
     @Override
@@ -49,6 +45,7 @@ public class TryStatementNode implements StatementNode {
         return "TryStatementNode{" +
             "tryBranch=" + tryBranch +
             ", exceptionBranches=" + exceptionBranches +
+            ", finallyBranch=" + finallyBranch +
             '}';
     }
 }

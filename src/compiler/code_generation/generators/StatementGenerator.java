@@ -1,6 +1,7 @@
 package compiler.code_generation.generators;
 
 import compiler.code_generation.manager.VariableManager;
+import compiler.code_generation.mappers.FQNameMapper;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -88,7 +89,46 @@ public class StatementGenerator {
     }
 
     private static void generateTryStatement(TryStatementNode tryStatementNode, MethodVisitor mv, VariableManager vm, FileWrapper file) {
-        // TODO: finish
+        final Label tryStart = new Label();
+        final Label tryEnd = new Label();
+        final Label finallyStart = new Label();
+        final Label finallyEnd = new Label();
+
+        mv.visitLabel(tryStart);
+        BlockGenerator.generateFunctionBlock(tryStatementNode.tryBranch, file, mv, vm);
+        mv.visitLabel(tryEnd);
+
+        if (tryStatementNode.finallyBranch != null) {
+            mv.visitJumpInsn(Opcodes.GOTO, finallyStart);
+        }
+
+        for (CatchNode catchNode : tryStatementNode.exceptionBranches) {
+            Label catchLabel = new Label();
+
+            mv.visitTryCatchBlock(
+                tryStart,
+                tryEnd,
+                catchLabel,
+                FQNameMapper.getFQName(catchNode.parameter.type, file.scope())
+            );
+
+            mv.visitLabel(catchLabel);
+
+            vm.declareVariable(catchNode.parameter.name);
+
+            BlockGenerator.generateFunctionBlock(catchNode.body, file, mv, vm);
+
+            if (tryStatementNode.finallyBranch != null) {
+                mv.visitJumpInsn(Opcodes.GOTO, finallyStart);
+            }
+        }
+
+        if (tryStatementNode.finallyBranch != null) {
+            mv.visitTryCatchBlock(tryStart, tryEnd, finallyStart, null);
+            mv.visitLabel(finallyStart);
+            BlockGenerator.generateFunctionBlock(tryStatementNode.finallyBranch, file, mv, vm);
+            mv.visitLabel(finallyEnd);
+        }
     }
 
     private static void generateSwitchStatement(SwitchStatementNode switchStatementNode, MethodVisitor mv, VariableManager vm, FileWrapper file) {
