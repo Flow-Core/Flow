@@ -17,7 +17,7 @@ public class Main {
         final String file1 = """
         class Void {}
         class Int {
-            func equals(current: Int, other: Int): Bool {
+            func equals(other: Int): Bool {
                 return true
             }
         }

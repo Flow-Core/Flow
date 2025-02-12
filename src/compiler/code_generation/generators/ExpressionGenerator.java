@@ -42,8 +42,6 @@ public class ExpressionGenerator {
     }
 
     private static void generateFuncCall(FunctionCallNode funcCallNode, FileWrapper file, VariableManager vm, MethodVisitor mv) {
-        System.out.println(funcCallNode.name);
-        System.out.println(funcCallNode.arguments);
         final FunctionDeclarationNode declaration = SignatureLoader.findMethodWithParametersInAll(
             file.scope(),
             funcCallNode.name,

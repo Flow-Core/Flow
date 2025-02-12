@@ -179,7 +179,6 @@ public class SignatureLoader {
 
         while (declaration == null && scope != null && scope.parent() != null) {
             declaration = findMethodWithParameters(scope, scope.symbols().functions(), name, parameterTypes);
-            System.out.println(scope.symbols().functions());
 
             scope = scope.parent();
         }
