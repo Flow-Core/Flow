@@ -46,6 +46,9 @@ public class ExpressionTraverse {
         if (expression instanceof LiteralNode literalNode) {
             return LiteralTransformer.transform(literalNode);
         }
+        if (expression instanceof VariableReferenceNode referenceNode) {
+            return transformVariableReference(referenceNode, scope);
+        }
 
         return transformOperators(expression, scope);
     }
@@ -217,6 +220,33 @@ public class ExpressionTraverse {
         }
 
         return expression;
+    }
+
+    private static ExpressionNode transformVariableReference(VariableReferenceNode referenceNode, Scope scope) {
+        if (
+            scope.type() == Scope.Type.FUNCTION && scope.findLocalVariable(referenceNode.variable) ||
+            scope.findTypeDeclaration(referenceNode.variable)
+        ) {
+            return referenceNode;
+        }
+
+        TypeDeclarationNode containingType = scope.getContainingType();
+        FieldNode field = scope.getField(referenceNode.variable);
+
+        if (containingType != null && field != null) {
+            return new FieldReferenceNode(
+                containingType.name,
+                field.initialization.declaration.name,
+                new VariableReferenceNode("this"),
+                new TypeWrapper(
+                    field.initialization.declaration.type,
+                    false,
+                    field.initialization.declaration.isNullable
+                )
+            );
+        }
+
+        throw new SA_UnresolvedSymbolException(referenceNode.variable); // LOG
     }
 
     private static TypeWrapper determineType(ExpressionNode expression, Scope scope) {

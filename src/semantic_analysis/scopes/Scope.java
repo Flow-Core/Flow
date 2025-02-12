@@ -93,6 +93,10 @@ public record Scope (
         return symbols.findField(symbol) || (parent != null && parent().findField(symbol));
     }
 
+    public boolean findLocalVariable(String symbol) {
+        return type == Type.FUNCTION && (symbols.findField(symbol) || (parent != null && parent().findLocalVariable(symbol)));
+    }
+
     public TypeDeclarationNode getContainingType() {
         if (currentParent == null) return null;
 
