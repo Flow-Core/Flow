@@ -6,6 +6,7 @@ import compiler.code_generation.mappers.FQNameMapper;
 import compiler.code_generation.mappers.ModifierMapper;
 import org.objectweb.asm.ClassWriter;
 import parser.nodes.classes.ClassDeclarationNode;
+import parser.nodes.classes.ConstructorNode;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.files.FileWrapper;
@@ -44,13 +45,25 @@ public class ClassGenerator {
             VariableDeclarationGenerator.generateField(fieldNode, cw, file);
         }
 
+        for (final ConstructorNode constructorNode : classDeclarationNode.constructors) {
+            final FunctionDeclarationNode function = new FunctionDeclarationNode(
+                "<init>",
+                "Void",
+                false,
+                List.of(constructorNode.accessModifier),
+                constructorNode.parameters,
+                constructorNode.body
+            );
+
+            FunctionGenerator.generate(function, file, cw, false);
+        }
+
         if (classDeclarationNode.name.equals(file.name() + "Fl")) {
             MainGenerator.generate(cw, classDeclarationNode, file);
         }
 
         cw.visitEnd();
 
-        // TODO: generate ctors
         classes.add(new CodeGeneration.ClassFile(classDeclarationNode.name + ".class", cw.toByteArray()));
         return classes;
     }
