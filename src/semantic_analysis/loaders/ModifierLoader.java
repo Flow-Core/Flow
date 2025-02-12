@@ -49,6 +49,14 @@ public class ModifierLoader {
             .findFirst().orElse("public");
     }
 
+    public static boolean isPublic(List<String> modifiers) {
+        return !modifiers.contains("private") && !modifiers.contains("protected");
+    }
+
+    public static boolean isDefaultPublic(List<String> modifiers) {
+        return isPublic(modifiers) && !modifiers.contains("public");
+    }
+
     public enum ModifierType {
         CLASS(
             Map.of(
@@ -78,6 +86,31 @@ public class ModifierLoader {
                 "final", List.of("static", "abstract", "open"),
                 "open", List.of("static", "abstract", "final"),
                 "override", List.of("abstract", "static", "final")
+            )
+        ),
+        FUNCTION_INTERFACE(
+            Map.of(
+                "private", List.of("public, protected"),
+                "public", List.of("private", "protected"),
+                "protected", List.of("public", "private")
+            )
+        ),
+        CLASS_FIELD(
+            Map.of(
+                "private", List.of("public", "protected"),
+                "public", List.of("private", "protected"),
+                "protected", List.of("public", "private"),
+                "static", List.of("abstract", "final", "open"),
+                "abstract", List.of("static", "final", "open"),
+                "override", List.of("abstract", "static", "final")
+            )
+        ),
+        TOP_LEVEL_FIELD(
+            Map.of(
+                "private", List.of("public", "protected"),
+                "public", List.of("private", "protected"),
+                "protected", List.of("public", "private"),
+                "static", List.of("abstract", "final", "open")
             )
         ),
         CONSTRUCTOR(

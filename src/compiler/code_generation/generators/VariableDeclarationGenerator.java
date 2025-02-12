@@ -7,7 +7,6 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import parser.nodes.classes.FieldNode;
-import parser.nodes.classes.ObjectNode;
 import parser.nodes.literals.LiteralNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import semantic_analysis.files.FileWrapper;
@@ -25,7 +24,7 @@ public class VariableDeclarationGenerator {
         if (assignment != null) {
             ExpressionGenerator.generate(assignment.value.expression, mv, vm, file);
         } else {
-            mv.visitVarInsn(Opcodes.ACONST_NULL, vm.loadVariable(fieldName));
+            mv.visitInsn(Opcodes.ACONST_NULL);
         }
 
         vm.declareVariable(fieldName);
@@ -42,7 +41,7 @@ public class VariableDeclarationGenerator {
             FQNameMapper.getFQName(fieldNode.initialization.declaration.type, file.scope()),
             null,
             fieldNode.initialization.declaration.modifier.equals("const")
-                ? ((LiteralNode) ((ObjectNode) fieldNode.initialization.assignment.value.expression).arguments.get(0).value.expression).getValue()
+                ? ((LiteralNode) fieldNode.initialization.assignment.value.expression).getValue()
                 : null
         ).visitEnd();
     }

@@ -1,6 +1,7 @@
 package compiler.code_generation.generators;
 
 import compiler.code_generation.manager.VariableManager;
+import compiler.code_generation.mappers.FQNameMapper;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -21,6 +22,10 @@ public class StatementGenerator {
             generateTryStatement(tryStatementNode, mv, vm, file);
         } else if (statementNode instanceof SwitchStatementNode switchStatementNode) {
             generateSwitchStatement(switchStatementNode, mv, vm, file);
+        } else if (statementNode instanceof ThrowNode throwNode) {
+            ExpressionGenerator.generate(throwNode.throwValue.expression, mv, vm, file);
+
+            mv.visitInsn(Opcodes.ATHROW);
         } else {
             throw new UnsupportedOperationException("Unknown statement");
         }
@@ -53,7 +58,6 @@ public class StatementGenerator {
         mv.visitLabel(startLabel);
 
         ExpressionGenerator.generate(whileStatementNode.condition.expression, mv, vm, file);
-
         mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Bool", "value", "Z");
         mv.visitJumpInsn(Opcodes.IFNE, endLabel);
 
@@ -70,11 +74,65 @@ public class StatementGenerator {
     }
 
     private static void generateForStatement(ForStatementNode forStatementNode, MethodVisitor mv, VariableManager vm, FileWrapper file) {
-        // TODO: finish
+        final Label startLabel = new Label();
+        final Label endLabel = new Label();
+
+        VariableDeclarationGenerator.generateLocalVariable(forStatementNode.populatedInitialization, mv, vm, file);
+
+        mv.visitLabel(startLabel);
+
+        ExpressionGenerator.generate(forStatementNode.condition.expression, mv, vm, file);
+        mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Bool", "value", "Z");
+        mv.visitJumpInsn(Opcodes.IFNE, endLabel);
+
+        BlockGenerator.generateFunctionBlock(forStatementNode.loopBlock, file, mv, vm);
+        BlockGenerator.generateFunctionBlock(forStatementNode.action, file, mv, vm);
+
+        mv.visitJumpInsn(Opcodes.GOTO, startLabel);
+        mv.visitLabel(endLabel);
     }
 
     private static void generateTryStatement(TryStatementNode tryStatementNode, MethodVisitor mv, VariableManager vm, FileWrapper file) {
-        // TODO: finish
+        final Label tryStart = new Label();
+        final Label tryEnd = new Label();
+        final Label finallyStart = new Label();
+        final Label finallyEnd = new Label();
+
+        mv.visitLabel(tryStart);
+        BlockGenerator.generateFunctionBlock(tryStatementNode.tryBranch, file, mv, vm);
+        mv.visitLabel(tryEnd);
+
+        if (tryStatementNode.finallyBranch != null) {
+            mv.visitJumpInsn(Opcodes.GOTO, finallyStart);
+        }
+
+        for (CatchNode catchNode : tryStatementNode.exceptionBranches) {
+            Label catchLabel = new Label();
+
+            mv.visitTryCatchBlock(
+                tryStart,
+                tryEnd,
+                catchLabel,
+                FQNameMapper.getFQName(catchNode.parameter.type, file.scope())
+            );
+
+            mv.visitLabel(catchLabel);
+
+            vm.declareVariable(catchNode.parameter.name);
+
+            BlockGenerator.generateFunctionBlock(catchNode.body, file, mv, vm);
+
+            if (tryStatementNode.finallyBranch != null) {
+                mv.visitJumpInsn(Opcodes.GOTO, finallyStart);
+            }
+        }
+
+        if (tryStatementNode.finallyBranch != null) {
+            mv.visitTryCatchBlock(tryStart, tryEnd, finallyStart, null);
+            mv.visitLabel(finallyStart);
+            BlockGenerator.generateFunctionBlock(tryStatementNode.finallyBranch, file, mv, vm);
+            mv.visitLabel(finallyEnd);
+        }
     }
 
     private static void generateSwitchStatement(SwitchStatementNode switchStatementNode, MethodVisitor mv, VariableManager vm, FileWrapper file) {

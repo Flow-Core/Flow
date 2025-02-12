@@ -35,8 +35,8 @@ class TopLevelTransformerTest {
             .block(BlockNodeGenerator.builder().children(new ArrayList<>()).build())
             .build();
 
-        FileWrapper file = new FileWrapper(new BlockNode(List.of(function1, function2)), ScopeGenerator.builder().build(), "Sum");
-        TopLevelTransformer.transform(file);
+        FileWrapper file = new FileWrapper(new BlockNode(new ArrayList<>(List.of(function1, function2))), ScopeGenerator.builder().build(), "Sum");
+        TopLevelTransformer.transform(file, "");
 
         final ClassDeclarationNode generatedClass = file.scope().getClass("SumFl");
         Assertions.assertNotNull(generatedClass);
@@ -61,8 +61,8 @@ class TopLevelTransformerTest {
                 .build())
             .build();
 
-        FileWrapper file = new FileWrapper(new BlockNode(List.of(field1, field2)), ScopeGenerator.builder().build(), "Counter");
-        TopLevelTransformer.transform(file);
+        FileWrapper file = new FileWrapper(new BlockNode(new ArrayList<>(List.of(field1, field2))), ScopeGenerator.builder().build(), "Counter");
+        TopLevelTransformer.transform(file, "");
 
         final ClassDeclarationNode generatedClass = file.scope().getClass("CounterFl");
         Assertions.assertNotNull(generatedClass);
@@ -87,8 +87,8 @@ class TopLevelTransformerTest {
                 .build())
             .build();
 
-        FileWrapper file = new FileWrapper(new BlockNode(List.of(field, function)), ScopeGenerator.builder().build(), "Counter");
-        TopLevelTransformer.transform(file);
+        FileWrapper file = new FileWrapper(new BlockNode(new ArrayList<>(List.of(field, function))), ScopeGenerator.builder().build(), "Counter");
+        TopLevelTransformer.transform(file, "");
 
         final ClassDeclarationNode generatedClass = file.scope().getClass("CounterFl");
         Assertions.assertNotNull(generatedClass);
@@ -99,7 +99,7 @@ class TopLevelTransformerTest {
     @Test
     void test_transform_with_empty_file_should_return_empty_class() {
         FileWrapper file = new FileWrapper(new BlockNode(new ArrayList<>()), ScopeGenerator.builder().build(), "Empty");
-        TopLevelTransformer.transform(file);
+        TopLevelTransformer.transform(file, "");
 
         final ClassDeclarationNode generatedClass = file.scope().getClass("Empty");
         Assertions.assertNull(generatedClass);

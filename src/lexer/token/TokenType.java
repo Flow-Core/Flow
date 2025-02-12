@@ -19,6 +19,7 @@ public enum TokenType {
     INTERFACE("\\binterface\\b"),
     TRY("\\btry\\b"),
     CATCH("\\bcatch\\b"),
+    FINALLY("\\bfinally\\b"),
     THROW("\\bthrow\\b"),
 
     CONST("\\bconst\\b"),

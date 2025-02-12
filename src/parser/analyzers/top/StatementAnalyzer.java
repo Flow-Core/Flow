@@ -144,7 +144,6 @@ public class StatementAnalyzer extends TopAnalyzer {
 
                     parser.consume(TokenType.CLOSE_PARENTHESES);
 
-
                     final BlockNode catchBlock = getBlock(parser);
 
                     catchNodes.add(
@@ -155,10 +154,19 @@ public class StatementAnalyzer extends TopAnalyzer {
                     );
                 } while (parser.check(TokenType.CATCH));
 
+                BlockNode finallyBlock = null;
+                if (parser.check(TokenType.FINALLY)) {
+                    parser.advance();
+
+                    finallyBlock = getBlock(parser);
+                    System.out.println(parser.peek());
+                }
+
                 return new AnalyzerResult(
                     new TryStatementNode(
                         tryBlock,
-                        catchNodes
+                        catchNodes,
+                        finallyBlock
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );

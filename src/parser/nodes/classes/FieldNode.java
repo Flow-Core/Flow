@@ -24,7 +24,9 @@ public class FieldNode implements ASTNode {
     public <D> void accept(final ASTVisitor<D> visitor, D data) {
         ASTNode.super.accept(visitor, data);
 
-        initialization.accept(visitor, data);
+        if (initialization != null) {
+            initialization.accept(visitor, data);
+        }
     }
 
     @Override

@@ -1,5 +1,6 @@
 package compiler.code_generation.generators;
 
+import compiler.code_generation.CodeGeneration;
 import compiler.code_generation.constants.CodeGenerationConstant;
 import compiler.code_generation.mappers.FQNameMapper;
 import compiler.code_generation.mappers.ModifierMapper;
@@ -12,7 +13,7 @@ import semantic_analysis.files.FileWrapper;
 import java.util.List;
 
 public class InterfaceGenerator {
-    public static List<ClassWriter> generate(InterfaceNode interfaceNode, FileWrapper file) {
+    public static List<CodeGeneration.ClassFile> generate(InterfaceNode interfaceNode, FileWrapper file) {
         final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
 
         String interfaceName = FQNameMapper.getFQName(interfaceNode, file.scope());
@@ -31,8 +32,7 @@ public class InterfaceGenerator {
             implementedInterfaces
         );
 
-        final List<ClassWriter> classes = BlockGenerator.generateClassBlock(interfaceNode.block, file);
-        classes.add(cw);
+        final List<CodeGeneration.ClassFile> classes = BlockGenerator.generateClassBlock(interfaceNode.block, file);
 
         for (final FunctionDeclarationNode functionDeclarationNode : interfaceNode.methods) {
             FunctionGenerator.generate(functionDeclarationNode, file, cw, true);
@@ -40,6 +40,7 @@ public class InterfaceGenerator {
 
         cw.visitEnd();
 
+        classes.add(new CodeGeneration.ClassFile(interfaceNode.name + ".class", cw.toByteArray()));
         return classes;
     }
 }

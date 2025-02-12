@@ -9,6 +9,7 @@ import parser.nodes.components.ArgumentNode;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.literals.*;
 import parser.nodes.variable.FieldReferenceNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.files.FileWrapper;
@@ -16,7 +17,6 @@ import semantic_analysis.loaders.SignatureLoader;
 import semantic_analysis.scopes.Scope;
 
 import static compiler.code_generation.generators.FunctionGenerator.getJVMName;
-import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
 
 public class ExpressionGenerator {
     public static void generate(ExpressionNode expression, MethodVisitor mv, VariableManager vm, FileWrapper file) {
@@ -28,6 +28,10 @@ public class ExpressionGenerator {
             generateObjectInstantiation(objectNode, file.scope(), file, vm, mv);
         } else if (expression instanceof FieldReferenceNode fieldReferenceNode) {
             generateFieldReference(fieldReferenceNode, file.scope(), mv);
+        } else if (expression instanceof LiteralNode literalNode) {
+            generateLiteral(literalNode, mv);
+        } else if (expression instanceof NullLiteral) {
+            mv.visitInsn(Opcodes.ACONST_NULL);
         } else {
             throw new UnsupportedOperationException("Unknown expression type: " + expression.getClass().getSimpleName());
         }
@@ -38,14 +42,24 @@ public class ExpressionGenerator {
     }
 
     private static void generateFuncCall(FunctionCallNode funcCallNode, FileWrapper file, VariableManager vm, MethodVisitor mv) {
-        final FunctionDeclarationNode declaration = findMethodWithParameters(
-            file.scope(),
-            funcCallNode.name,
-            funcCallNode.arguments.stream()
-                .map(argument -> argument.type).toList()
-        );
-        final String descriptor = FunctionGenerator.getDescriptor(declaration.parameters, declaration.returnType, file.scope());
-        final boolean isStatic = declaration.modifiers.contains("static");
+        // ***
+        // Temp for debugging
+        if (funcCallNode.name.equals("print")) {
+            mv.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+
+            ExpressionGenerator.generate(funcCallNode.arguments.get(0).value.expression, mv, vm, file);
+
+            mv.visitMethodInsn(
+                Opcodes.INVOKEVIRTUAL,
+                "java/io/PrintStream",
+                "println",
+                "(Ljava/lang/Object;)V",
+                false
+            );
+
+            return;
+        }
+        // ***
 
         for (ArgumentNode arg : funcCallNode.arguments) {
             generate(arg.value.expression, mv, vm, file);
@@ -55,10 +69,32 @@ public class ExpressionGenerator {
             final String topLevelClassName = file.name() + "Fl";
             final String fqTopLevelName = FQNameMapper.getFQName(topLevelClassName, file.scope());
 
+            final FunctionDeclarationNode declaration = SignatureLoader.findMethodWithParameters(
+                file.scope(),
+                funcCallNode.name,
+                funcCallNode.arguments.stream()
+                    .map(argument -> argument.type).toList()
+            );
+            final String descriptor = FunctionGenerator.getDescriptor(declaration.parameters, declaration.returnType, file.scope());
+
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, fqTopLevelName, funcCallNode.name, descriptor, false);
         } else {
             final TypeDeclarationNode caller = file.scope().getTypeDeclaration(funcCallNode.callerType);
+            if (caller == null) {
+                throw new RuntimeException("Caller not found in scope: " + funcCallNode.callerType);
+            }
+
             boolean isInterface = caller instanceof InterfaceNode;
+
+            final FunctionDeclarationNode declaration = SignatureLoader.findMethodWithParameters(
+                file.scope(),
+                caller.methods,
+                funcCallNode.name,
+                funcCallNode.arguments.stream()
+                    .map(argument -> argument.type).toList()
+            );
+            final String descriptor = FunctionGenerator.getDescriptor(declaration.parameters, declaration.returnType, file.scope());
+            final boolean isStatic = declaration.modifiers.contains("static");
 
             final int callType = isInterface ? Opcodes.INVOKEINTERFACE
                 : isStatic ? Opcodes.INVOKESTATIC : Opcodes.INVOKEVIRTUAL;
@@ -85,7 +121,7 @@ public class ExpressionGenerator {
 
         ConstructorNode constructorNode = null;
         for (final ConstructorNode currentConstructor : objClass.constructors) {
-            if (SignatureLoader.compareParameterTypes(scope, currentConstructor.parameters, objNode.arguments)) {
+            if (SignatureLoader.compareParameterTypesWithoutThis(scope, currentConstructor.parameters, objNode.arguments)) {
                 constructorNode = currentConstructor;
             }
         }
@@ -104,5 +140,9 @@ public class ExpressionGenerator {
         }
 
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, fqObjectName, "<init>", constructorDescriptor, false);
+    }
+
+    public static void generateLiteral(LiteralNode literalNode, MethodVisitor mv) {
+        mv.visitLdcInsn(literalNode.getValue());
     }
 }

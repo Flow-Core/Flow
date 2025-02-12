@@ -1,20 +1,37 @@
+import compiler.code_generation.CodeGeneration;
 import lexer.Lexer;
 import lexer.token.Token;
 import parser.Parser;
 import parser.nodes.components.BlockNode;
-import semantic_analysis.loaders.PackageMapper;
-import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.SemanticAnalysis;
+import semantic_analysis.files.PackageWrapper;
+import semantic_analysis.loaders.PackageMapper;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
 public class Main {
     public static void main(String[] args) {
         final String file1 = """
-        class Int {}
+        class Void {}
+        class Int {
+            val x = 10
+            func equals(other: Int): Bool {
+                return true
+            }
+        }
+        class Double {}
+        class Bool {}
         
-        const x = 10
+        const y = 10
+        
+        func main() {
+            val x = 10
+            print(x)
+        }
         \s""";
 
         final String file2 = """
@@ -28,13 +45,32 @@ public class Main {
         final BlockNode file3Root = getFileAST(file3);
         final Map<String, PackageWrapper> files = PackageMapper.map(
             List.of(file1Root, file2Root, file3Root),
-            List.of("file1.fl", "file2.fl", "file3.fl")
+            List.of("file1", "file2", "file3")
         );
 
         final SemanticAnalysis semanticAnalysis = new SemanticAnalysis(files);
-        semanticAnalysis.analyze();
+        final Map<String, PackageWrapper> packages = semanticAnalysis.analyze();
 
         Parser.printTree(file1Root);
+
+        final CodeGeneration codeGeneration = new CodeGeneration(packages.get("").files().get(0));
+        final List<CodeGeneration.ClassFile> bytes = codeGeneration.generate();
+
+        File buildDir = new File("build");
+        if (!buildDir.exists()) {
+            if (!buildDir.mkdir()) {
+                System.err.println("Couldn't make build dir");
+            }
+        }
+
+        for (final CodeGeneration.ClassFile classFile : bytes) {
+            File outputFile = new File(buildDir, classFile.name());
+            try (FileOutputStream fos = new FileOutputStream(outputFile)) {
+                fos.write(classFile.content());
+            } catch (IOException e) {
+                System.out.println("Failed to write class file");
+            }
+        }
     }
 
     private static BlockNode getFileAST(final String file) {

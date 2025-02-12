@@ -12,9 +12,9 @@ import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
 
 public class ClassTraverse {
-    public static void loadMethodSignatures(TypeDeclarationNode typeDeclaration, Scope scope) {
+    public static void loadMethodSignatures(TypeDeclarationNode typeDeclaration, Scope scope, boolean isInterface) {
         for (final FunctionDeclarationNode method : typeDeclaration.methods) {
-            FunctionLoader.loadSignature(method, scope);
+            FunctionLoader.loadSignature(method, scope, isInterface);
         }
     }
 

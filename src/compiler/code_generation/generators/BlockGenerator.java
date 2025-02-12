@@ -1,7 +1,7 @@
 package compiler.code_generation.generators;
 
+import compiler.code_generation.CodeGeneration;
 import compiler.code_generation.manager.VariableManager;
-import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import parser.nodes.ASTNode;
 import parser.nodes.classes.ClassDeclarationNode;
@@ -9,6 +9,7 @@ import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.InterfaceNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.expressions.ExpressionBaseNode;
+import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.statements.StatementNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import semantic_analysis.files.FileWrapper;
@@ -21,6 +22,8 @@ public class BlockGenerator {
         for (final ASTNode node : blockNode.children) {
             if (node instanceof ExpressionBaseNode expressionBaseNode) {
                 ExpressionGenerator.generate(expressionBaseNode.expression, mv, vm, file);
+            } else if (node instanceof ExpressionNode expressionNode) {
+                ExpressionGenerator.generate(expressionNode, mv, vm, file);
             } else if (node instanceof StatementNode statementNode) {
                 StatementGenerator.generate(statementNode, mv, vm, file);
             } else if (node instanceof FieldNode fieldNode) {
@@ -33,8 +36,8 @@ public class BlockGenerator {
         }
     }
 
-    public static List<ClassWriter> generateClassBlock(BlockNode blockNode, FileWrapper file) {
-        final List<ClassWriter> classes = new ArrayList<>();
+    public static List<CodeGeneration.ClassFile> generateClassBlock(BlockNode blockNode, FileWrapper file) {
+        final List<CodeGeneration.ClassFile> classes = new ArrayList<>();
 
         for (final ASTNode node : blockNode.children) {
             if (node instanceof ClassDeclarationNode classDeclarationNode) {
