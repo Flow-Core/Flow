@@ -73,6 +73,7 @@ public class StatementTraverse {
             )
         );
         forScope.symbols().fields().add(localVariable);
+        forStatementNode.populatedInitialization = localVariable;
 
         BlockTraverse.traverse(forStatementNode.action, forScope);
         BlockTraverse.traverse(forStatementNode.loopBlock, forScope);

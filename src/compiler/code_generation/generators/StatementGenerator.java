@@ -53,7 +53,6 @@ public class StatementGenerator {
         mv.visitLabel(startLabel);
 
         ExpressionGenerator.generate(whileStatementNode.condition.expression, mv, vm, file);
-
         mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Bool", "value", "Z");
         mv.visitJumpInsn(Opcodes.IFNE, endLabel);
 
@@ -70,7 +69,22 @@ public class StatementGenerator {
     }
 
     private static void generateForStatement(ForStatementNode forStatementNode, MethodVisitor mv, VariableManager vm, FileWrapper file) {
-        // TODO: finish
+        final Label startLabel = new Label();
+        final Label endLabel = new Label();
+
+        VariableDeclarationGenerator.generateLocalVariable(forStatementNode.populatedInitialization, mv, vm, file);
+
+        mv.visitLabel(startLabel);
+
+        ExpressionGenerator.generate(forStatementNode.condition.expression, mv, vm, file);
+        mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Bool", "value", "Z");
+        mv.visitJumpInsn(Opcodes.IFNE, endLabel);
+
+        BlockGenerator.generateFunctionBlock(forStatementNode.loopBlock, file, mv, vm);
+        BlockGenerator.generateFunctionBlock(forStatementNode.action, file, mv, vm);
+
+        mv.visitJumpInsn(Opcodes.GOTO, startLabel);
+        mv.visitLabel(endLabel);
     }
 
     private static void generateTryStatement(TryStatementNode tryStatementNode, MethodVisitor mv, VariableManager vm, FileWrapper file) {
