@@ -7,6 +7,7 @@ import semantic_analysis.SemanticAnalysis;
 import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.loaders.PackageMapper;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
@@ -28,8 +29,7 @@ public class Main {
         
         func main() {
             val x = 10
-            if (x == 10) {
-            }
+            print(x)
         }
         \s""";
 
@@ -55,8 +55,16 @@ public class Main {
         final CodeGeneration codeGeneration = new CodeGeneration(packages.get("").files().get(0));
         final List<CodeGeneration.ClassFile> bytes = codeGeneration.generate();
 
+        File buildDir = new File("build");
+        if (!buildDir.exists()) {
+            if (!buildDir.mkdir()) {
+                System.err.println("Couldn't make build dir");
+            }
+        }
+
         for (final CodeGeneration.ClassFile classFile : bytes) {
-            try (FileOutputStream fos = new FileOutputStream(classFile.name())) {
+            File outputFile = new File(buildDir, classFile.name());
+            try (FileOutputStream fos = new FileOutputStream(outputFile)) {
                 fos.write(classFile.content());
             } catch (IOException e) {
                 System.out.println("Failed to write class file");

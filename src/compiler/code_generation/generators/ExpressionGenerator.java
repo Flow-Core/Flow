@@ -42,6 +42,25 @@ public class ExpressionGenerator {
     }
 
     private static void generateFuncCall(FunctionCallNode funcCallNode, FileWrapper file, VariableManager vm, MethodVisitor mv) {
+        // ***
+        // Temp for debugging
+        if (funcCallNode.name.equals("print")) {
+            mv.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+
+            ExpressionGenerator.generate(funcCallNode.arguments.get(0).value.expression, mv, vm, file);
+
+            mv.visitMethodInsn(
+                Opcodes.INVOKEVIRTUAL,
+                "java/io/PrintStream",
+                "println",
+                "(Ljava/lang/Object;)V",
+                false
+            );
+
+            return;
+        }
+        // ***
+
         for (ArgumentNode arg : funcCallNode.arguments) {
             generate(arg.value.expression, mv, vm, file);
         }
