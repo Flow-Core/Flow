@@ -44,7 +44,10 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
         validateBaseClass(classDeclaration, data);
         validateInterfaces(classDeclaration.implementedInterfaces, data);
 
-        addPrimaryConstructor(classDeclaration);
+        if (!classDeclaration.modifiers.contains("abstract")) {
+            addPrimaryConstructor(classDeclaration);
+        }
+
         addThisParameterToInstanceMethods(classDeclaration);
 
         if (!classDeclaration.modifiers.contains("abstract")) {

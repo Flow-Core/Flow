@@ -112,6 +112,10 @@ public class ExpressionGenerator {
     }
 
     private static void generateObjectInstantiation(ObjectNode objNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv) {
+        if (objNode.className.equals("Void")) {
+            return;
+        }
+
         final String fqObjectName = FQNameMapper.getFQName(objNode.className, scope);
 
         final ClassDeclarationNode objClass = scope.getClass(objNode.className);
@@ -143,6 +147,10 @@ public class ExpressionGenerator {
     }
 
     public static void generateLiteral(LiteralNode literalNode, MethodVisitor mv) {
+        if (literalNode instanceof VoidLiteralNode) {
+            return;
+        }
+
         mv.visitLdcInsn(literalNode.getValue());
     }
 }

@@ -1,4 +1,7 @@
 import compiler.code_generation.CodeGeneration;
+import compiler.packer.JarPacker;
+import compiler.packer.Packer;
+import compiler.packer.PackerFacade;
 import lexer.Lexer;
 import lexer.token.Token;
 import parser.Parser;
@@ -16,7 +19,7 @@ import java.util.Map;
 public class Main {
     public static void main(String[] args) {
         final String file1 = """
-        class Void {}
+        abstract class Void {}
         class Int {
             val x = 10
             func equals(other: Int): Bool {
@@ -24,17 +27,18 @@ public class Main {
             }
         }
         class Double {}
-        class Bool {}
-        
-        const y = 10
+        class Bool {
+        }
         
         func main() {
-            val x = 10
-            print(x)
+            print("Hello world")
         }
         \s""";
 
         final String file2 = """
+        package flow
+        
+        class Thing {}
         """;
 
         final String file3 = """
@@ -70,6 +74,15 @@ public class Main {
             } catch (IOException e) {
                 System.out.println("Failed to write class file");
             }
+        }
+
+        final Packer packer = new JarPacker();
+        PackerFacade.initPacker(packer);
+
+        try {
+            PackerFacade.pack("output.jar", "./build");
+        } catch (IOException e) {
+            System.err.println("Couldn't pack jar file");
         }
     }
 

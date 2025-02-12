@@ -1,6 +1,7 @@
 package compiler.code_generation.generators;
 
 import compiler.code_generation.mappers.FQNameMapper;
+import compiler.packer.PackerFacade;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -24,6 +25,10 @@ public class MainGenerator {
             return;
         }
 
+        PackerFacade.setMainClassFQName(
+            FQNameMapper.getFQName(topLevelClass, file.scope())
+        );
+
         final MethodVisitor mv = cw.visitMethod(
             Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
             "main",
@@ -31,6 +36,8 @@ public class MainGenerator {
             null,
             null
         );
+
+        mv.visitCode();
 
         mv.visitMethodInsn(
             Opcodes.INVOKESTATIC,
