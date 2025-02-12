@@ -22,6 +22,10 @@ public class StatementGenerator {
             generateTryStatement(tryStatementNode, mv, vm, file);
         } else if (statementNode instanceof SwitchStatementNode switchStatementNode) {
             generateSwitchStatement(switchStatementNode, mv, vm, file);
+        } else if (statementNode instanceof ThrowNode throwNode) {
+            ExpressionGenerator.generate(throwNode.throwValue.expression, mv, vm, file);
+
+            mv.visitInsn(Opcodes.ATHROW);
         } else {
             throw new UnsupportedOperationException("Unknown statement");
         }
