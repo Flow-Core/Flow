@@ -27,17 +27,12 @@ public class Main {
 
         final String file2 = """
         func main() {
-            val x = "test"
-            print(x)
-        
             if (true) {
                 print("works!")
             } else {
                 print("nah uh")
             }
         }
-        
-        class A {}
         """;
 
         final String file3 = """
