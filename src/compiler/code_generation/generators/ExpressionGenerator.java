@@ -143,11 +143,19 @@ public class ExpressionGenerator {
             generate(arg.value.expression, mv, vm, file);
         }
 
+        // TODO: figure out why
+        if (objNode.className.equals("Bool")) {
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "flow/Bool", "<init>", "(I)V", false);
+            return;
+        }
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, fqObjectName, "<init>", constructorDescriptor, false);
     }
 
     public static void generateLiteral(LiteralNode literalNode, MethodVisitor mv) {
         if (literalNode instanceof VoidLiteralNode) {
+            return;
+        } else if (literalNode instanceof BooleanLiteralNode booleanLiteralNode) {
+            mv.visitInsn(booleanLiteralNode.value ? Opcodes.ICONST_1 : Opcodes.ICONST_0);
             return;
         }
 

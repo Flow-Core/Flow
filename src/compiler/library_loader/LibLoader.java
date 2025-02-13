@@ -9,6 +9,9 @@ import org.objectweb.asm.tree.MethodNode;
 import parser.nodes.classes.BaseClassNode;
 import parser.nodes.classes.BaseInterfaceNode;
 import parser.nodes.classes.ClassDeclarationNode;
+import parser.nodes.classes.ConstructorNode;
+import parser.nodes.components.BlockNode;
+import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
@@ -77,7 +80,7 @@ public class LibLoader {
         if (nameIndex == -1) {
             className = classNode.name;
         } else {
-            className = classNode.name.substring(nameIndex);
+            className = classNode.name.substring(nameIndex + 1);
         }
 
         List<parser.nodes.classes.FieldNode> fields = new ArrayList<>();
@@ -95,8 +98,14 @@ public class LibLoader {
         }
 
         List<FunctionDeclarationNode> methods = new ArrayList<>();
+        List<ConstructorNode> constructors = new ArrayList<>();
+
         for (MethodNode method : classNode.methods) {
-            methods.add(convertToFlowMethod(method));
+            if (method.name.equals("<init>")) {
+                constructors.add(convertToFlowConstructor(method));
+            } else {
+                methods.add(convertToFlowMethod(method));
+            }
         }
 
         List<BaseClassNode> baseClasses = List.of(new BaseClassNode(classNode.superName, List.of()));
@@ -104,7 +113,7 @@ public class LibLoader {
         List<BaseInterfaceNode> interfaces = classNode.interfaces.stream().map(BaseInterfaceNode::new).toList();
 
         final ClassDeclarationNode flowClass = new ClassDeclarationNode(className, extractModifiers(classNode.access), new ArrayList<>(), baseClasses,
-            interfaces, fields, methods, new ArrayList<>(), null, null);
+            interfaces, fields, methods, constructors, null, null);
 
         symbolTable.bindingContext().put(flowClass, classNode.name);
         return flowClass;
@@ -113,7 +122,57 @@ public class LibLoader {
     private static FunctionDeclarationNode convertToFlowMethod(MethodNode method) {
         String returnType = Type.getReturnType(method.desc).getClassName();
         boolean isNullable = true; // TODO: Add annotations or think about a better solution
-        return new FunctionDeclarationNode(method.name, returnType, isNullable, extractModifiers(method.access), new ArrayList<>(), null);
+
+        return new FunctionDeclarationNode(method.name, returnType, isNullable, extractModifiers(method.access), parseParameters(method), null);
+    }
+
+    private static ConstructorNode convertToFlowConstructor(MethodNode method) {
+        final List<String> modifier = extractModifiers(method.access);
+        return new ConstructorNode(modifier.isEmpty() ? "public" : modifier.get(0), parseParameters(method), new BlockNode(new ArrayList<>()));
+    }
+
+    private static List<ParameterNode> parseParameters(MethodNode methodNode) {
+        Type[] argumentTypes = Type.getArgumentTypes(methodNode.desc);
+        List<ParameterNode> parameters = new ArrayList<>();
+
+        for (int i = 0; i < argumentTypes.length; i++) {
+            String typeName = getSimpleName(mapType(argumentTypes[i]));
+            String paramName = (methodNode.parameters != null && i < methodNode.parameters.size())
+                ? methodNode.parameters.get(i).name
+                : "param" + i;
+
+            parameters.add(new ParameterNode(typeName, false, paramName, null));
+        }
+
+        return parameters;
+    }
+
+    private static String mapType(Type type) {
+        return switch (type.getSort()) {
+            case Type.BOOLEAN -> "Bool";
+            case Type.INT -> "Int";
+            case Type.FLOAT -> "Float";
+            case Type.DOUBLE -> "Double";
+            case Type.LONG -> "Long";
+            case Type.BYTE -> "Byte";
+            case Type.CHAR -> "Char";
+            case Type.SHORT -> "Short";
+            case Type.OBJECT, Type.ARRAY -> type.getClassName();
+            default -> throw new IllegalArgumentException("Unsupported type: " + type);
+        };
+    }
+
+    private static String getSimpleName(String name) {
+        int nameIndex = name.lastIndexOf("/");
+        String className;
+
+        if (nameIndex == -1) {
+            className = name;
+        } else {
+            className = name.substring(nameIndex + 1);
+        }
+
+        return className;
     }
 
     private static List<String> extractModifiers(int flags) {

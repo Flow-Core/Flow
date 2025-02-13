@@ -48,6 +48,7 @@ public class MainGenerator {
         );
 
         mv.visitInsn(Opcodes.RETURN);
+        mv.visitMaxs(0, 0);
         mv.visitEnd();
     }
 }

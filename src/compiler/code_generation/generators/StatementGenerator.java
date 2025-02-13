@@ -39,7 +39,7 @@ public class StatementGenerator {
         ExpressionGenerator.generate(ifStatementNode.condition.expression, mv, vm, file);
 
         mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Bool", "value", "Z");
-        mv.visitJumpInsn(Opcodes.IFNE, elseLabel);
+        mv.visitJumpInsn(Opcodes.IFEQ, elseLabel);
 
         BlockGenerator.generateFunctionBlock(ifStatementNode.trueBranch, file, mv, vm);
         mv.visitJumpInsn(Opcodes.GOTO, endLabel);
@@ -60,7 +60,7 @@ public class StatementGenerator {
 
         ExpressionGenerator.generate(whileStatementNode.condition.expression, mv, vm, file);
         mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Bool", "value", "Z");
-        mv.visitJumpInsn(Opcodes.IFNE, endLabel);
+        mv.visitJumpInsn(Opcodes.IFEQ, endLabel);
 
         BlockGenerator.generateFunctionBlock(whileStatementNode.loopBlock, file, mv, vm);
 
@@ -89,7 +89,7 @@ public class StatementGenerator {
 
         ExpressionGenerator.generate(forStatementNode.condition.expression, mv, vm, file);
         mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Bool", "value", "Z");
-        mv.visitJumpInsn(Opcodes.IFNE, endLabel);
+        mv.visitJumpInsn(Opcodes.IFEQ, endLabel);
 
         BlockGenerator.generateFunctionBlock(forStatementNode.loopBlock, file, mv, vm);
         BlockGenerator.generateFunctionBlock(forStatementNode.action, file, mv, vm);

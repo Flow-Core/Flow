@@ -14,6 +14,10 @@ public class FQNameMapper {
     }
 
     public static String getFQName(String name, Scope scope) {
+        if (name.contains(".")) {
+            return map(name);
+        }
+
         ASTNode node = scope.getTypeDeclaration(name);
         if (node == null) {
             throw new IllegalArgumentException("Class should be loaded in the current scope");
