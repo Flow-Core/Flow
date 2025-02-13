@@ -185,7 +185,7 @@ public class ExpressionTraverse {
                 );
             }
 
-
+            throw new SA_SemanticError("Could not resolve operator '" + binaryExpression.operator + "' for '" + binaryExpression.left + "' and '" + binaryExpression.right + "'");
         } else if (expression instanceof UnaryOperatorNode unaryExpression) {
             unaryExpression.operand = transformValue(unaryExpression.operand, scope);
 
@@ -217,6 +217,8 @@ public class ExpressionTraverse {
                     )
                 );
             }
+
+            throw new SA_SemanticError("Could not resolve operator '" + unaryExpression.operator + "' for '" + unaryExpression.operand);
         }
 
         return expression;
@@ -233,9 +235,9 @@ public class ExpressionTraverse {
         TypeDeclarationNode containingType = scope.getContainingType();
         FieldNode field = scope.getField(referenceNode.variable);
 
-        if (containingType != null && field != null) {
+        if (field != null) {
             return new FieldReferenceNode(
-                containingType.name,
+                containingType != null ? containingType.name : null,
                 field.initialization.declaration.name,
                 new VariableReferenceNode("this"),
                 new TypeWrapper(
@@ -324,12 +326,18 @@ public class ExpressionTraverse {
             return new TypeWrapper(function.returnType, false, function.isReturnTypeNullable);
         }
         if (expression instanceof FieldReferenceNode field) {
-            ClassDeclarationNode holder = scope.getClass(field.holderType);
+            FieldNode actualField;
+            ClassDeclarationNode holder = null;
 
-            if (holder == null)
-                throw new SA_UnresolvedSymbolException(field.holderType); // Log (unknown type)
+            if (field.holderType != null) {
+                holder = scope.getClass(field.holderType);
 
-            FieldNode actualField = holder.findField(scope, field.name);
+                if (holder == null)
+                    throw new SA_UnresolvedSymbolException(field.holderType); // Log (unknown type)
+                actualField = holder.findField(scope, field.name);
+            } else {
+                actualField = scope.getField(field.name);
+            }
 
             if (actualField == null)
                 throw new SA_UnresolvedSymbolException(field.holderType + "." + field.name); // Log
@@ -338,12 +346,13 @@ public class ExpressionTraverse {
 
             TypeDeclarationNode containingType = scope.getContainingType();
 
-            if (modifier.equals("private") && (containingType == null || !containingType.name.equals(holder.name)) ||
-                modifier.equals("protected") && (containingType == null || !scope.isSameType(
-                    new TypeWrapper(containingType.name, false, false),
-                    new TypeWrapper(holder.name, false, false)
-                ))
-            ) throw new SA_SemanticError("Cannot access '" + field.name + "', it is " + modifier + " in '" + holder.name + "'");
+            if (holder != null)
+                if (modifier.equals("private") && (containingType == null || !containingType.name.equals(holder.name)) ||
+                    modifier.equals("protected") && (containingType == null || !scope.isSameType(
+                        new TypeWrapper(containingType.name, false, false),
+                        new TypeWrapper(holder.name, false, false)
+                    ))
+                ) throw new SA_SemanticError("Cannot access '" + field.name + "', it is " + modifier + " in '" + holder.name + "'");
 
             return new TypeWrapper(
                 actualField.initialization.declaration.type,
