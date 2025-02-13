@@ -46,7 +46,16 @@
     <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../Downloads/asm-9.7.1.jar!/" />
+          <root url="jar:///Users/../Downloads/asm-9.7.1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../asm-tree.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

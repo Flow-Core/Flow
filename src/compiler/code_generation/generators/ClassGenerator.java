@@ -17,7 +17,7 @@ public class ClassGenerator {
     public static List<CodeGeneration.ClassFile> generate(ClassDeclarationNode classDeclarationNode, FileWrapper file) {
         final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
 
-        String baseClassName = CodeGenerationConstant.baseObjectFQName;
+        String baseClassName = CodeGenerationConstant.defaultBaseObjectFQName;
         if (!classDeclarationNode.baseClasses.isEmpty()) {
             baseClassName = FQNameMapper.getFQName(classDeclarationNode.baseClasses.get(0), file.scope());
         }

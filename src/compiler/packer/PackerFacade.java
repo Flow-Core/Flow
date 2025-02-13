@@ -1,6 +1,8 @@
 package compiler.packer;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public final class PackerFacade {
     private static Packer packer;
@@ -20,7 +22,7 @@ public final class PackerFacade {
         PackerFacade.mainClassFQName = mainClassFQName;
     }
 
-    public static void pack(String outputFileName, String buildPath) throws IOException {
-        packer.pack(outputFileName, buildPath, mainClassFQName);
+    public static void pack(String outputFileName, String buildPath, List<File> libJars) throws IOException {
+        packer.pack(outputFileName, buildPath, mainClassFQName, libJars);
     }
 }

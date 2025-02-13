@@ -4,17 +4,19 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class JarPacker implements Packer {
     private final Manifest manifest = new Manifest();
 
-    @Override
-    public void pack(String outputFileName, String buildPath, String mainClassFQName) throws IOException {
+    public void pack(String outputFileName, String buildPath, String mainClassFQName, List<File> libJars) throws IOException {
         manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
         manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainClassFQName);
 
@@ -25,6 +27,10 @@ public class JarPacker implements Packer {
             }
 
             addFilesToJar(jarOutputStream, buildDir, buildDir.getAbsolutePath().length() + 1);
+
+            for (File libJar : libJars) {
+                extractJarToJar(jarOutputStream, libJar);
+            }
         }
     }
 
@@ -49,6 +55,25 @@ public class JarPacker implements Packer {
             }
 
             jarOutputStream.closeEntry();
+        }
+    }
+
+    private void extractJarToJar(JarOutputStream jarOutputStream, File jarFile) throws IOException {
+        try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(jarFile))) {
+            ZipEntry entry;
+            while ((entry = zipInputStream.getNextEntry()) != null) {
+                if (!entry.isDirectory() && !entry.getName().startsWith("META-INF/")) {
+                    jarOutputStream.putNextEntry(new JarEntry(entry.getName()));
+
+                    byte[] buffer = new byte[4096];
+                    int bytesRead;
+                    while ((bytesRead = zipInputStream.read(buffer)) != -1) {
+                        jarOutputStream.write(buffer, 0, bytesRead);
+                    }
+
+                    jarOutputStream.closeEntry();
+                }
+            }
         }
     }
 }

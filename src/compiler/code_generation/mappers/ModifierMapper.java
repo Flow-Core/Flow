@@ -6,7 +6,7 @@ import java.util.Map;
 import org.objectweb.asm.Opcodes;
 
 public class ModifierMapper {
-    private static final Map<String, Integer> MODIFIER_MAP = Map.of(
+    public static final Map<String, Integer> MODIFIER_MAP = Map.of(
         "public", Opcodes.ACC_PUBLIC,
         "private", Opcodes.ACC_PRIVATE,
         "protected", Opcodes.ACC_PROTECTED,

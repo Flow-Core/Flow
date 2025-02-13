@@ -14,7 +14,11 @@ import java.util.List;
 import java.util.Map;
 
 public class PackageMapper {
-    public static Map<String, PackageWrapper> map(final List<BlockNode> roots, final List<String> fileNames) {
+    public static Map<String, PackageWrapper> map(
+        final Scope libScope,
+        final List<BlockNode> roots,
+        final List<String> fileNames
+    ) {
         if (roots.size() != fileNames.size()) {
             throw new IllegalArgumentException("Roots should be the same size as the file names");
         }
@@ -36,7 +40,7 @@ public class PackageMapper {
 
             PackageWrapper packageWrapper = packages.computeIfAbsent(
                 packagePath,
-                path -> new PackageWrapper(path, new ArrayList<>(), new Scope(null, SymbolTable.getEmptySymbolTable(), null, Scope.Type.TOP))
+                path -> new PackageWrapper(path, new ArrayList<>(), new Scope(libScope, SymbolTable.getEmptySymbolTable(), null, Scope.Type.TOP))
             );
 
             Scope fileScope = new Scope(packageWrapper.scope(), SymbolTable.getEmptySymbolTable(), null, Scope.Type.TOP);
