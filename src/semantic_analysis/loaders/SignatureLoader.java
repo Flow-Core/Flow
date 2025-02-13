@@ -257,6 +257,8 @@ public class SignatureLoader {
         List<ParameterNode> parameters,
         List<ArgumentNode> arguments
     ) {
+        if (parameters.size() < arguments.size()) return false;
+
         boolean foundNamed = false;
 
         List<ParameterNode> passedArgument = new ArrayList<>();
@@ -306,6 +308,8 @@ public class SignatureLoader {
         List<ParameterNode> parameters,
         List<ArgumentNode> arguments
     ) {
+        if (parameters.size() + 1 < arguments.size()) return false;
+
         boolean foundNamed = false;
 
         List<ParameterNode> passedArgument = new ArrayList<>();

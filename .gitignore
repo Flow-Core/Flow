@@ -30,4 +30,6 @@ bin/
 
 ### Compiled ###
 .class
+output.jar
 build
+libs

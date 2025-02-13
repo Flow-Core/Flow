@@ -5,6 +5,7 @@ import compiler.code_generation.mappers.FQNameMapper;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import parser.nodes.classes.ObjectNode;
 import parser.nodes.statements.*;
 import semantic_analysis.files.FileWrapper;
 
@@ -38,7 +39,7 @@ public class StatementGenerator {
         ExpressionGenerator.generate(ifStatementNode.condition.expression, mv, vm, file);
 
         mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Bool", "value", "Z");
-        mv.visitJumpInsn(Opcodes.IFNE, elseLabel);
+        mv.visitJumpInsn(Opcodes.IFEQ, elseLabel);
 
         BlockGenerator.generateFunctionBlock(ifStatementNode.trueBranch, file, mv, vm);
         mv.visitJumpInsn(Opcodes.GOTO, endLabel);
@@ -59,7 +60,7 @@ public class StatementGenerator {
 
         ExpressionGenerator.generate(whileStatementNode.condition.expression, mv, vm, file);
         mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Bool", "value", "Z");
-        mv.visitJumpInsn(Opcodes.IFNE, endLabel);
+        mv.visitJumpInsn(Opcodes.IFEQ, endLabel);
 
         BlockGenerator.generateFunctionBlock(whileStatementNode.loopBlock, file, mv, vm);
 
@@ -68,6 +69,11 @@ public class StatementGenerator {
     }
 
     private static void generateReturnStatement(ReturnStatementNode returnStatementNode, MethodVisitor mv, VariableManager vm, FileWrapper file) {
+        if (returnStatementNode.returnValue.expression instanceof ObjectNode objectNode && objectNode.className.equals("Void")) {
+            mv.visitInsn(Opcodes.RETURN);
+            return;
+        }
+
         ExpressionGenerator.generate(returnStatementNode.returnValue.expression, mv, vm, file);
 
         mv.visitInsn(Opcodes.ARETURN);
@@ -83,7 +89,7 @@ public class StatementGenerator {
 
         ExpressionGenerator.generate(forStatementNode.condition.expression, mv, vm, file);
         mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Bool", "value", "Z");
-        mv.visitJumpInsn(Opcodes.IFNE, endLabel);
+        mv.visitJumpInsn(Opcodes.IFEQ, endLabel);
 
         BlockGenerator.generateFunctionBlock(forStatementNode.loopBlock, file, mv, vm);
         BlockGenerator.generateFunctionBlock(forStatementNode.action, file, mv, vm);

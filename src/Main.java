@@ -1,4 +1,8 @@
 import compiler.code_generation.CodeGeneration;
+import compiler.library_loader.LibLoader;
+import compiler.packer.JarPacker;
+import compiler.packer.Packer;
+import compiler.packer.PackerFacade;
 import lexer.Lexer;
 import lexer.token.Token;
 import parser.Parser;
@@ -10,31 +14,30 @@ import semantic_analysis.loaders.PackageMapper;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 public class Main {
     public static void main(String[] args) {
         final String file1 = """
-        class Void {}
-        class Int {
-            val x = 10
-            func equals(other: Int): Bool {
-                return true
-            }
-        }
-        class Double {}
-        class Bool {}
         
-        const y = 10
-        
-        func main() {
-            val x = 10
-            print(x)
-        }
         \s""";
 
         final String file2 = """
+        func main() {
+            val x = "test"
+            print(x)
+        
+            if (true) {
+                print("works!")
+            } else {
+                print("nah uh")
+            }
+        }
+        
+        class A {}
         """;
 
         final String file3 = """
@@ -43,7 +46,17 @@ public class Main {
         final BlockNode file1Root = getFileAST(file1);
         final BlockNode file2Root = getFileAST(file2);
         final BlockNode file3Root = getFileAST(file3);
+
+        LibLoader.LibOutput libOutput = null;
+        try {
+            libOutput = LibLoader.loadLibraries("./libs");
+        } catch (Exception e) {
+            System.err.println("Could not load libraries");
+            e.printStackTrace();
+        }
+
         final Map<String, PackageWrapper> files = PackageMapper.map(
+            libOutput == null ? null : libOutput.libScope(),
             List.of(file1Root, file2Root, file3Root),
             List.of("file1", "file2", "file3")
         );
@@ -70,6 +83,21 @@ public class Main {
             } catch (IOException e) {
                 System.out.println("Failed to write class file");
             }
+        }
+
+        final Packer packer = new JarPacker();
+        PackerFacade.initPacker(packer);
+
+        try {
+            PackerFacade.pack(
+                    "output.jar",
+                    "./build",
+                    libOutput == null ? new ArrayList<>() : Arrays.asList(libOutput.libFiles()
+                )
+            );
+        } catch (IOException e) {
+            System.err.println("Couldn't pack jar file");
+            e.printStackTrace();
         }
     }
 

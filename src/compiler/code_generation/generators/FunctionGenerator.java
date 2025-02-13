@@ -14,10 +14,10 @@ import semantic_analysis.scopes.Scope;
 import java.util.List;
 
 public class FunctionGenerator {
-    public static void generate(FunctionDeclarationNode functionDeclarationNode, FileWrapper file, ClassWriter classWriter, boolean isSignature) {
+    public static void generate(FunctionDeclarationNode functionDeclarationNode, FileWrapper file, ClassWriter cw, boolean isSignature) {
         boolean isAbstract = functionDeclarationNode.block == null && isSignature;
 
-        final MethodVisitor mv = classWriter.visitMethod(
+        final MethodVisitor mv = cw.visitMethod(
             ModifierMapper.map(functionDeclarationNode.modifiers) | (isAbstract ? (Opcodes.ACC_ABSTRACT | Opcodes.ACC_PUBLIC) : 0),
             functionDeclarationNode.name,
             getDescriptor(functionDeclarationNode.parameters, functionDeclarationNode.returnType, file.scope()),
@@ -26,7 +26,14 @@ public class FunctionGenerator {
         );
 
         if (!isAbstract) {
+            mv.visitCode();
             BlockGenerator.generateFunctionBlock(functionDeclarationNode.block, file, mv, new VariableManager(mv));
+
+            if (functionDeclarationNode.returnType.equals("Void")) {
+                mv.visitInsn(Opcodes.RETURN);
+            }
+
+            mv.visitMaxs(0, 0);
         }
 
         mv.visitEnd();

@@ -51,11 +51,6 @@ public class StatementTraverse {
     }
 
     private static void handleForStatement(final ForStatementNode forStatementNode, final Scope scope) {
-        final ExpressionTraverse.TypeWrapper conditionType = new ExpressionTraverse().traverse(forStatementNode.condition, scope);
-        if (!conditionType.type().equals("Bool") && !conditionType.isNullable()) {
-            throw new SA_SemanticError("Loop condition type mismatch: must be of type 'Bool'");
-        }
-
         final Scope forScope = new Scope(scope, SymbolTable.getEmptySymbolTable(), scope.currentParent(), Scope.Type.FUNCTION);
 
         final ExpressionTraverse.TypeWrapper varType = new ExpressionTraverse().traverse(forStatementNode.initialization.value, scope);
@@ -74,6 +69,11 @@ public class StatementTraverse {
         );
         forScope.symbols().fields().add(localVariable);
         forStatementNode.populatedInitialization = localVariable;
+
+        final ExpressionTraverse.TypeWrapper conditionType = new ExpressionTraverse().traverse(forStatementNode.condition, forScope);
+        if (!conditionType.type().equals("Bool") && !conditionType.isNullable()) {
+            throw new SA_SemanticError("Loop condition type mismatch: must be of type 'Bool'");
+        }
 
         BlockTraverse.traverse(forStatementNode.action, forScope);
         BlockTraverse.traverse(forStatementNode.loopBlock, forScope);
