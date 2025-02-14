@@ -22,7 +22,7 @@ public class VariableAnalyzer {
         // Check for type specification
         if (parser.check(TokenType.EQUAL_OPERATOR)) {
             parser.advance();
-            final ExpressionNode expr = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+            final ExpressionNode expr = ExpressionAnalyzer.parseExpression(parser);
             final VariableDeclarationNode declaration = new VariableDeclarationNode(modifier.value(), null, name.value(), false);
             final VariableAssignmentNode assignment = new VariableAssignmentNode(
                 new ExpressionBaseNode(new VariableReferenceNode(name.value())),
@@ -51,7 +51,7 @@ public class VariableAnalyzer {
             }
 
             parser.consume(TokenType.EQUAL_OPERATOR);
-            final ExpressionNode expr = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+            final ExpressionNode expr = ExpressionAnalyzer.parseExpression(parser);
             final VariableAssignmentNode assignment = new VariableAssignmentNode(
                 new ExpressionBaseNode(new VariableReferenceNode(name.value())),
                 "=",

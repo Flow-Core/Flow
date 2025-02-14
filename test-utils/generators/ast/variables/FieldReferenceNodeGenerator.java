@@ -9,7 +9,7 @@ public class FieldReferenceNodeGenerator {
     private String name;
     private ExpressionNode holder;
     private ExpressionTraverse.TypeWrapper type;
-
+    private boolean isStatic;
 
     public static FieldReferenceNodeGenerator builder() {
         return new FieldReferenceNodeGenerator();
@@ -35,7 +35,12 @@ public class FieldReferenceNodeGenerator {
         return this;
     }
 
+    public FieldReferenceNodeGenerator isStatic(boolean isStatic) {
+        this.isStatic = isStatic;
+        return this;
+    }
+
     public FieldReferenceNode build() {
-        return new FieldReferenceNode(holderType, name, holder, type);
+        return new FieldReferenceNode(holderType, name, holder, type, isStatic);
     }
 }

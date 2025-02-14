@@ -87,7 +87,8 @@ public class ExpressionTraverse {
                             field.initialization.declaration.type,
                             false,
                             field.initialization.declaration.isNullable
-                        )
+                        ),
+                        field.modifiers.contains("static")
                     );
                 } else
                 if (binaryExpression.right instanceof FunctionCallNode call) {
@@ -244,7 +245,8 @@ public class ExpressionTraverse {
                     field.initialization.declaration.type,
                     false,
                     field.initialization.declaration.isNullable
-                )
+                ),
+                field.modifiers.contains("static")
             );
         }
 
@@ -282,6 +284,10 @@ public class ExpressionTraverse {
         if (expression instanceof FunctionCallNode functionCall) {
             final FunctionDeclarationNode function;
 
+            for (final ArgumentNode argNode : functionCall.arguments) {
+                argNode.type = new ExpressionTraverse().traverse(argNode.value, scope);
+            }
+
             if (functionCall.callerType != null) {
                 final ClassDeclarationNode caller = scope.getClass(functionCall.callerType);
 
@@ -291,10 +297,6 @@ public class ExpressionTraverse {
                     scope,
                     functionCall.name
                 );
-
-                for (final ArgumentNode argNode : functionCall.arguments) {
-                    argNode.type = new ExpressionTraverse().traverse(argNode.value, scope);
-                }
 
                 function = functions.stream()
                     .filter(method -> compareParameterTypes(

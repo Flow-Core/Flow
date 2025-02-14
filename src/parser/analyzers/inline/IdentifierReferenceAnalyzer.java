@@ -40,11 +40,11 @@ public class IdentifierReferenceAnalyzer {
             if (parser.peek().type() == TokenType.IDENTIFIER && parser.peek(1).type() == TokenType.EQUAL_OPERATOR) {
                 final Token argumentName = parser.consume(TokenType.IDENTIFIER);
                 parser.consume(TokenType.EQUAL_OPERATOR);
-                final ExpressionNode value = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                final ExpressionNode value = ExpressionAnalyzer.parseExpression(parser);
 
                 args.add(new ArgumentNode(argumentName.value(), new ExpressionBaseNode(value)));
             } else {
-                final ExpressionNode value = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                final ExpressionNode value = ExpressionAnalyzer.parseExpression(parser);
                 args.add(new ArgumentNode(null, new ExpressionBaseNode(value)));
             }
 

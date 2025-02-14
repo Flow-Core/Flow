@@ -7,6 +7,7 @@ import parser.analyzers.TopAnalyzer;
 import parser.analyzers.inline.IdentifierReferenceAnalyzer;
 import parser.analyzers.inline.PrimaryAnalyzer;
 import parser.nodes.expressions.BinaryExpressionNode;
+import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.expressions.UnaryOperatorNode;
 
@@ -14,13 +15,17 @@ import java.util.HashMap;
 
 public class ExpressionAnalyzer extends TopAnalyzer {
     public AnalyzerResult parse(final Parser parser) {
+        return new AnalyzerResult(
+            new ExpressionBaseNode(parseExpression(parser)),
+            parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
+        );
+    }
+
+    public static ExpressionNode parseExpression(final Parser parser) {
         ExpressionNode currValue = parseValue(parser);
         if (currValue == null) return null;
 
-        return new AnalyzerResult(
-            parseRHS(parser, 0, currValue),
-            parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
-        );
+        return parseRHS(parser, 0, currValue);
     }
 
     private static ExpressionNode parseRHS(

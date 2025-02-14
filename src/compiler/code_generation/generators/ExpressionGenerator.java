@@ -108,7 +108,10 @@ public class ExpressionGenerator {
         final String holderFQName = FQNameMapper.getFQName(refNode.holderType, scope);
         final String descriptor = getJVMName(refNode.type.type(), scope);
 
-        mv.visitFieldInsn(Opcodes.GETFIELD, holderFQName, refNode.name, descriptor);
+        if (refNode.isStatic)
+            mv.visitFieldInsn(Opcodes.GETSTATIC, holderFQName, refNode.name, descriptor);
+        else
+            mv.visitFieldInsn(Opcodes.GETFIELD, holderFQName, refNode.name, descriptor);
     }
 
     private static void generateObjectInstantiation(ObjectNode objNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv) {

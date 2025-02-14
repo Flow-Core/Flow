@@ -27,11 +27,13 @@ public class Main {
 
         final String file2 = """
         func main() {
-            if (true) {
-                print("works!")
-            } else {
-                print("nah uh")
-            }
+            foo(10, new A())
+        }
+        
+        func foo(a: Int, b: A) {}
+        
+        class A {
+            static val y = 10
         }
         """;
 

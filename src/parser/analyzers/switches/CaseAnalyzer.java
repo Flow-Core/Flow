@@ -17,7 +17,7 @@ public class CaseAnalyzer extends TopAnalyzer {
         TopAnalyzer.testFor(parser, TokenType.CASE);
 
         parser.consume(TokenType.OPEN_PARENTHESES);
-        final ExpressionNode expression = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+        final ExpressionNode expression = ExpressionAnalyzer.parseExpression(parser);
         parser.consume(TokenType.CLOSE_PARENTHESES);
 
         parser.consume(TokenType.OPEN_BRACES);

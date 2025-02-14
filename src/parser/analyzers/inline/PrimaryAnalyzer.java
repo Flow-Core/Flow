@@ -39,7 +39,7 @@ public class PrimaryAnalyzer {
                 yield new ObjectNode(identifier.value(), args);
             }
             case OPEN_PARENTHESES -> {
-                ExpressionNode expr = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                ExpressionNode expr = ExpressionAnalyzer.parseExpression(parser);
 
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
