@@ -21,7 +21,7 @@ public class StatementAnalyzer extends TopAnalyzer {
         switch (parser.advance().type()) {
             case IF:
                 parser.consume(TokenType.OPEN_PARENTHESES);
-                final ExpressionNode ifCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                final ExpressionNode ifCondition = ExpressionAnalyzer.parseExpression(parser);
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
                 final BlockNode trueBranch = getBlock(parser);
@@ -51,7 +51,7 @@ public class StatementAnalyzer extends TopAnalyzer {
 
                 parser.consume(TokenType.COMMA);
 
-                final ExpressionNode forCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                final ExpressionNode forCondition = ExpressionAnalyzer.parseExpression(parser);
 
                 parser.consume(TokenType.COMMA);
 
@@ -75,7 +75,7 @@ public class StatementAnalyzer extends TopAnalyzer {
 
                 final String foreachVariable = parser.consume(TokenType.IDENTIFIER).value();
                 parser.consume(TokenType.IN);
-                final ExpressionNode foreachCollection = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                final ExpressionNode foreachCollection = ExpressionAnalyzer.parseExpression(parser);
 
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
@@ -91,7 +91,7 @@ public class StatementAnalyzer extends TopAnalyzer {
                 );
             case WHILE:
                 parser.consume(TokenType.OPEN_PARENTHESES);
-                final ExpressionNode whileCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                final ExpressionNode whileCondition = ExpressionAnalyzer.parseExpression(parser);
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
                 final BlockNode whileBlock = getBlock(parser);
@@ -105,7 +105,7 @@ public class StatementAnalyzer extends TopAnalyzer {
                 );
             case SWITCH:
                 parser.consume(TokenType.OPEN_PARENTHESES);
-                final ExpressionNode switchCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                final ExpressionNode switchCondition = ExpressionAnalyzer.parseExpression(parser);
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
                 parser.consume(TokenType.OPEN_BRACES);
@@ -174,7 +174,7 @@ public class StatementAnalyzer extends TopAnalyzer {
                 return new AnalyzerResult(
                     new ThrowNode(
                         new ExpressionBaseNode(
-                            (ExpressionNode) new ExpressionAnalyzer().parse(parser).node()
+                            ExpressionAnalyzer.parseExpression(parser)
                         )
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
@@ -194,7 +194,7 @@ public class StatementAnalyzer extends TopAnalyzer {
                 return new AnalyzerResult(
                     new ReturnStatementNode(
                         new ExpressionBaseNode(
-                            (ExpressionNode) new ExpressionAnalyzer().parse(parser).node()
+                            ExpressionAnalyzer.parseExpression(parser)
                         )
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED

@@ -10,17 +10,20 @@ public class FieldReferenceNode implements ExpressionNode {
     public String name;
     public ExpressionNode holder;
     public TypeWrapper type;
+    public boolean isStatic;
 
     public FieldReferenceNode(
         String holderType,
         String name,
         ExpressionNode holder,
-        TypeWrapper type
+        TypeWrapper type,
+        boolean isStatic
     ) {
         this.holderType = holderType;
         this.name = name;
         this.holder = holder;
         this.type = type;
+        this.isStatic = isStatic;
     }
 
     @Override
