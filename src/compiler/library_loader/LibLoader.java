@@ -2,6 +2,7 @@ package compiler.library_loader;
 
 import compiler.code_generation.mappers.ModifierMapper;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
@@ -102,49 +103,76 @@ public class LibLoader {
 
         for (MethodNode method : classNode.methods) {
             if (method.name.equals("<init>")) {
-                constructors.add(convertToFlowConstructor(method));
+                constructors.add(convertToFlowConstructor(classNode, method));
             } else {
-                methods.add(convertToFlowMethod(method));
+                methods.add(convertToFlowMethod(classNode, method));
             }
         }
 
-        List<BaseClassNode> baseClasses = List.of(new BaseClassNode(classNode.superName, List.of()));
+        List<BaseClassNode> baseClasses = List.of(new BaseClassNode(classNode.superName.replace("/", "."), List.of()));
 
-        List<BaseInterfaceNode> interfaces = classNode.interfaces.stream().map(BaseInterfaceNode::new).toList();
+        List<BaseInterfaceNode> interfaces = classNode.interfaces.stream().map(baseInterface -> new BaseInterfaceNode(baseInterface.replace("/", "."))).toList();
 
         final ClassDeclarationNode flowClass = new ClassDeclarationNode(className, extractModifiers(classNode.access), new ArrayList<>(), baseClasses,
             interfaces, fields, methods, constructors, null, null);
 
-        symbolTable.bindingContext().put(flowClass, classNode.name);
+        symbolTable.bindingContext().put(flowClass, classNode.name.replace("/", "."));
         return flowClass;
     }
 
-    private static FunctionDeclarationNode convertToFlowMethod(MethodNode method) {
+    private static FunctionDeclarationNode convertToFlowMethod(ClassNode classNode, MethodNode method) {
         String returnType = Type.getReturnType(method.desc).getClassName();
         boolean isNullable = true; // TODO: Add annotations or think about a better solution
 
-        return new FunctionDeclarationNode(method.name, returnType, isNullable, extractModifiers(method.access), parseParameters(method), null);
+        return new FunctionDeclarationNode(
+            method.name,
+            returnType, isNullable,
+            extractModifiers(method.access),
+            parseParameters(classNode, method),
+            null
+        );
     }
 
-    private static ConstructorNode convertToFlowConstructor(MethodNode method) {
+    private static ConstructorNode convertToFlowConstructor(ClassNode classNode, MethodNode method) {
         final List<String> modifier = extractModifiers(method.access);
-        return new ConstructorNode(modifier.isEmpty() ? "public" : modifier.get(0), parseParameters(method), new BlockNode(new ArrayList<>()));
+        return new ConstructorNode(
+            modifier.isEmpty() ? "public" : modifier.get(0),
+            parseParameters(classNode, method),
+            new BlockNode(new ArrayList<>())
+        );
     }
 
-    private static List<ParameterNode> parseParameters(MethodNode methodNode) {
+    private static List<ParameterNode> parseParameters(ClassNode classNode, MethodNode methodNode) {
         Type[] argumentTypes = Type.getArgumentTypes(methodNode.desc);
         List<ParameterNode> parameters = new ArrayList<>();
 
         for (int i = 0; i < argumentTypes.length; i++) {
-            String typeName = getSimpleName(mapType(argumentTypes[i]));
+            String typeName = mapType(argumentTypes[i]).replace("/", ".");
             String paramName = (methodNode.parameters != null && i < methodNode.parameters.size())
                 ? methodNode.parameters.get(i).name
-                : "param" + i;
+                : null;
 
             parameters.add(new ParameterNode(typeName, false, paramName, null));
         }
 
+        if ((methodNode.access & Opcodes.ACC_STATIC) == 0) {
+            parameters.add(0, new ParameterNode(classNode.name.replace("/", "."), false, "this", null));
+        }
+
         return parameters;
+    }
+
+    private static String getSimpleName(String fqName) {
+        int nameIndex = fqName.lastIndexOf("/");
+        String simpleName;
+
+        if (nameIndex == -1) {
+            simpleName = fqName;
+        } else {
+            simpleName = fqName.substring(nameIndex + 1).replace("/", ".");
+        }
+
+        return simpleName;
     }
 
     private static String mapType(Type type) {
@@ -160,19 +188,6 @@ public class LibLoader {
             case Type.OBJECT, Type.ARRAY -> type.getClassName();
             default -> throw new IllegalArgumentException("Unsupported type: " + type);
         };
-    }
-
-    private static String getSimpleName(String name) {
-        int nameIndex = name.lastIndexOf("/");
-        String className;
-
-        if (nameIndex == -1) {
-            className = name;
-        } else {
-            className = name.substring(nameIndex + 1);
-        }
-
-        return className;
     }
 
     private static List<String> extractModifiers(int flags) {
