@@ -14,10 +14,7 @@ import semantic_analysis.loaders.PackageMapper;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -31,7 +28,7 @@ public class Main {
             x.foo()
         }
 
-        class A: B {
+        class A {
             val y = 10
             
             func foo() {}
@@ -54,12 +51,14 @@ public class Main {
         }
 
         final Map<String, PackageWrapper> files = PackageMapper.map(
-            libOutput == null ? null : libOutput.libScope(),
             List.of(file1Root, file2Root, file3Root),
             List.of("file1", "file2", "file3")
         );
 
-        final SemanticAnalysis semanticAnalysis = new SemanticAnalysis(files);
+        final SemanticAnalysis semanticAnalysis = new SemanticAnalysis(
+            files,
+            libOutput != null ? libOutput.packages() : new HashMap<>()
+        );
         final Map<String, PackageWrapper> packages = semanticAnalysis.analyze();
 
         Parser.printTree(file1Root);

@@ -17,16 +17,10 @@ import java.util.List;
 import java.util.Map;
 
 class PackageMapperTest {
-    private Scope scope;
-
-    @BeforeEach
-    void setUp() {
-        scope = ScopeGenerator.builder().build();
-    }
 
     @Test
     void test_empty_input_should_return_empty_map() {
-        Map<String, PackageWrapper> packages = PackageMapper.map(scope, List.of(), List.of());
+        Map<String, PackageWrapper> packages = PackageMapper.map(List.of(), List.of());
 
         Assertions.assertTrue(packages.isEmpty(), "Expected empty package map when no roots are provided");
     }
@@ -40,7 +34,7 @@ class PackageMapperTest {
             .block(BlockNodeGenerator.builder().children(List.of()).build())
             .build();
         BlockNode block = new BlockNode(List.of(mainFunction));
-        Map<String, PackageWrapper> packages = PackageMapper.map(scope, List.of(block), List.of(""));
+        Map<String, PackageWrapper> packages = PackageMapper.map(List.of(block), List.of(""));
 
         Assertions.assertEquals(1, packages.size(), "Expected one package entry");
         Assertions.assertTrue(packages.containsKey(""), "Expected file to be under empty package path");
@@ -50,7 +44,7 @@ class PackageMapperTest {
     @Test
     void test_single_file_with_package_should_be_mapped_correctly() {
         BlockNode block = new BlockNode(List.of(new PackageNode("com.example")));
-        Map<String, PackageWrapper> packages = PackageMapper.map(scope, List.of(block), List.of(""));
+        Map<String, PackageWrapper> packages = PackageMapper.map(List.of(block), List.of(""));
 
         Assertions.assertEquals(1, packages.size(), "Expected one package entry");
         Assertions.assertTrue(packages.containsKey("com.example"), "Expected file to be in package 'com.example'");
@@ -62,7 +56,7 @@ class PackageMapperTest {
         BlockNode block1 = new BlockNode(List.of(new PackageNode("com.example")));
         BlockNode block2 = new BlockNode(List.of(new PackageNode("com.example")));
 
-        Map<String, PackageWrapper> packages = PackageMapper.map(scope, List.of(block1, block2), List.of("", ""));
+        Map<String, PackageWrapper> packages = PackageMapper.map(List.of(block1, block2), List.of("", ""));
 
         Assertions.assertEquals(1, packages.size(), "Expected one package entry");
         Assertions.assertEquals(2, packages.get("com.example").files().size(), "Expected both files to be in the same package");
@@ -73,7 +67,7 @@ class PackageMapperTest {
         BlockNode block1 = new BlockNode(List.of(new PackageNode("com.example")));
         BlockNode block2 = new BlockNode(List.of(new PackageNode("org.test")));
 
-        Map<String, PackageWrapper> packages = PackageMapper.map(scope, List.of(block1, block2), List.of("", ""));
+        Map<String, PackageWrapper> packages = PackageMapper.map(List.of(block1, block2), List.of("", ""));
 
         Assertions.assertEquals(2, packages.size(), "Expected two package entries");
         Assertions.assertTrue(packages.containsKey("com.example"), "Expected 'com.example' package");
@@ -85,7 +79,7 @@ class PackageMapperTest {
         BlockNode block1 = new BlockNode(List.of(new PackageNode("com.example")));
         BlockNode block2 = new BlockNode(List.of(new PackageNode("com.example")));
 
-        Map<String, PackageWrapper> packages = PackageMapper.map(scope, List.of(block1, block2), List.of("", ""));
+        Map<String, PackageWrapper> packages = PackageMapper.map(List.of(block1, block2), List.of("", ""));
 
         FileWrapper file1 = packages.get("com.example").files().get(0);
         FileWrapper file2 = packages.get("com.example").files().get(1);
