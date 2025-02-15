@@ -159,7 +159,6 @@ public class StatementAnalyzer extends TopAnalyzer {
                     parser.advance();
 
                     finallyBlock = getBlock(parser);
-                    System.out.println(parser.peek());
                 }
 
                 return new AnalyzerResult(

@@ -14,63 +14,86 @@ import parser.nodes.classes.ConstructorNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public class LibLoader {
     public static LibOutput loadLibraries(String libFolderPath) throws Exception {
-        SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
-
         File libFolder = new File(libFolderPath);
         if (!libFolder.exists() || !libFolder.isDirectory()) {
             throw new IllegalArgumentException("Library folder not found: " + libFolderPath);
         }
 
+        Map<String, PackageWrapper> packages = new HashMap<>();
+
         File[] jarFiles = libFolder.listFiles((dir, name) -> name.endsWith(".jar"));
         if (jarFiles == null) {
             return new LibOutput(
                 new File[0],
-                new Scope(null, symbolTable, null, Scope.Type.TOP)
+                packages
             );
         }
 
         for (File jarFile : jarFiles) {
-            loadClassesFromJar(jarFile, symbolTable);
+            loadClassesFromJar(jarFile, packages);
         }
 
         return new LibOutput(
             jarFiles,
-            new Scope(null, symbolTable, null, Scope.Type.TOP)
+            packages
         );
     }
 
-    private static void loadClassesFromJar(File jarFile, SymbolTable symbolTable) throws IOException {
+    private static void loadClassesFromJar(File jarFile, Map<String, PackageWrapper> packages) throws IOException {
         try (JarFile jar = new JarFile(jarFile)) {
             final var it = jar.entries().asIterator();
             while (it.hasNext()) {
                 final var entry = it.next();
                 if (entry.getName().endsWith(".class")) {
-                    extractClass(jar, entry, symbolTable);
+                    PackageWrapper currentPackage = extractClass(jar, entry);
+                    packages.computeIfAbsent(currentPackage.path(), key -> currentPackage)
+                        .scope()
+                        .symbols()
+                        .recognizeSymbolTable(currentPackage.scope().symbols());
                 }
             }
         }
     }
 
-    private static void extractClass(JarFile jar, JarEntry entry, SymbolTable symbolTable) throws IOException {
+    private static PackageWrapper extractClass(JarFile jar, JarEntry entry) throws IOException {
         try (var inputStream = jar.getInputStream(entry)) {
             ClassReader classReader = new ClassReader(inputStream);
             ClassNode classNode = new ClassNode();
             classReader.accept(classNode, 0);
 
-            ClassDeclarationNode flowClass = convertToFlowClass(symbolTable, classNode);
-            symbolTable.classes().add(flowClass);
+            String packageName = extractPackageName(classNode);
+            SymbolTable st = SymbolTable.getEmptySymbolTable();
+
+            PackageWrapper packageWrapper = new PackageWrapper(
+                "lib." + packageName,
+                new ArrayList<>(),
+                new Scope(
+                    null,
+                    st,
+                    null,
+                    Scope.Type.TOP
+                )
+            );
+
+            ClassDeclarationNode flowClass = convertToFlowClass(st, classNode);
+            st.classes().add(flowClass);
+
+            return packageWrapper;
         }
     }
 
@@ -162,6 +185,11 @@ public class LibLoader {
         return parameters;
     }
 
+    private static String extractPackageName(ClassNode classNode) {
+        int lastSlashIndex = classNode.name.lastIndexOf('/');
+        return (lastSlashIndex != -1) ? classNode.name.substring(0, lastSlashIndex).replace("/", ".") : "";
+    }
+
     private static String mapType(Type type) {
         return switch (type.getSort()) {
             case Type.BOOLEAN -> "Bool";
@@ -191,6 +219,6 @@ public class LibLoader {
 
     public record LibOutput(
        File[] libFiles,
-       Scope libScope
+       Map<String, PackageWrapper> packages
     ) {}
 }
