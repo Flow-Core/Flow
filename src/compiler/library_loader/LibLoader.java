@@ -80,7 +80,7 @@ public class LibLoader {
             SymbolTable st = SymbolTable.getEmptySymbolTable();
 
             PackageWrapper packageWrapper = new PackageWrapper(
-                "lib." + packageName,
+                packageName.isBlank() ? "lib" : "lib." + packageName,
                 new ArrayList<>(),
                 new Scope(
                     null,
