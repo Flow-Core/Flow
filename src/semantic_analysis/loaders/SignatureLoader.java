@@ -2,11 +2,17 @@ package semantic_analysis.loaders;
 
 import parser.nodes.ASTNode;
 import parser.nodes.classes.ClassDeclarationNode;
+import parser.nodes.classes.ConstructorNode;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.InterfaceNode;
 import parser.nodes.components.ArgumentNode;
+import parser.nodes.components.BlockNode;
 import parser.nodes.components.ParameterNode;
+import parser.nodes.expressions.BinaryExpressionNode;
+import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.variable.VariableAssignmentNode;
+import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.exceptions.SA_RedefinitionException;
 import semantic_analysis.exceptions.SA_SemanticError;
 import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
@@ -42,6 +48,10 @@ public class SignatureLoader {
             throw new SA_RedefinitionException(classDeclaration.name);
         }
 
+        if (!classDeclaration.modifiers.contains("abstract")) {
+            addPrimaryConstructor(classDeclaration);
+        }
+
         if (isPublic) {
             if (ModifierLoader.isDefaultPublic(classDeclaration.modifiers)) {
                 classDeclaration.modifiers.add("public");
@@ -52,6 +62,45 @@ public class SignatureLoader {
         } else {
             fileLevel.classes().add(classDeclaration);
         }
+    }
+
+    private static void addPrimaryConstructor(ClassDeclarationNode classDeclaration) {
+        List<ParameterNode> primaryParameters = new ArrayList<>();
+        List<ASTNode> assignments = new ArrayList<>();
+
+        for (FieldNode field : classDeclaration.primaryConstructor) {
+            primaryParameters.add(
+                new ParameterNode(
+                    field.initialization.declaration.type,
+                    field.initialization.declaration.isNullable,
+                    field.initialization.declaration.name,
+                    null
+                )
+            );
+
+            classDeclaration.fields.add(0, field);
+            assignments.add(
+                new VariableAssignmentNode(
+                    new ExpressionBaseNode(new VariableReferenceNode(field.initialization.declaration.name)),
+                    "=",
+                    new ExpressionBaseNode(
+                        new BinaryExpressionNode(
+                            new VariableReferenceNode("this"),
+                            new VariableReferenceNode(field.initialization.declaration.name),
+                            "."
+                        )
+                    )
+                )
+            );
+        }
+
+        ConstructorNode primaryConstructor = new ConstructorNode(
+            "public",
+            primaryParameters,
+            new BlockNode(assignments)
+        );
+
+        classDeclaration.constructors.add(primaryConstructor);
     }
 
     private static void handleInterface(final InterfaceNode interfaceDeclaration, final SymbolTable fileLevel, final PackageWrapper packageWrapper) {

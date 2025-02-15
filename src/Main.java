@@ -27,14 +27,23 @@ public class Main {
 
         final String file2 = """
         func main() {
-            val x = new A()
-            x.foo()
-        }
 
-        class A: B {
-            val y = 10
-            
-            func foo() {}
+        }
+        
+        func foo(a: Int, b: A) {}
+        
+        class A : B(new A()) {
+            static val y = 10
+        
+            static func foo() {
+                B.foo()
+            }
+        }
+        
+        open class B(val a: A) {
+            static func foo() {
+                A.foo()
+            }
         }
         """;
 

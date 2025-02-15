@@ -1,9 +1,6 @@
 package semantic_analysis.visitors;
 
-import parser.nodes.classes.ClassDeclarationNode;
-import parser.nodes.classes.FieldNode;
-import parser.nodes.classes.ObjectNode;
-import parser.nodes.classes.TypeDeclarationNode;
+import parser.nodes.classes.*;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.expressions.BinaryExpressionNode;
 import parser.nodes.expressions.ExpressionBaseNode;
@@ -263,6 +260,16 @@ public class ExpressionTraverse {
             }
 
             return new TypeWrapper(objectNode.className, false, false);
+        }
+        if (expression instanceof BaseClassNode baseClassNode) {
+            if (!scope.findTypeDeclaration(baseClassNode.name))
+                throw new SA_UnresolvedSymbolException(baseClassNode.name); //Log
+
+            for (final ArgumentNode argNode : baseClassNode.arguments) {
+                argNode.type = new ExpressionTraverse().traverse(argNode.value, scope, true);
+            }
+
+            return new TypeWrapper(baseClassNode.name, false, false);
         }
         if (expression instanceof VariableReferenceNode variable) {
             if (scope.findTypeDeclaration(variable.variable)) {

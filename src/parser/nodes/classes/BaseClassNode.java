@@ -1,13 +1,13 @@
 package parser.nodes.classes;
 
-import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
 import parser.nodes.components.ArgumentNode;
+import parser.nodes.expressions.ExpressionNode;
 
 import java.util.List;
 import java.util.Objects;
 
-public class BaseClassNode implements ASTNode {
+public class BaseClassNode implements ExpressionNode {
     public String name;
     public List<ArgumentNode> arguments;
 
@@ -18,7 +18,7 @@ public class BaseClassNode implements ASTNode {
 
     @Override
     public <D> void accept(final ASTVisitor<D> visitor, final D data) {
-        ASTNode.super.accept(visitor, data);
+        ExpressionNode.super.accept(visitor, data);
 
         for (final ArgumentNode argument : arguments) {
             argument.accept(visitor, data);
