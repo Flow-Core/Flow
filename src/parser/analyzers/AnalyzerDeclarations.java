@@ -62,16 +62,16 @@ public final class AnalyzerDeclarations {
         // Function Scope
         FUNCTION_SCOPE.add(new VariableAssignmentAnalyzer(true));
         FUNCTION_SCOPE.add(new FunctionDeclarationAnalyzer());
-        FUNCTION_SCOPE.add(new ExpressionAnalyzer());
         FUNCTION_SCOPE.add(new FieldAnalyzer());
         FUNCTION_SCOPE.add(new StatementAnalyzer());
+        FUNCTION_SCOPE.add(new ExpressionAnalyzer());
 
         // Statement Scope
         STATEMENT_SCOPE.add(new VariableAssignmentAnalyzer(true));
         STATEMENT_SCOPE.add(new FunctionDeclarationAnalyzer());
-        STATEMENT_SCOPE.add(new ExpressionAnalyzer());
         STATEMENT_SCOPE.add(new FieldAnalyzer());
         STATEMENT_SCOPE.add(new StatementAnalyzer());
+        STATEMENT_SCOPE.add(new ExpressionAnalyzer());
 
         // Class Scope
         CLASS_SCOPE.add(new FunctionDeclarationAnalyzer());

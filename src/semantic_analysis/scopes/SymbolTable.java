@@ -103,7 +103,7 @@ public record SymbolTable(
 
     public ClassDeclarationNode getClass(String symbol) {
         if (symbol.contains(".")) {
-            getTypeFromFQName(symbol);
+            return (ClassDeclarationNode) getTypeFromFQName(symbol);
         }
 
         return classes().stream().filter(
@@ -113,7 +113,7 @@ public record SymbolTable(
 
     public InterfaceNode getInterface(String symbol) {
         if (symbol.contains(".")) {
-            getTypeFromFQName(symbol);
+            return (InterfaceNode) getTypeFromFQName(symbol);
         }
 
         return interfaces().stream().filter(
@@ -122,8 +122,6 @@ public record SymbolTable(
     }
 
     private TypeDeclarationNode getTypeFromFQName(String symbol) {
-        System.out.println(bindingContext);
-        System.out.println(symbol);
         var type = bindingContext.entrySet().stream().filter(
             entry -> entry.getValue().equals(symbol)
         ).findFirst().orElse(null);
@@ -163,7 +161,7 @@ public record SymbolTable(
         }
 
         if (type == null) {
-            getTypeFromSimpleName(symbol);
+            type = getTypeFromSimpleName(symbol);
         }
 
         return type;

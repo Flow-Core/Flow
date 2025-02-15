@@ -128,7 +128,7 @@ public class LibLoader {
             method.name,
             returnType, isNullable,
             extractModifiers(method.access),
-            parseParameters(classNode, method),
+            parseParameters(classNode, method, false),
             null
         );
     }
@@ -137,12 +137,12 @@ public class LibLoader {
         final List<String> modifier = extractModifiers(method.access);
         return new ConstructorNode(
             modifier.isEmpty() ? "public" : modifier.get(0),
-            parseParameters(classNode, method),
+            parseParameters(classNode, method, true),
             new BlockNode(new ArrayList<>())
         );
     }
 
-    private static List<ParameterNode> parseParameters(ClassNode classNode, MethodNode methodNode) {
+    private static List<ParameterNode> parseParameters(ClassNode classNode, MethodNode methodNode, boolean isConstructor) {
         Type[] argumentTypes = Type.getArgumentTypes(methodNode.desc);
         List<ParameterNode> parameters = new ArrayList<>();
 
@@ -155,24 +155,11 @@ public class LibLoader {
             parameters.add(new ParameterNode(typeName, false, paramName, null));
         }
 
-        if ((methodNode.access & Opcodes.ACC_STATIC) == 0) {
+        if (!isConstructor && (methodNode.access & Opcodes.ACC_STATIC) == 0) {
             parameters.add(0, new ParameterNode(classNode.name.replace("/", "."), false, "this", null));
         }
 
         return parameters;
-    }
-
-    private static String getSimpleName(String fqName) {
-        int nameIndex = fqName.lastIndexOf("/");
-        String simpleName;
-
-        if (nameIndex == -1) {
-            simpleName = fqName;
-        } else {
-            simpleName = fqName.substring(nameIndex + 1).replace("/", ".");
-        }
-
-        return simpleName;
     }
 
     private static String mapType(Type type) {

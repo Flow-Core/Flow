@@ -42,25 +42,6 @@ public class ExpressionGenerator {
     }
 
     private static void generateFuncCall(FunctionCallNode funcCallNode, FileWrapper file, VariableManager vm, MethodVisitor mv) {
-        // ***
-        // Temp for debugging
-        if (funcCallNode.name.equals("print")) {
-            mv.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-
-            ExpressionGenerator.generate(funcCallNode.arguments.get(0).value.expression, mv, vm, file);
-
-            mv.visitMethodInsn(
-                Opcodes.INVOKEVIRTUAL,
-                "java/io/PrintStream",
-                "println",
-                "(Ljava/lang/Object;)V",
-                false
-            );
-
-            return;
-        }
-        // ***
-
         for (ArgumentNode arg : funcCallNode.arguments) {
             generate(arg.value.expression, mv, vm, file);
         }
@@ -75,7 +56,7 @@ public class ExpressionGenerator {
                 funcCallNode.arguments.stream()
                     .map(argument -> argument.type).toList()
             );
-            final String descriptor = FunctionGenerator.getDescriptor(declaration.parameters, declaration.returnType, file.scope());
+            final String descriptor = FunctionGenerator.getDescriptor(declaration, file.scope());
 
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, fqTopLevelName, funcCallNode.name, descriptor, false);
         } else {
@@ -93,7 +74,7 @@ public class ExpressionGenerator {
                 funcCallNode.arguments.stream()
                     .map(argument -> argument.type).toList()
             );
-            final String descriptor = FunctionGenerator.getDescriptor(declaration.parameters, declaration.returnType, file.scope());
+            final String descriptor = FunctionGenerator.getDescriptor(declaration, file.scope());
             final boolean isStatic = declaration.modifiers.contains("static");
 
             final int callType = isInterface ? Opcodes.INVOKEINTERFACE
@@ -128,7 +109,7 @@ public class ExpressionGenerator {
 
         ConstructorNode constructorNode = null;
         for (final ConstructorNode currentConstructor : objClass.constructors) {
-            if (SignatureLoader.compareParameterTypesWithoutThis(scope, currentConstructor.parameters, objNode.arguments)) {
+            if (SignatureLoader.compareParameterTypes(scope, currentConstructor.parameters, objNode.arguments)) {
                 constructorNode = currentConstructor;
             }
         }

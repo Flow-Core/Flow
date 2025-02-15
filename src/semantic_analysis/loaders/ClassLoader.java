@@ -7,7 +7,6 @@ import parser.nodes.components.BlockNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.BinaryExpressionNode;
 import parser.nodes.expressions.ExpressionBaseNode;
-import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableReferenceNode;
@@ -63,8 +62,6 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     private void loadConstructors(final ClassDeclarationNode classDeclaration) {
         for (final ConstructorNode constructorNode : classDeclaration.constructors) {
             ModifierLoader.load(List.of(constructorNode.accessModifier), ModifierLoader.ModifierType.CONSTRUCTOR);
-
-            constructorNode.parameters.add(0, new ParameterNode(classDeclaration.name, false, "this", null));
 
             if (
                 classDeclaration.constructors.stream()

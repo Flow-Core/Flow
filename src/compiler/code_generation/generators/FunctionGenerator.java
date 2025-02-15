@@ -20,13 +20,14 @@ public class FunctionGenerator {
         final MethodVisitor mv = cw.visitMethod(
             ModifierMapper.map(functionDeclarationNode.modifiers) | (isAbstract ? (Opcodes.ACC_ABSTRACT | Opcodes.ACC_PUBLIC) : 0),
             functionDeclarationNode.name,
-            getDescriptor(functionDeclarationNode.parameters, functionDeclarationNode.returnType, file.scope()),
+            getDescriptor(functionDeclarationNode, file.scope()),
             null,
             null
         );
 
         if (!isAbstract) {
             mv.visitCode();
+
             BlockGenerator.generateFunctionBlock(functionDeclarationNode.block, file, mv, new VariableManager(mv));
 
             if (functionDeclarationNode.returnType.equals("Void")) {
@@ -47,6 +48,22 @@ public class FunctionGenerator {
         }
 
         sb.append(")").append(getJVMName(returnType, scope));
+
+        return sb.toString();
+    }
+
+    public static String getDescriptor(FunctionDeclarationNode functionDeclarationNode, Scope scope) {
+        final StringBuilder sb = new StringBuilder("(");
+
+        for (int i = 0; i < functionDeclarationNode.parameters.size(); i++) {
+            final ParameterNode parameterNode = functionDeclarationNode.parameters.get(i);
+
+            if (i > 0 || functionDeclarationNode.modifiers.contains("static")) {
+                sb.append(getJVMName(parameterNode.type, scope));
+            }
+        }
+
+        sb.append(")").append(getJVMName(functionDeclarationNode.returnType, scope));
 
         return sb.toString();
     }
