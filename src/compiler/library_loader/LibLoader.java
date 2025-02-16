@@ -144,7 +144,7 @@ public class LibLoader {
     }
 
     private static FunctionDeclarationNode convertToFlowMethod(ClassNode classNode, MethodNode method) {
-        String returnType = Type.getReturnType(method.desc).getClassName();
+        String returnType = mapType(Type.getReturnType(method.desc).getClassName());
         boolean isNullable = true; // TODO: Add annotations or think about a better solution
 
         return new FunctionDeclarationNode(
@@ -170,7 +170,7 @@ public class LibLoader {
         List<ParameterNode> parameters = new ArrayList<>();
 
         for (int i = 0; i < argumentTypes.length; i++) {
-            String typeName = mapType(argumentTypes[i]).replace("/", ".");
+            String typeName = mapType(argumentTypes[i].getClassName()).replace("/", ".");
             String paramName = (methodNode.parameters != null && i < methodNode.parameters.size())
                 ? methodNode.parameters.get(i).name
                 : null;
@@ -190,18 +190,19 @@ public class LibLoader {
         return (lastSlashIndex != -1) ? classNode.name.substring(0, lastSlashIndex).replace("/", ".") : "";
     }
 
-    private static String mapType(Type type) {
-        return switch (type.getSort()) {
-            case Type.BOOLEAN -> "Bool";
-            case Type.INT -> "Int";
-            case Type.FLOAT -> "Float";
-            case Type.DOUBLE -> "Double";
-            case Type.LONG -> "Long";
-            case Type.BYTE -> "Byte";
-            case Type.CHAR -> "Char";
-            case Type.SHORT -> "Short";
-            case Type.OBJECT, Type.ARRAY -> type.getClassName();
-            default -> throw new IllegalArgumentException("Unsupported type: " + type);
+    private static String mapType(String className) {
+        return switch (className) {
+            case "java.lang.String", "kotlin.String" -> "String";
+            case "java.lang.Integer", "kotlin.Int" -> "Int";
+            case "java.lang.Boolean", "kotlin.Boolean" -> "Bool";
+            case "java.lang.Float", "kotlin.Float" -> "Float";
+            case "java.lang.Double", "kotlin.Double" -> "Double";
+            case "java.lang.Long", "kotlin.Long" -> "Long";
+            case "java.lang.Byte", "kotlin.Byte" -> "Byte";
+            case "java.lang.Character", "kotlin.Char" -> "Char";
+            case "java.lang.Short", "kotlin.Short" -> "Short";
+
+            default -> className.replace("/", ".");
         };
     }
 

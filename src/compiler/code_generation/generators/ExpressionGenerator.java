@@ -142,7 +142,7 @@ public class ExpressionGenerator {
             mv.visitInsn(booleanLiteralNode.value ? Opcodes.ICONST_1 : Opcodes.ICONST_0);
             return;
         }
-
+        
         mv.visitLdcInsn(literalNode.getValue());
     }
 }

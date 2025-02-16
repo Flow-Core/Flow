@@ -75,7 +75,7 @@ public class FunctionGenerator {
     }
 
     public static String getJVMName(String type, Scope scope) {
-        if (type.equals("Void")) {
+        if (type.equalsIgnoreCase("Void")) {
             return "V";
         }
 

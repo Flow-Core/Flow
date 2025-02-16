@@ -26,23 +26,7 @@ public class Main {
         import flow.*
         
         func main() {
-
-        }
-        
-        func foo(a: Int, b: A) {}
-        
-        class A : B(new A()) {
-            static val y = 10
-        
-            static func foo() {
-                B.foo()
-            }
-        }
-        
-        open class B(val a: A) {
-            static func foo() {
-                A.foo()
-            }
+            FlowIO.print("Hello, world!")
         }
         """;
 
