@@ -150,15 +150,19 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
 
             checkCircularInheritance(classDeclaration.name, baseClass, new HashSet<>(), data);
 
+            final Scope currentScope = new Scope(
+                new Scope(null, packageLevel, null, Scope.Type.TOP),
+                data,
+                null,
+                Scope.Type.TOP
+            );
+
             new ExpressionTraverse().traverse(
                 new ExpressionBaseNode(baseClassNode),
-                new Scope(
-                    new Scope(null, packageLevel, null, Scope.Type.TOP),
-                    data,
-                    null,
-                    Scope.Type.TOP
-                )
+                currentScope
             );
+
+            packageLevel.bindingContext().put(baseClassNode, currentScope.getFQName(baseClass));
         }
     }
 

@@ -28,7 +28,13 @@ public class FunctionGenerator {
         if (!isAbstract) {
             mv.visitCode();
 
-            BlockGenerator.generateFunctionBlock(functionDeclarationNode.block, file, mv, new VariableManager(mv));
+            VariableManager vm =  new VariableManager(mv);
+
+            for (ParameterNode parameterNode : functionDeclarationNode.parameters) {
+                vm.recognizeVariable(parameterNode.name);
+            }
+
+            BlockGenerator.generateFunctionBlock(functionDeclarationNode.block, file, mv, vm);
 
             if (functionDeclarationNode.returnType.equals("Void")) {
                 mv.visitInsn(Opcodes.RETURN);

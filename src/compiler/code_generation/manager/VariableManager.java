@@ -15,8 +15,12 @@ public class VariableManager {
         this.mv = mv;
     }
 
-    public void declareVariable(String name) {
+    public void recognizeVariable(String name) {
         variables.put(name, availableCell);
+    }
+
+    public void declareVariable(String name) {
+        recognizeVariable(name);
         mv.visitVarInsn(Opcodes.ASTORE, availableCell++);
     }
 
