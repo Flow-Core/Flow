@@ -17,12 +17,30 @@ import java.util.Map;
 
 public class ImportLoader {
     public void load(final BlockNode root, final SymbolTable data, final Map<String, PackageWrapper> globalPackages) {
+        boolean finishedImports = false;
+
+        validateImport(
+            new ImportNode(
+                "flow.*",
+                "*",
+                true
+            ),
+            data,
+            globalPackages
+        );
+
         for (int i = 0; i < root.children.size(); i++) {
             final ASTNode node = root.children.get(i);
             if (node instanceof ImportNode importNode) {
+                if (finishedImports) {
+                    throw new SA_SemanticError("Import cannot be here");
+                }
+
                 validateImport(importNode, data, globalPackages);
             } else if (i != 0 && node instanceof PackageNode) {
                 throw new SA_SemanticError("Package must be on top of the file");
+            } else {
+                finishedImports = true;
             }
         }
     }

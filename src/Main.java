@@ -23,8 +23,6 @@ public class Main {
         \s""";
 
         final String file2 = """
-        import flow.*
-        
         func main() {
             FlowIO.print("Hello, world!")
         }
