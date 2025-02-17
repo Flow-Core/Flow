@@ -199,4 +199,31 @@ public class ExpressionGenerator {
 
         mv.visitLdcInsn(literalNode.getValue());
     }
+
+    private static void boxPrimitive(String type, MethodVisitor mv, Scope scope) {
+        String wrapperType = getBoxedType(type);
+        String descriptor = "(" + getJVMName(type, false, scope) + ")L" + wrapperType + ";";
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, wrapperType, "valueOf", descriptor, false);
+    }
+
+    private static boolean isPrimitive(String type) {
+        return switch (type) {
+            case "Int", "Bool", "Float", "Double", "Long", "Byte", "Char", "Short" -> true;
+            default -> false;
+        };
+    }
+
+    private static String getBoxedType(String primitive) {
+        return switch (primitive) {
+            case "Int" -> "java/lang/Integer";
+            case "Bool" -> "java/lang/Boolean";
+            case "Float" -> "java/lang/Float";
+            case "Double" -> "java/lang/Double";
+            case "Long" -> "java/lang/Long";
+            case "Byte" -> "java/lang/Byte";
+            case "Char" -> "java/lang/Character";
+            case "Short" -> "java/lang/Short";
+            default -> throw new IllegalArgumentException("Unexpected primitive: " + primitive);
+        };
+    }
 }
