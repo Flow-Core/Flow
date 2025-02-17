@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import static compiler.library_loader.TypeMapper.mapType;
+
 public class LibLoader {
     public static LibOutput loadLibraries(String libFolderPath) throws Exception {
         File libFolder = new File(libFolderPath);
@@ -111,8 +113,13 @@ public class LibLoader {
         for (FieldNode field : classNode.fields) {
             String fieldType = Type.getType(field.desc).getClassName();
 
-            parser.nodes.classes.FieldNode fieldNode = new parser.nodes.classes.FieldNode(extractModifiers(field.access), new parser.nodes.variable.InitializedVariableNode(
-                new parser.nodes.variable.VariableDeclarationNode("var", fieldType, field.name, true), null));
+            parser.nodes.classes.FieldNode fieldNode = new parser.nodes.classes.FieldNode(
+                extractModifiers(field.access),
+                new parser.nodes.variable.InitializedVariableNode(
+                    new parser.nodes.variable.VariableDeclarationNode("var", fieldType, field.name, true),
+                    null
+                )
+            );
 
             if (fieldNode.modifiers.remove("final")) {
                 fieldNode.initialization.declaration.modifier = "val";
@@ -134,22 +141,34 @@ public class LibLoader {
 
         List<BaseClassNode> baseClasses = List.of(new BaseClassNode(classNode.superName.replace("/", "."), List.of()));
 
-        List<BaseInterfaceNode> interfaces = classNode.interfaces.stream().map(baseInterface -> new BaseInterfaceNode(baseInterface.replace("/", "."))).toList();
+        List<BaseInterfaceNode> interfaces = classNode.interfaces.stream().map(
+            baseInterface -> new BaseInterfaceNode(baseInterface.replace("/", "."))
+        ).toList();
 
-        final ClassDeclarationNode flowClass = new ClassDeclarationNode(className, extractModifiers(classNode.access), new ArrayList<>(), baseClasses,
-            interfaces, fields, methods, constructors, null, null);
+        final ClassDeclarationNode flowClass = new ClassDeclarationNode(
+            className,
+            extractModifiers(classNode.access),
+            new ArrayList<>(),
+            baseClasses,
+            interfaces,
+            fields,
+            methods,
+            constructors,
+            null,
+            null
+        );
 
         symbolTable.bindingContext().put(flowClass, classNode.name.replace("/", "."));
         return flowClass;
     }
 
     private static FunctionDeclarationNode convertToFlowMethod(ClassNode classNode, MethodNode method) {
-        String returnType = mapType(Type.getReturnType(method.desc).getClassName());
-        boolean isNullable = true; // TODO: Add annotations or think about a better solution
+        TypeMapper.TypeInfo returnType = mapType(Type.getReturnType(method.desc).getClassName());
 
         return new FunctionDeclarationNode(
             method.name,
-            returnType, isNullable,
+            returnType.flowType(),
+            returnType.isNullable(),
             extractModifiers(method.access),
             parseParameters(classNode, method, false),
             null
@@ -170,12 +189,19 @@ public class LibLoader {
         List<ParameterNode> parameters = new ArrayList<>();
 
         for (int i = 0; i < argumentTypes.length; i++) {
-            String typeName = mapType(argumentTypes[i].getClassName()).replace("/", ".");
+            TypeMapper.TypeInfo type = mapType(argumentTypes[i].getClassName());
             String paramName = (methodNode.parameters != null && i < methodNode.parameters.size())
                 ? methodNode.parameters.get(i).name
                 : null;
 
-            parameters.add(new ParameterNode(typeName, false, paramName, null));
+            parameters.add(
+                new ParameterNode(
+                    type.flowType(),
+                    type.isNullable(),
+                    paramName,
+                    null
+                )
+            );
         }
 
         if (!isConstructor && (methodNode.access & Opcodes.ACC_STATIC) == 0) {
@@ -190,27 +216,11 @@ public class LibLoader {
         return (lastSlashIndex != -1) ? classNode.name.substring(0, lastSlashIndex).replace("/", ".") : "";
     }
 
-    private static String mapType(String className) {
-        return switch (className) {
-            case "java.lang.String", "kotlin.String" -> "String";
-            case "java.lang.Integer", "kotlin.Int" -> "Int";
-            case "java.lang.Boolean", "kotlin.Boolean" -> "Bool";
-            case "java.lang.Float", "kotlin.Float" -> "Float";
-            case "java.lang.Double", "kotlin.Double" -> "Double";
-            case "java.lang.Long", "kotlin.Long" -> "Long";
-            case "java.lang.Byte", "kotlin.Byte" -> "Byte";
-            case "java.lang.Character", "kotlin.Char" -> "Char";
-            case "java.lang.Short", "kotlin.Short" -> "Short";
-
-            default -> className.replace("/", ".");
-        };
-    }
-
     private static List<String> extractModifiers(int flags) {
         List<String> modifiers = new ArrayList<>();
 
         for (String key : ModifierMapper.MODIFIER_MAP.keySet()) {
-            if ((flags & ModifierMapper.MODIFIER_MAP.get(key)) > 0) {
+            if ((flags & ModifierMapper.MODIFIER_MAP.get(key)) != 0) {
                 modifiers.add(key);
             }
         }
