@@ -16,7 +16,6 @@ import semantic_analysis.exceptions.SA_SemanticError;
 import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 import semantic_analysis.loaders.ModifierLoader;
 import semantic_analysis.scopes.Scope;
-import semantic_analysis.transformers.LiteralTransformer;
 
 import java.util.List;
 
@@ -40,9 +39,6 @@ public class ExpressionTraverse {
     }
 
     private static ExpressionNode transformValue(ExpressionNode expression, Scope scope) {
-        if (expression instanceof LiteralNode literalNode) {
-            return LiteralTransformer.transform(literalNode);
-        }
         if (expression instanceof VariableReferenceNode referenceNode) {
             return transformVariableReference(referenceNode, scope);
         }

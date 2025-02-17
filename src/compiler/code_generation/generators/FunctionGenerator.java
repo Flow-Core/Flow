@@ -6,6 +6,8 @@ import compiler.code_generation.mappers.ModifierMapper;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import parser.nodes.classes.BaseClassNode;
+import parser.nodes.classes.ObjectNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.files.FileWrapper;
@@ -46,6 +48,65 @@ public class FunctionGenerator {
         mv.visitEnd();
     }
 
+    public static void generateConstructor(BaseClassNode baseClassNode, FunctionDeclarationNode functionDeclarationNode, FileWrapper file, ClassWriter cw) {
+        final MethodVisitor mv = cw.visitMethod(
+            ModifierMapper.map(functionDeclarationNode.modifiers),
+            functionDeclarationNode.name,
+            getDescriptor(
+                functionDeclarationNode.parameters,
+                functionDeclarationNode.returnType,
+                functionDeclarationNode.isReturnTypeNullable,
+                file.scope()
+            ),
+            null,
+            null
+        );
+
+        mv.visitCode();
+
+        VariableManager vm =  new VariableManager(mv);
+
+        for (ParameterNode parameterNode : functionDeclarationNode.parameters) {
+            vm.recognizeVariable(parameterNode.name, parameterNode.type, parameterNode.isNullable);
+        }
+
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+
+        if (baseClassNode != null) {
+            ExpressionGenerator.generateConstructorCall(
+                new ObjectNode(
+                    baseClassNode.name,
+                    baseClassNode.arguments
+                ),
+                file.scope(),
+                file,
+                vm,
+                mv
+            );
+        } else {
+            ExpressionGenerator.generateConstructorCall(
+                new ObjectNode(
+                    "flow.Thing",
+                    List.of()
+                ),
+                file.scope(),
+                file,
+                vm,
+                mv
+            );
+        }
+
+        BlockGenerator.generateFunctionBlock(functionDeclarationNode.block, file, mv, vm);
+
+        if (functionDeclarationNode.returnType.equals("Void")) {
+            mv.visitInsn(Opcodes.RETURN);
+        }
+
+        mv.visitMaxs(0, 0);
+
+        mv.visitEnd();
+    }
+
     public static String getDescriptor(
         List<ParameterNode> parameters,
         String returnType,
@@ -63,7 +124,10 @@ public class FunctionGenerator {
         return sb.toString();
     }
 
-    public static String getDescriptor(FunctionDeclarationNode functionDeclarationNode, Scope scope) {
+    public static String getDescriptor(
+        FunctionDeclarationNode functionDeclarationNode,
+        Scope scope
+    ) {
         final StringBuilder sb = new StringBuilder("(");
 
         for (int i = 0; i < functionDeclarationNode.parameters.size(); i++) {

@@ -23,8 +23,29 @@ public class Main {
         \s""";
 
         final String file2 = """
+        import flow.*
+        
         func main() {
-            FlowIO.println("Hello, world!")
+            val x = new A()
+            FlowIO.print(x)
+        }
+        
+        func foo(a: Int, b: A) {}
+        
+        class A : B(2) {
+            static val y = 10
+        
+            static func foo() {
+                B.foo()
+            }
+        }
+        
+        open class B {
+            constructor(a: Int) {}
+        
+            static func foo() {
+                A.foo()
+            }
         }
         """;
 

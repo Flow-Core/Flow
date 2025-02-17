@@ -5,6 +5,7 @@ import compiler.code_generation.constants.CodeGenerationConstant;
 import compiler.code_generation.mappers.FQNameMapper;
 import compiler.code_generation.mappers.ModifierMapper;
 import org.objectweb.asm.ClassWriter;
+import parser.nodes.classes.BaseClassNode;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.ConstructorNode;
 import parser.nodes.classes.FieldNode;
@@ -18,8 +19,10 @@ public class ClassGenerator {
         final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
 
         String baseClassName = CodeGenerationConstant.baseObjectFQName;
+        BaseClassNode baseClassNode = null;
         if (!classDeclarationNode.baseClasses.isEmpty()) {
-            baseClassName = FQNameMapper.getFQName(classDeclarationNode.baseClasses.get(0), file.scope());
+            baseClassNode = classDeclarationNode.baseClasses.get(0);
+            baseClassName = FQNameMapper.getFQName(baseClassNode, file.scope());
         }
 
         final String[] baseInterfaceNames = classDeclarationNode.implementedInterfaces
@@ -55,7 +58,10 @@ public class ClassGenerator {
                 constructorNode.body
             );
 
-            FunctionGenerator.generate(function, file, cw, false);
+            if (classDeclarationNode.initBlock != null)
+                constructorNode.body.children.addAll(classDeclarationNode.initBlock.children);
+
+            FunctionGenerator.generateConstructor(baseClassNode, function, file, cw);
         }
 
         if (classDeclarationNode.name.equals(file.name() + "Fl")) {

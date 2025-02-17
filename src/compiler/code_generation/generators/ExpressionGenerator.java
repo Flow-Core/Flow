@@ -95,7 +95,7 @@ public class ExpressionGenerator {
             mv.visitFieldInsn(Opcodes.GETFIELD, holderFQName, refNode.name, descriptor);
     }
 
-    private static void generateObjectInstantiation(ObjectNode objNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv) {
+    public static void generateConstructorCall(ObjectNode objNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv) {
         if (objNode.className.equals("Void")) {
             return;
         }
@@ -120,9 +120,6 @@ public class ExpressionGenerator {
 
         final String constructorDescriptor = FunctionGenerator.getDescriptor(constructorNode.parameters, "Void", false, scope);
 
-        mv.visitTypeInsn(Opcodes.NEW, fqObjectName);
-        mv.visitInsn(Opcodes.DUP);
-
         for (ArgumentNode arg : objNode.arguments) {
             generate(arg.value.expression, mv, vm, file);
         }
@@ -133,6 +130,14 @@ public class ExpressionGenerator {
             return;
         }
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, fqObjectName, "<init>", constructorDescriptor, false);
+    }
+
+    private static void generateObjectInstantiation(ObjectNode objNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv) {
+        final String fqObjectName = FQNameMapper.getFQName(objNode.className, scope);
+        mv.visitTypeInsn(Opcodes.NEW, fqObjectName);
+        mv.visitInsn(Opcodes.DUP);
+
+        generateConstructorCall(objNode, scope, file, vm, mv);
     }
 
     public static void generateLiteral(LiteralNode literalNode, MethodVisitor mv) {
