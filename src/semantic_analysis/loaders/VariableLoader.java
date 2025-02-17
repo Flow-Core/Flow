@@ -53,7 +53,7 @@ public class VariableLoader {
             }
 
             fieldNode.isInitialized = true;
-        } else if (varType.name() == null) {
+        } else if (varType == null || varType.name() == null) {
             LoggerFacade.error("Variable must either have an explicit type or be initialized", fieldNode);
             return;
         } else if (isConst) {

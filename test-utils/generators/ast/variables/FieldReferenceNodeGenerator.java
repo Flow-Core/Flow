@@ -1,14 +1,14 @@
 package generators.ast.variables;
 
+import parser.nodes.FlowType;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.variable.FieldReferenceNode;
-import semantic_analysis.visitors.ExpressionTraverse;
 
 public class FieldReferenceNodeGenerator {
     private String holderType;
     private String name;
     private ExpressionNode holder;
-    private ExpressionTraverse.TypeWrapper type;
+    private FlowType type;
     private boolean isStatic;
 
     public static FieldReferenceNodeGenerator builder() {
@@ -30,7 +30,7 @@ public class FieldReferenceNodeGenerator {
         return this;
     }
 
-    public FieldReferenceNodeGenerator type(ExpressionTraverse.TypeWrapper type) {
+    public FieldReferenceNodeGenerator type(FlowType type) {
         this.type = type;
         return this;
     }

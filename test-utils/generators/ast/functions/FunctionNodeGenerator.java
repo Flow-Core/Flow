@@ -1,5 +1,6 @@
 package generators.ast.functions;
 
+import parser.nodes.FlowType;
 import parser.nodes.components.BlockNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
@@ -9,8 +10,7 @@ import java.util.List;
 
 public class FunctionNodeGenerator {
     private String name = "testFunction";
-    private String returnType = "Void";
-    private boolean isReturnTypeNullable = false;
+    private FlowType returnType = new FlowType("Void", false, true);
     private List<String> modifiers = new ArrayList<>();
     private List<ParameterNode> parameters = new ArrayList<>();
     private BlockNode block = new BlockNode(new ArrayList<>());
@@ -24,13 +24,8 @@ public class FunctionNodeGenerator {
         return this;
     }
 
-    public FunctionNodeGenerator returnType(String returnType) {
+    public FunctionNodeGenerator returnType(FlowType returnType) {
         this.returnType = returnType;
-        return this;
-    }
-
-    public FunctionNodeGenerator nullable(boolean nullable) {
-        this.isReturnTypeNullable = nullable;
         return this;
     }
 
@@ -50,6 +45,6 @@ public class FunctionNodeGenerator {
     }
 
     public FunctionDeclarationNode build() {
-        return new FunctionDeclarationNode(name, returnType, isReturnTypeNullable, modifiers, parameters, block);
+        return new FunctionDeclarationNode(name, returnType, modifiers, parameters, block);
     }
 }

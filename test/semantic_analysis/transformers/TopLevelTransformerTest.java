@@ -8,6 +8,7 @@ import generators.ast.variables.VariableDeclarationNodeGenerator;
 import generators.scopes.ScopeGenerator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import parser.nodes.FlowType;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.components.BlockNode;
@@ -23,14 +24,14 @@ class TopLevelTransformerTest {
     void test_transform_with_top_level_functions() {
         FunctionDeclarationNode function1 = FunctionNodeGenerator.builder()
             .name("sum")
-            .returnType("Int")
+            .returnType(new FlowType("Int", false, true))
             .parameters(new ArrayList<>())
             .block(BlockNodeGenerator.builder().children(new ArrayList<>()).build())
             .build();
 
         FunctionDeclarationNode function2 = FunctionNodeGenerator.builder()
             .name("multiply")
-            .returnType("Int")
+            .returnType(new FlowType("Int", false, true))
             .parameters(new ArrayList<>())
             .block(BlockNodeGenerator.builder().children(new ArrayList<>()).build())
             .build();
@@ -50,14 +51,14 @@ class TopLevelTransformerTest {
         FieldNode field1 = FieldNodeGenerator.builder()
             .modifiers(List.of("public"))
             .initialization(InitializedVariableNodeGenerator.builder()
-                .declaration(VariableDeclarationNodeGenerator.builder().name("counter").type("Int").build())
+                .declaration(VariableDeclarationNodeGenerator.builder().name("counter").type(new FlowType("Int", false, true)).build())
                 .build())
             .build();
 
         FieldNode field2 = FieldNodeGenerator.builder()
             .modifiers(List.of("public"))
             .initialization(InitializedVariableNodeGenerator.builder()
-                .declaration(VariableDeclarationNodeGenerator.builder().name("message").type("String").build())
+                .declaration(VariableDeclarationNodeGenerator.builder().name("message").type(new FlowType("String", false, true)).build())
                 .build())
             .build();
 
@@ -75,7 +76,7 @@ class TopLevelTransformerTest {
     void test_transform_with_mixed_top_level_elements() {
         FunctionDeclarationNode function = FunctionNodeGenerator.builder()
             .name("printHello")
-            .returnType("Void")
+            .returnType(new FlowType("Void", false, true))
             .parameters(new ArrayList<>())
             .block(BlockNodeGenerator.builder().children(new ArrayList<>()).build())
             .build();
@@ -83,7 +84,7 @@ class TopLevelTransformerTest {
         FieldNode field = FieldNodeGenerator.builder()
             .modifiers(List.of("public"))
             .initialization(InitializedVariableNodeGenerator.builder()
-                .declaration(VariableDeclarationNodeGenerator.builder().name("count").type("Int").build())
+                .declaration(VariableDeclarationNodeGenerator.builder().name("count").type(new FlowType("Int", false, true)).build())
                 .build())
             .build();
 

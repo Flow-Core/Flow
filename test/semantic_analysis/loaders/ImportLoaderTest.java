@@ -11,6 +11,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import parser.nodes.FlowType;
 import parser.nodes.components.BlockNode;
 import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.scopes.Scope;
@@ -69,7 +70,7 @@ class ImportLoaderTest {
     @Test
     void test_valid_import_function() {
         SymbolTable packageSymbols = SymbolTable.getEmptySymbolTable();
-        packageSymbols.functions().add(FunctionNodeGenerator.builder().name("myFunction").returnType("Void").build());
+        packageSymbols.functions().add(FunctionNodeGenerator.builder().name("myFunction").returnType(new FlowType("Void", false, true)).build());
 
         globalPackages.put("mypackage", new PackageWrapper("mypackage", List.of(), new Scope(null, packageSymbols, null, Scope.Type.TOP)));
 
@@ -90,7 +91,7 @@ class ImportLoaderTest {
     void test_valid_import_wildcard() {
         SymbolTable packageSymbols = SymbolTable.getEmptySymbolTable();
         packageSymbols.classes().add(ClassNodeGenerator.builder().name("MyClass").build());
-        packageSymbols.functions().add(FunctionNodeGenerator.builder().name("myFunction").returnType("Void").build());
+        packageSymbols.functions().add(FunctionNodeGenerator.builder().name("myFunction").returnType(new FlowType("Void", false, true)).build());
 
         globalPackages.put("mypackage", new PackageWrapper("mypackage", List.of(), new Scope(null, packageSymbols, null, Scope.Type.TOP)));
 

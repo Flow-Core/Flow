@@ -11,6 +11,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import parser.nodes.FlowType;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.components.BlockNode;
@@ -44,7 +45,7 @@ class VariableLoaderTest {
 
         FieldNode fieldNode = FieldNodeGenerator.builder()
             .initialization(
-                InitializedVariableNodeGenerator.builder().declaration(VariableDeclarationNodeGenerator.builder().modifier("var").name("x").type("Int").build()).build()
+                InitializedVariableNodeGenerator.builder().declaration(VariableDeclarationNodeGenerator.builder().modifier("var").name("x").type(new FlowType("Int", false, true)).build()).build()
             ).build();
 
         VariableLoader.loadDeclaration(fieldNode, scope);
@@ -61,7 +62,7 @@ class VariableLoaderTest {
         FieldNode fieldNode = FieldNodeGenerator.builder()
             .initialization(
                 InitializedVariableNodeGenerator.builder().declaration(
-                    VariableDeclarationNodeGenerator.builder().modifier("var").name("x").type("Int").build()
+                    VariableDeclarationNodeGenerator.builder().modifier("var").name("x").type(new FlowType("Int", false, true)).build()
                 ).assignment(
                     VariableAssignmentNodeGenerator.builder()
                         .variable(ExpressionBaseNodeGenerator.builder()
@@ -75,7 +76,7 @@ class VariableLoaderTest {
 
         VariableLoader.loadDeclaration(fieldNode, scope);
 
-        Assertions.assertEquals("Int", fieldNode.initialization.declaration.type, "Variable type should be inferred as 'Int'");
+        Assertions.assertEquals("Int", fieldNode.initialization.declaration.type.name(), "Variable type should be inferred as 'Int'");
         Assertions.assertTrue(scope.symbols().findField("x"), "Variable should be added to scope");
     }
 
@@ -111,7 +112,7 @@ class VariableLoaderTest {
                         .modifier("var")
                         .name("x")
                         .modifier("var")
-                        .type("UnknownType")
+                        .type(new FlowType("Unknown", false, true))
                         .build()
                 ).build()).build();
 
@@ -132,7 +133,7 @@ class VariableLoaderTest {
                     VariableDeclarationNodeGenerator.builder()
                         .modifier("var")
                         .name("x")
-                        .type("Int")
+                        .type(new FlowType("Int", false, true))
                         .build()
                 ).assignment(
                     VariableAssignmentNodeGenerator.builder()
@@ -160,8 +161,7 @@ class VariableLoaderTest {
                     VariableDeclarationNodeGenerator.builder()
                         .modifier("var")
                         .name("x")
-                        .type("Int")
-                        .isNullable(true)
+                        .type(new FlowType("Int", true, true))
                         .build()
                 ).assignment(
                     VariableAssignmentNodeGenerator.builder()
@@ -188,7 +188,7 @@ class VariableLoaderTest {
                     VariableDeclarationNodeGenerator.builder()
                         .modifier("val")
                         .name("x")
-                        .type("Int")
+                        .type(new FlowType("Int", false, true))
                         .build()
                 ).assignment(
                     VariableAssignmentNodeGenerator.builder()

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import parser.nodes.FlowType;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.InterfaceNode;
@@ -100,8 +101,8 @@ class SignatureLoaderTest {
 
         FunctionDeclarationNode functionNode = FunctionNodeGenerator.builder()
             .name("sum")
-            .returnType("Int")
-            .parameters(List.of(ParameterNodeGenerator.builder().type("Int").name("a").build()))
+            .returnType(new FlowType("Int", false, true))
+            .parameters(List.of(ParameterNodeGenerator.builder().type(new FlowType("Int", false, true)).name("a").build()))
             .modifiers(List.of("public"))
             .build();
 
@@ -117,8 +118,8 @@ class SignatureLoaderTest {
 
         FunctionDeclarationNode functionNode = FunctionNodeGenerator.builder()
             .name("privateSum")
-            .returnType("Int")
-            .parameters(List.of(ParameterNodeGenerator.builder().type("Int").name("a").build()))
+            .returnType(new FlowType("Int", false, true))
+            .parameters(List.of(ParameterNodeGenerator.builder().type(new FlowType("Int", false, true)).name("a").build()))
             .modifiers(List.of("private"))
             .build();
 
@@ -135,7 +136,7 @@ class SignatureLoaderTest {
 
         FieldNode fieldNode = FieldNodeGenerator.builder()
             .modifiers(List.of("public"))
-            .initialization(InitializedVariableNodeGenerator.builder().declaration(VariableDeclarationNodeGenerator.builder().name("x").type("Int").build()).build())
+            .initialization(InitializedVariableNodeGenerator.builder().declaration(VariableDeclarationNodeGenerator.builder().name("x").type(new FlowType("Int", false, true)).build()).build())
             .build();
 
         SignatureLoader.load(List.of(fieldNode), fileSymbolTable, packageWrapper);
@@ -150,7 +151,7 @@ class SignatureLoaderTest {
 
         FieldNode fieldNode = FieldNodeGenerator.builder()
             .modifiers(List.of("private"))
-            .initialization(InitializedVariableNodeGenerator.builder().declaration(VariableDeclarationNodeGenerator.builder().name("y").type("Int").build()).build())
+            .initialization(InitializedVariableNodeGenerator.builder().declaration(VariableDeclarationNodeGenerator.builder().name("y").type(new FlowType("Int", false, true)).build()).build())
             .build();
 
         SignatureLoader.load(List.of(fieldNode), fileSymbolTable, packageWrapper);

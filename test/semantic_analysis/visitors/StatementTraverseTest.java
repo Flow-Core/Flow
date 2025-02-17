@@ -12,6 +12,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import parser.nodes.FlowType;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.literals.BooleanLiteralNode;
 import parser.nodes.literals.IntegerLiteralNode;
@@ -19,7 +20,6 @@ import parser.nodes.statements.*;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
-import semantic_analysis.transformers.LiteralTransformer;
 
 import java.util.List;
 
@@ -44,7 +44,7 @@ class StatementTraverseTest {
 
         IfStatementNode ifStatement = IfStatementNodeGenerator.builder()
             .condition(ExpressionBaseNodeGenerator.builder()
-                .expression(LiteralTransformer.transform(new BooleanLiteralNode(true)))
+                .expression(new BooleanLiteralNode(true))
                 .build())
             .trueBranch(BlockNodeGenerator.builder().children(List.of()).build())
             .falseBranch(BlockNodeGenerator.builder().children(List.of()).build())
@@ -202,7 +202,7 @@ class StatementTraverseTest {
 
         FunctionDeclarationNode function = FunctionNodeGenerator.builder()
             .name("sum")
-            .returnType("Int")
+            .returnType(new FlowType("Int", false, true))
             .parameters(List.of())
             .block(BlockNodeGenerator.builder().children(List.of()).build())
             .build();
@@ -229,7 +229,7 @@ class StatementTraverseTest {
 
         FunctionDeclarationNode function = FunctionNodeGenerator.builder()
             .name("sum")
-            .returnType("Int")
+            .returnType(new FlowType("Int", false, true))
             .parameters(List.of())
             .block(BlockNodeGenerator.builder().children(List.of()).build())
             .build();
