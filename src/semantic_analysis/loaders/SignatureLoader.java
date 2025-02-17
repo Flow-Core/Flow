@@ -3,15 +3,20 @@ package semantic_analysis.loaders;
 import logger.LoggerFacade;
 import parser.nodes.ASTNode;
 import parser.nodes.classes.ClassDeclarationNode;
+import parser.nodes.classes.ConstructorNode;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.InterfaceNode;
 import parser.nodes.components.ArgumentNode;
+import parser.nodes.components.BlockNode;
 import parser.nodes.components.ParameterNode;
+import parser.nodes.expressions.BinaryExpressionNode;
+import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.files.PackageWrapper;
+import parser.nodes.variable.VariableAssignmentNode;
+import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
-import semantic_analysis.visitors.ExpressionTraverse;
 import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
 
 import java.util.ArrayList;
@@ -35,13 +40,21 @@ public class SignatureLoader {
     }
 
     private static void handleClass(final ClassDeclarationNode classDeclaration, final SymbolTable fileLevel, final PackageWrapper packageWrapper) {
-        boolean isPublic = !classDeclaration.modifiers.contains("private") && !classDeclaration.modifiers.contains("protected");
+        boolean isPublic = ModifierLoader.isPublic(classDeclaration.modifiers);
 
         if (packageWrapper.scope().findSymbol(classDeclaration.name)) {
             LoggerFacade.error("Symbol '" + classDeclaration.name + "' redefined", classDeclaration);
         }
 
+        if (!classDeclaration.modifiers.contains("abstract")) {
+            addPrimaryConstructor(classDeclaration);
+        }
+
         if (isPublic) {
+            if (ModifierLoader.isDefaultPublic(classDeclaration.modifiers)) {
+                classDeclaration.modifiers.add("public");
+            }
+
             packageWrapper.scope().symbols().classes().add(classDeclaration);
             packageWrapper.scope().symbols().bindingContext().put(classDeclaration, joinPath(packageWrapper.path(), classDeclaration.name));
         } else {
@@ -49,14 +62,57 @@ public class SignatureLoader {
         }
     }
 
+    private static void addPrimaryConstructor(ClassDeclarationNode classDeclaration) {
+        List<ParameterNode> primaryParameters = new ArrayList<>();
+        List<ASTNode> assignments = new ArrayList<>();
+
+        for (FieldNode field : classDeclaration.primaryConstructor) {
+            primaryParameters.add(
+                new ParameterNode(
+                    field.initialization.declaration.type,
+                    field.initialization.declaration.isNullable,
+                    field.initialization.declaration.name,
+                    null
+                )
+            );
+
+            classDeclaration.fields.add(0, field);
+            assignments.add(
+                new VariableAssignmentNode(
+                    new ExpressionBaseNode(new VariableReferenceNode(field.initialization.declaration.name)),
+                    "=",
+                    new ExpressionBaseNode(
+                        new BinaryExpressionNode(
+                            new VariableReferenceNode("this"),
+                            new VariableReferenceNode(field.initialization.declaration.name),
+                            "."
+                        )
+                    )
+                )
+            );
+        }
+
+        ConstructorNode primaryConstructor = new ConstructorNode(
+            "public",
+            primaryParameters,
+            new BlockNode(assignments)
+        );
+
+        classDeclaration.constructors.add(primaryConstructor);
+    }
+
     private static void handleInterface(final InterfaceNode interfaceDeclaration, final SymbolTable fileLevel, final PackageWrapper packageWrapper) {
-        boolean isPublic = !interfaceDeclaration.modifiers.contains("private") && !interfaceDeclaration.modifiers.contains("protected");
+        boolean isPublic = ModifierLoader.isPublic(interfaceDeclaration.modifiers);
 
         if (packageWrapper.scope().findSymbol(interfaceDeclaration.name)) {
             LoggerFacade.error("Symbol '" + interfaceDeclaration.name + "' redefined", interfaceDeclaration);
         }
 
         if (isPublic) {
+            if (ModifierLoader.isDefaultPublic(interfaceDeclaration.modifiers)) {
+                interfaceDeclaration.modifiers.add("public");
+            }
+
             packageWrapper.scope().symbols().interfaces().add(interfaceDeclaration);
             packageWrapper.scope().symbols().bindingContext().put(interfaceDeclaration, joinPath(packageWrapper.path(), interfaceDeclaration.name));
         } else {
@@ -65,13 +121,17 @@ public class SignatureLoader {
     }
 
     private static void handleFunction(final FunctionDeclarationNode functionDeclarationNode, final SymbolTable fileLevel, final PackageWrapper packageWrapper) {
-        boolean isPublic = !functionDeclarationNode.modifiers.contains("private") && !functionDeclarationNode.modifiers.contains("protected");
+        boolean isPublic = ModifierLoader.isPublic(functionDeclarationNode.modifiers);
 
         if (packageWrapper.scope().findSymbol(functionDeclarationNode.name)) {
             LoggerFacade.error("Symbol '" + functionDeclarationNode.name + "' redefined", functionDeclarationNode);
         }
 
         if (isPublic) {
+            if (ModifierLoader.isDefaultPublic(functionDeclarationNode.modifiers)) {
+                functionDeclarationNode.modifiers.add("public");
+            }
+
             packageWrapper.scope().symbols().functions().add(functionDeclarationNode);
             packageWrapper.scope().symbols().bindingContext().put(functionDeclarationNode, joinPath(packageWrapper.path(), functionDeclarationNode.name));
         } else {
@@ -80,7 +140,11 @@ public class SignatureLoader {
     }
 
     private static void handleField(final FieldNode fieldNode, final SymbolTable fileLevel, final PackageWrapper packageWrapper) {
-        boolean isPublic = !fieldNode.modifiers.contains("private") && !fieldNode.modifiers.contains("protected");
+        boolean isPublic = ModifierLoader.isPublic(fieldNode.modifiers);
+
+        if (fieldNode.initialization == null) {
+            return;
+        }
 
         final String name = fieldNode.initialization.declaration.name;
         if (packageWrapper.scope().findSymbol(name)) {
@@ -88,6 +152,10 @@ public class SignatureLoader {
         }
 
         if (isPublic) {
+            if (ModifierLoader.isDefaultPublic(fieldNode.modifiers)) {
+                fieldNode.modifiers.add("public");
+            }
+
             packageWrapper.scope().symbols().fields().add(fieldNode);
             packageWrapper.scope().symbols().bindingContext().put(fieldNode, joinPath(packageWrapper.path(), fieldNode.initialization.declaration.name));
         } else {
@@ -240,6 +308,8 @@ public class SignatureLoader {
         List<ParameterNode> parameters,
         List<ArgumentNode> arguments
     ) {
+        if (parameters.size() < arguments.size()) return false;
+
         boolean foundNamed = false;
 
         List<ParameterNode> passedArgument = new ArrayList<>();
@@ -268,10 +338,8 @@ public class SignatureLoader {
 
             passedArgument.add(parameterNode);
 
-            final TypeWrapper argType = new ExpressionTraverse().traverse(argumentNode.value, scope);
-
             if (!scope.isSameType(
-                argType,
+                argumentNode.type,
                 new TypeWrapper(
                     parameterNode.type,
                     false,
@@ -282,6 +350,58 @@ public class SignatureLoader {
         }
 
         for (ParameterNode parameter : parameters) {
+            if (parameter.defaultValue == null && !passedArgument.contains(parameter))
+                return false;
+        }
+
+        return true;
+    }
+
+    public static boolean compareParameterTypesWithoutThis(
+        Scope scope,
+        List<ParameterNode> parameters,
+        List<ArgumentNode> arguments
+    ) {
+        if (parameters.size() + 1 < arguments.size()) return false;
+
+        boolean foundNamed = false;
+
+        List<ParameterNode> passedArgument = new ArrayList<>();
+
+        for (int i = 1; i < arguments.size(); i++) {
+            final ArgumentNode argumentNode = arguments.get(i);
+            final ParameterNode parameterNode;
+
+            if (argumentNode.name != null) {
+                foundNamed = true;
+
+                parameterNode = parameters.stream()
+                    .filter(parameter -> parameter.name.equals(argumentNode.name))
+                    .findFirst().orElse(null);
+
+                if (parameterNode == null)
+                    throw new SA_UnresolvedSymbolException(argumentNode.name);
+            } else if (foundNamed)
+                throw new SA_SemanticError("Unnamed arguments cannot follow named arguments"); // Log
+            else {
+                parameterNode = parameters.get(i);
+            }
+
+            passedArgument.add(parameterNode);
+
+            if (!scope.isSameType(
+                argumentNode.type,
+                new TypeWrapper(
+                    parameterNode.type,
+                    false,
+                    parameterNode.isNullable
+                )
+            ))
+                return false;
+        }
+
+        for (int i = 1; i < parameters.size(); i++) {
+            ParameterNode parameter = parameters.get(i);
             if (parameter.defaultValue == null && !passedArgument.contains(parameter))
                 return false;
         }

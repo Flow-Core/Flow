@@ -15,7 +15,7 @@ public record SymbolTable(
     Map<ASTNode, String> bindingContext
 ) {
     public static SymbolTable getEmptySymbolTable() {
-        return new SymbolTable(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new HashMap<>());
+        return new SymbolTable(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new IdentityHashMap<>());
     }
 
     public boolean isSameType(TypeWrapper type, TypeWrapper superType) {
@@ -46,6 +46,12 @@ public record SymbolTable(
 
         final TypeDeclarationNode typeDeclarationNode = getTypeDeclaration(type.type());
         if (typeDeclarationNode != null) {
+            final TypeDeclarationNode superTypeDeclaration = getTypeDeclaration(superType.type());
+
+            if (typeDeclarationNode.equals(superTypeDeclaration)) {
+                return true;
+            }
+
             for (final BaseInterfaceNode baseInterfaceNode : getTypeDeclaration(type.type()).implementedInterfaces) {
                 if (baseInterfaceNode.name.equals(superType.type()) ||
                     isSameType(
@@ -81,7 +87,14 @@ public record SymbolTable(
     }
 
     public static String joinPath(String modulePath, String moduleName) {
-        return modulePath + "." + moduleName;
+        String path;
+        if (modulePath.isEmpty()) {
+            path = moduleName;
+        } else {
+            path = modulePath + "." + moduleName;
+        }
+
+        return path;
     }
 
     public boolean findSymbol(String symbol) {
@@ -89,15 +102,55 @@ public record SymbolTable(
     }
 
     public ClassDeclarationNode getClass(String symbol) {
+        if (symbol.contains(".")) {
+            return (ClassDeclarationNode) getTypeFromFQName(symbol);
+        }
+
         return classes().stream().filter(
             classDeclarationNode -> classDeclarationNode.name.equals(symbol)
         ).findFirst().orElse(null);
     }
 
     public InterfaceNode getInterface(String symbol) {
+        if (symbol.contains(".")) {
+            return (InterfaceNode) getTypeFromFQName(symbol);
+        }
+
         return interfaces().stream().filter(
             interfaceNode -> interfaceNode.name.equals(symbol)
         ).findFirst().orElse(null);
+    }
+
+    private TypeDeclarationNode getTypeFromFQName(String symbol) {
+        var type = bindingContext.entrySet().stream().filter(
+            entry -> entry.getValue().equals(symbol)
+        ).findFirst().orElse(null);
+
+        if (type == null) {
+            return null;
+        }
+
+        return (TypeDeclarationNode) type.getKey();
+    }
+
+    private TypeDeclarationNode getTypeFromSimpleName(String symbol) {
+        var type = bindingContext.keySet().stream().filter(
+            key -> {
+                if (key instanceof ClassDeclarationNode classDeclarationNode) {
+                    return classDeclarationNode.name.equals(symbol);
+                } else if (key instanceof InterfaceNode interfaceNode) {
+                    return interfaceNode.name.equals(symbol);
+                }
+
+                return false;
+            }
+        ).findFirst().orElse(null);
+
+        if (type == null) {
+            return null;
+        }
+
+        return (TypeDeclarationNode) type;
     }
 
     public TypeDeclarationNode getTypeDeclaration(String symbol) {
@@ -105,6 +158,10 @@ public record SymbolTable(
 
         if (type == null) {
             type = getInterface(symbol);
+        }
+
+        if (type == null) {
+            type = getTypeFromSimpleName(symbol);
         }
 
         return type;

@@ -2,6 +2,7 @@ package semantic_analysis.loaders;
 
 import logger.LoggerFacade;
 import parser.nodes.ASTNode;
+import parser.nodes.classes.BaseClassNode;
 import parser.nodes.classes.BaseInterfaceNode;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.InterfaceNode;
@@ -15,12 +16,30 @@ import java.util.Map;
 
 public class ImportLoader {
     public void load(final BlockNode root, final SymbolTable data, final Map<String, PackageWrapper> globalPackages) {
+        boolean finishedImports = false;
+
+        validateImport(
+            new ImportNode(
+                "flow.*",
+                "*",
+                true
+            ),
+            data,
+            globalPackages
+        );
+
         for (int i = 0; i < root.children.size(); i++) {
             final ASTNode node = root.children.get(i);
             if (node instanceof ImportNode importNode) {
+                if (finishedImports) {
+                    throw new SA_SemanticError("Import cannot be here");
+                }
+
                 validateImport(importNode, data, globalPackages);
             } else if (i != 0 && node instanceof PackageNode) {
                 LoggerFacade.error("Package must be on top of the file", node);
+            } else {
+                finishedImports = true;
             }
         }
     }
@@ -60,13 +79,18 @@ public class ImportLoader {
                 data.bindingContext().put(optionalClass.get(), importNode.module);
 
                 if (!optionalClass.get().baseClasses.isEmpty()) {
-                    final ClassDeclarationNode baseClass = importedSymbols.getClass(optionalClass.get().baseClasses.get(0).name);
-                    data.classes().add(baseClass);
+                    final BaseClassNode baseClassNode = optionalClass.get().baseClasses.get(0);
+                    final ClassDeclarationNode classDeclarationNode = importedSymbols.getClass(baseClassNode.name);
+
+                    data.classes().add(classDeclarationNode);
+                    data.bindingContext().put(baseClassNode, importedSymbols.bindingContext().get(classDeclarationNode));
                 }
 
                 for (final BaseInterfaceNode baseInterfaceNode : optionalClass.get().implementedInterfaces) {
                     final InterfaceNode interfaceNode = importedSymbols.getInterface(baseInterfaceNode.name);
+
                     data.interfaces().add(interfaceNode);
+                    data.bindingContext().put(baseInterfaceNode, importedSymbols.bindingContext().get(interfaceNode));
                 }
 
                 return;

@@ -1,6 +1,7 @@
 package parser.nodes.variable;
 
 import parser.nodes.expressions.ExpressionNode;
+import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
 
 import java.util.Objects;
 
@@ -8,15 +9,21 @@ public class FieldReferenceNode implements ExpressionNode {
     public String holderType;
     public String name;
     public ExpressionNode holder;
+    public TypeWrapper type;
+    public boolean isStatic;
 
     public FieldReferenceNode(
         String holderType,
         String name,
-        ExpressionNode holder
+        ExpressionNode holder,
+        TypeWrapper type,
+        boolean isStatic
     ) {
         this.holderType = holderType;
         this.name = name;
         this.holder = holder;
+        this.type = type;
+        this.isStatic = isStatic;
     }
 
     @Override

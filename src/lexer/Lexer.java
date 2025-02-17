@@ -68,7 +68,7 @@ public class Lexer {
                 String value = matcher.group();
                 currentPosition += value.length();
 
-                if (type == TokenType.STRING) {
+                if (type == TokenType.STRING || type == TokenType.CHAR) {
                     value = value.substring(1, value.length() - 1);
                 }
 

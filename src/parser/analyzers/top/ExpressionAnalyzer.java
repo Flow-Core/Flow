@@ -8,6 +8,7 @@ import parser.analyzers.TopAnalyzer;
 import parser.analyzers.inline.IdentifierReferenceAnalyzer;
 import parser.analyzers.inline.PrimaryAnalyzer;
 import parser.nodes.expressions.BinaryExpressionNode;
+import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.expressions.UnaryOperatorNode;
 
@@ -20,9 +21,17 @@ public class ExpressionAnalyzer extends TopAnalyzer {
         if (currValue == null) return null;
 
         return new AnalyzerResult(
+            new ExpressionBaseNode(parseExpression(parser)),
             ASTMetaDataStore.getInstance().addMetadata(parseRHS(parser, 0, currValue), line, parser.file),
             parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
         );
+    }
+
+    public static ExpressionNode parseExpression(final Parser parser) {
+        ExpressionNode currValue = parseValue(parser);
+        if (currValue == null) return null;
+
+        return parseRHS(parser, 0, currValue);
     }
 
     private static ExpressionNode parseRHS(

@@ -4,11 +4,11 @@ import logger.LoggerFacade;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.expressions.BinaryExpressionNode;
 import parser.nodes.expressions.ExpressionBaseNode;
+import parser.nodes.literals.LiteralNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.visitors.ExpressionTraverse;
-import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
 
 import java.util.Objects;
 
@@ -17,6 +17,31 @@ public class VariableLoader {
         final FieldNode fieldNode,
         final Scope scope
     ) {
+        if (fieldNode.initialization == null) {
+            throw new SA_SemanticError("Variable must either have an explicit type or be initialized");
+        }
+
+        final boolean isConst = fieldNode.initialization.declaration.modifier.equals("const");
+        if (scope.type() == Scope.Type.FUNCTION) {
+            if (isConst) {
+                throw new SA_SemanticError("Local variable cannot be const");
+            }
+        } else {
+            ModifierLoader.load(
+                fieldNode.modifiers,
+                scope.type() == Scope.Type.TOP
+                    ? ModifierLoader.ModifierType.TOP_LEVEL_FIELD
+                    : ModifierLoader.ModifierType.CLASS_FIELD
+            );
+
+            if (ModifierLoader.isDefaultPublic(fieldNode.modifiers)) {
+                fieldNode.modifiers.add("public");
+            }
+            if (fieldNode.initialization.declaration.modifier.equals("const")) {
+                fieldNode.modifiers.add("final");
+            }
+        }
+
         final TypeWrapper varType = new TypeWrapper(
             fieldNode.initialization.declaration.type,
             false,
@@ -24,11 +49,17 @@ public class VariableLoader {
         );
         TypeWrapper actualType = null;
         if (fieldNode.initialization.assignment != null) {
-            actualType = new ExpressionTraverse().traverse(fieldNode.initialization.assignment.value, scope);
+            actualType = new ExpressionTraverse().traverse(fieldNode.initialization.assignment.value, scope, isConst);
+            if (isConst && !(fieldNode.initialization.assignment.value.expression instanceof LiteralNode)) {
+                throw new SA_SemanticError("Const must contain a literal");
+            }
+
             fieldNode.isInitialized = true;
         } else if (varType.type() == null) {
             LoggerFacade.error("Variable must either have an explicit type or be initialized", fieldNode);
             return;
+        } else if (isConst) {
+            throw new SA_SemanticError("Const must be initialized");
         }
 
         if (varType.type() != null) {
@@ -62,6 +93,7 @@ public class VariableLoader {
         if (scope.type() == Scope.Type.TOP && !fieldNode.modifiers.contains("static")) {
             fieldNode.modifiers.add("static");
         }
+
         scope.symbols().fields().add(fieldNode);
     }
 

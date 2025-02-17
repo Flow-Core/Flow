@@ -76,6 +76,12 @@ public class StatementTraverse {
             )
         );
         forScope.symbols().fields().add(localVariable);
+        forStatementNode.populatedInitialization = localVariable;
+
+        final ExpressionTraverse.TypeWrapper conditionType = new ExpressionTraverse().traverse(forStatementNode.condition, forScope);
+        if (!conditionType.type().equals("Bool") && !conditionType.isNullable()) {
+            throw new SA_SemanticError("Loop condition type mismatch: must be of type 'Bool'");
+        }
 
         BlockTraverse.traverse(forStatementNode.action, forScope);
         BlockTraverse.traverse(forStatementNode.loopBlock, forScope);

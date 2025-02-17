@@ -4,15 +4,12 @@ import logger.LoggerFacade;
 import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
 import parser.nodes.classes.*;
-import parser.nodes.components.BlockNode;
 import parser.nodes.components.ParameterNode;
-import parser.nodes.expressions.BinaryExpressionNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.functions.FunctionDeclarationNode;
-import parser.nodes.variable.VariableAssignmentNode;
-import parser.nodes.variable.VariableReferenceNode;
+import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
-import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
+import semantic_analysis.visitors.ExpressionTraverse;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -44,7 +41,6 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
         validateBaseClass(classDeclaration, data);
         validateInterfaces(classDeclaration.implementedInterfaces, data);
 
-        addPrimaryConstructor(classDeclaration);
         addThisParameterToInstanceMethods(classDeclaration);
 
         if (!classDeclaration.modifiers.contains("abstract")) {
@@ -59,8 +55,6 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     private void loadConstructors(final ClassDeclarationNode classDeclaration) {
         for (final ConstructorNode constructorNode : classDeclaration.constructors) {
             ModifierLoader.load(constructorNode, List.of(constructorNode.accessModifier), ModifierLoader.ModifierType.CONSTRUCTOR);
-
-            constructorNode.parameters.add(0, new ParameterNode(classDeclaration.name, false, "this", null));
 
             if (
                 classDeclaration.constructors.stream()
@@ -150,16 +144,30 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                 return;
             }
 
-            final String baseClassName = classDeclaration.baseClasses.get(0).name;
-            final ClassDeclarationNode fileLevelBaseClass = data.getClass(baseClassName);
-            final ClassDeclarationNode baseClass = getClassDeclarationNode(classDeclaration, baseClassName, fileLevelBaseClass);
+            final BaseClassNode baseClassNode = classDeclaration.baseClasses.get(0);
+            final ClassDeclarationNode fileLevelBaseClass = data.getClass(baseClassNode.name);
+            final ClassDeclarationNode baseClass = getClassDeclarationNode(classDeclaration, baseClassNode.name, fileLevelBaseClass);
 
             if (baseClass == null || !baseClass.modifiers.contains("open")) {
-                LoggerFacade.error("'" + baseClassName + "' is final, so it cannot be extended", classDeclaration);
+                LoggerFacade.error("'" + baseClassNode.name + "' is final, so it cannot be extended", classDeclaration);
                 return;
             }
 
             checkCircularInheritance(classDeclaration.name, baseClass, new HashSet<>(), data);
+
+            final Scope currentScope = new Scope(
+                new Scope(null, packageLevel, null, Scope.Type.TOP),
+                data,
+                null,
+                Scope.Type.TOP
+            );
+
+            new ExpressionTraverse().traverse(
+                new ExpressionBaseNode(baseClassNode),
+                currentScope
+            );
+
+            packageLevel.bindingContext().put(baseClassNode, currentScope.getFQName(baseClass));
         }
     }
 
@@ -255,45 +263,6 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
         }
     }
 
-    private void addPrimaryConstructor(ClassDeclarationNode classDeclaration) {
-        List<ParameterNode> primaryParameters = new ArrayList<>();
-        List<ASTNode> assignments = new ArrayList<>();
-
-        for (FieldNode field : classDeclaration.primaryConstructor) {
-            primaryParameters.add(
-                new ParameterNode(
-                    field.initialization.declaration.type,
-                    field.initialization.declaration.isNullable,
-                    field.initialization.declaration.name,
-                    null
-                )
-            );
-
-            classDeclaration.fields.add(0, field);
-            assignments.add(
-                new VariableAssignmentNode(
-                    new ExpressionBaseNode(new VariableReferenceNode(field.initialization.declaration.name)),
-                    "=",
-                    new ExpressionBaseNode(
-                        new BinaryExpressionNode(
-                            new VariableReferenceNode("this"),
-                            new VariableReferenceNode(field.initialization.declaration.name),
-                            "."
-                        )
-                    )
-                )
-            );
-        }
-
-        ConstructorNode primaryConstructor = new ConstructorNode(
-            "public",
-            primaryParameters,
-            new BlockNode(assignments)
-        );
-
-        classDeclaration.constructors.add(primaryConstructor);
-    }
-
     private void addThisParameterToInstanceMethods(ClassDeclarationNode classDeclaration) {
         for (FunctionDeclarationNode functionDeclaration : classDeclaration.methods) {
             if (!functionDeclaration.modifiers.contains("static")) {
@@ -316,6 +285,8 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     }
 
     private void handleInterface(final InterfaceNode interfaceDeclaration, final SymbolTable data) {
+        ModifierLoader.load(interfaceDeclaration.modifiers, ModifierLoader.ModifierType.INTERFACE);
+
         validateInterfaces(interfaceDeclaration, data);
 
         for (FunctionDeclarationNode functionDeclaration : interfaceDeclaration.methods) {

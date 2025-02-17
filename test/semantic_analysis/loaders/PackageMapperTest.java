@@ -2,13 +2,16 @@ package semantic_analysis.loaders;
 
 import generators.ast.components.BlockNodeGenerator;
 import generators.ast.functions.FunctionNodeGenerator;
+import generators.scopes.ScopeGenerator;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import parser.nodes.components.BlockNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.packages.PackageNode;
 import semantic_analysis.files.FileWrapper;
 import semantic_analysis.files.PackageWrapper;
+import semantic_analysis.scopes.Scope;
 
 import java.util.List;
 import java.util.Map;

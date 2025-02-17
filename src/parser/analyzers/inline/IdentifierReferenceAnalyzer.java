@@ -42,11 +42,11 @@ public class IdentifierReferenceAnalyzer {
             if (parser.peek().type() == TokenType.IDENTIFIER && parser.peek(1).type() == TokenType.EQUAL_OPERATOR) {
                 final Token argumentName = parser.consume(TokenType.IDENTIFIER);
                 parser.consume(TokenType.EQUAL_OPERATOR);
-                final ExpressionNode value = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                final ExpressionNode value = ExpressionAnalyzer.parseExpression(parser);
 
                 args.add((ArgumentNode) ASTMetaDataStore.getInstance().addMetadata(new ArgumentNode(argumentName.value(), new ExpressionBaseNode(value, parser.peek().line(), parser.file)), parser.peek().line(), parser.file));
             } else {
-                final ExpressionNode value = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                final ExpressionNode value = ExpressionAnalyzer.parseExpression(parser);
                 args.add((ArgumentNode) ASTMetaDataStore.getInstance().addMetadata(new ArgumentNode(null, new ExpressionBaseNode(value, parser.peek().line(), parser.file)), parser.peek().line(), parser.file));
             }
 

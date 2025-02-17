@@ -2,6 +2,7 @@ package semantic_analysis.loaders;
 
 import parser.nodes.ASTNode;
 import parser.nodes.classes.FieldNode;
+import parser.nodes.classes.TypeDeclarationNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.statements.ReturnStatementNode;
@@ -18,10 +19,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
+import static semantic_analysis.visitors.ClassTraverse.addThisToSymbolTable;
 
 public class FunctionLoader {
-    public static void loadSignature(final FunctionDeclarationNode functionDeclarationNode, final Scope scope) {
-        ModifierLoader.load(functionDeclarationNode.modifiers, ModifierLoader.ModifierType.FUNCTION);
+    public static void loadSignature(final FunctionDeclarationNode functionDeclarationNode, final Scope scope, boolean isInterface) {
+        ModifierLoader.load(
+            functionDeclarationNode.modifiers,
+            isInterface ?
+                ModifierLoader.ModifierType.FUNCTION_INTERFACE
+                : ModifierLoader.ModifierType.FUNCTION
+        );
 
         if (!scope.findTypeDeclaration(functionDeclarationNode.returnType)) {
             throw new SA_UnresolvedSymbolException(functionDeclarationNode.returnType);
@@ -45,6 +52,10 @@ public class FunctionLoader {
             functionDeclarationNode.modifiers.add("static");
         }
 
+        if (ModifierLoader.isDefaultPublic(functionDeclarationNode.modifiers)) {
+            functionDeclarationNode.modifiers.add("public");
+        }
+
         scope.symbols().functions().add(functionDeclarationNode);
     }
 
@@ -58,9 +69,14 @@ public class FunctionLoader {
 
     public static void loadBody(final FunctionDeclarationNode functionDeclarationNode, final Scope scope) {
         final SymbolTable symbolTable = loadParameters(functionDeclarationNode.parameters);
+        final TypeDeclarationNode containingType = scope.getContainingType();
 
         if (functionDeclarationNode.block == null) {
             return;
+        }
+
+        if (containingType != null && !functionDeclarationNode.modifiers.contains("static")) {
+            addThisToSymbolTable(symbolTable, scope, containingType.name);
         }
 
         BlockTraverse.traverse(functionDeclarationNode.block, new Scope(scope, symbolTable, functionDeclarationNode, Scope.Type.FUNCTION));

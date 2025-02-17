@@ -14,6 +14,18 @@ public record Scope (
     ASTNode currentParent,
     Type type
 ) {
+    public String getFQName(ASTNode node) {
+        if (symbols.bindingContext().containsKey(node)) {
+            return symbols.bindingContext().get(node);
+        }
+
+        if (parent == null) {
+            return null;
+        }
+
+        return parent.getFQName(node);
+    }
+
     public boolean findSymbol(String symbol) {
         return findInterface(symbol) || findClass(symbol) || findFunction(symbol) || findField(symbol);
     }
@@ -80,6 +92,10 @@ public record Scope (
 
     public boolean findField(String symbol) {
         return symbols.findField(symbol) || (parent != null && parent().findField(symbol));
+    }
+
+    public boolean findLocalVariable(String symbol) {
+        return type == Type.FUNCTION && (symbols.findField(symbol) || (parent != null && parent().findLocalVariable(symbol)));
     }
 
     public TypeDeclarationNode getContainingType() {

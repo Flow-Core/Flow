@@ -97,7 +97,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
             ExpressionNode defaultValue = null;
             if (parser.peek().type() == TokenType.EQUAL_OPERATOR) {
                 parser.advance();
-                defaultValue = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                defaultValue = ExpressionAnalyzer.parseExpression(parser);
             }
 
             ParameterNode arg = new ParameterNode(
