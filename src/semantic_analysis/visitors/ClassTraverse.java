@@ -45,13 +45,13 @@ public class ClassTraverse {
                 LoggerFacade.error("Constructor must have a body", constructorNode);
             }
 
-            addThisToSymbolTable(symbolTable, scope, classDeclaration.name);
+            addThisToSymbolTable(symbolTable, classDeclaration.name);
 
             BlockTraverse.traverse(constructorNode.body, new Scope(scope, symbolTable, classDeclaration, Scope.Type.FUNCTION));
         }
     }
 
-    public static void addThisToSymbolTable(SymbolTable symbolTable, Scope scope, String type) {
+    public static void addThisToSymbolTable(SymbolTable symbolTable, String type) {
         symbolTable.fields().add(
             new FieldNode(
                 List.of(),

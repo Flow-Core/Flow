@@ -74,7 +74,7 @@ public class FunctionLoader {
         }
 
         if (containingType != null && !functionDeclarationNode.modifiers.contains("static")) {
-            addThisToSymbolTable(symbolTable, scope, containingType.name);
+            addThisToSymbolTable(symbolTable, containingType.name);
         }
 
         BlockTraverse.traverse(functionDeclarationNode.block, new Scope(scope, symbolTable, functionDeclarationNode, Scope.Type.FUNCTION));
