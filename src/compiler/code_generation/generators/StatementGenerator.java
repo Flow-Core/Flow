@@ -124,7 +124,7 @@ public class StatementGenerator {
 
             mv.visitLabel(catchLabel);
 
-            vm.declareVariable(catchNode.parameter.name);
+            vm.declareVariable(catchNode.parameter.name, catchNode.parameter.type, catchNode.parameter.isNullable);
 
             BlockGenerator.generateFunctionBlock(catchNode.body, file, mv, vm);
 

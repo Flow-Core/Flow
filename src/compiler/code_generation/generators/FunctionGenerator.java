@@ -31,7 +31,7 @@ public class FunctionGenerator {
             VariableManager vm =  new VariableManager(mv);
 
             for (ParameterNode parameterNode : functionDeclarationNode.parameters) {
-                vm.recognizeVariable(parameterNode.name);
+                vm.recognizeVariable(parameterNode.name, parameterNode.type, parameterNode.isNullable);
             }
 
             BlockGenerator.generateFunctionBlock(functionDeclarationNode.block, file, mv, vm);
