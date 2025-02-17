@@ -25,8 +25,6 @@ public class Main {
         \s""";
 
         final String file2 = """
-        import flow.*
-      
         func main() {
             val x = new A()
             foo(10, x)

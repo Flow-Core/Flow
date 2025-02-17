@@ -2,6 +2,7 @@ package semantic_analysis.visitors;
 
 import logger.LoggerFacade;
 import parser.nodes.ASTNode;
+import parser.nodes.FlowType;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.statements.*;
@@ -29,8 +30,8 @@ public class StatementTraverse {
     }
 
     private static void handleIfStatement(final IfStatementNode ifStatementNode, final Scope scope) {
-        final ExpressionTraverse.TypeWrapper conditionType = new ExpressionTraverse().traverse(ifStatementNode.condition, scope);
-        if (conditionType == null || !conditionType.type().equals("Bool") && !conditionType.isNullable()) {
+        final FlowType conditionType = new ExpressionTraverse().traverse(ifStatementNode.condition, scope);
+        if (conditionType == null || !conditionType.name().equals("Bool") && !conditionType.isNullable()) {
             LoggerFacade.error("Condition type mismatch: 'Bool' was expected", ifStatementNode);
         }
 
@@ -42,8 +43,8 @@ public class StatementTraverse {
     }
 
     private static void handleWhileStatement(final WhileStatementNode whileStatementNode, final Scope scope) {
-        final ExpressionTraverse.TypeWrapper conditionType = new ExpressionTraverse().traverse(whileStatementNode.condition, scope);
-        if (conditionType == null || !conditionType.type().equals("Bool") && !conditionType.isNullable()) {
+        final FlowType conditionType = new ExpressionTraverse().traverse(whileStatementNode.condition, scope);
+        if (conditionType == null || !conditionType.name().equals("Bool") && !conditionType.isNullable()) {
             LoggerFacade.error("Condition type mismatch: 'Bool' was expected", whileStatementNode);
         }
 
@@ -53,7 +54,7 @@ public class StatementTraverse {
     private static void handleForStatement(final ForStatementNode forStatementNode, final Scope scope) {
         final Scope forScope = new Scope(scope, SymbolTable.getEmptySymbolTable(), scope.currentParent(), Scope.Type.FUNCTION);
 
-        final ExpressionTraverse.TypeWrapper varType = new ExpressionTraverse().traverse(forStatementNode.initialization.value, scope);
+        final FlowType varType = new ExpressionTraverse().traverse(forStatementNode.initialization.value, scope);
 
         if (varType == null)
             return;
@@ -63,7 +64,7 @@ public class StatementTraverse {
             new InitializedVariableNode(
                 new VariableDeclarationNode(
                     "var",
-                    varType.type(),
+                    varType,
                     ((VariableReferenceNode) forStatementNode.initialization.variable.expression).variable
                 ),
                 forStatementNode.initialization
@@ -72,12 +73,12 @@ public class StatementTraverse {
         forScope.symbols().fields().add(localVariable);
         forStatementNode.populatedInitialization = localVariable;
 
-        final ExpressionTraverse.TypeWrapper conditionType = new ExpressionTraverse().traverse(forStatementNode.condition, forScope);
+        final FlowType conditionType = new ExpressionTraverse().traverse(forStatementNode.condition, forScope);
         if (conditionType == null) {
             return;
         }
 
-        if (!conditionType.type().equals("Bool") && !conditionType.isNullable()) {
+        if (!conditionType.name().equals("Bool") && !conditionType.isNullable()) {
             LoggerFacade.error("Loop condition type mismatch: must be of type 'Bool'", forStatementNode.condition);
         }
 
@@ -86,13 +87,13 @@ public class StatementTraverse {
     }
 
     private static void handleSwitchStatement(final SwitchStatementNode switchStatementNode, final Scope scope) {
-        final ExpressionTraverse.TypeWrapper switchType = new ExpressionTraverse().traverse(switchStatementNode.condition, scope);
+        final FlowType switchType = new ExpressionTraverse().traverse(switchStatementNode.condition, scope);
 
         if (switchType == null)
             return;
 
         for (CaseNode caseNode : switchStatementNode.cases) {
-            final ExpressionTraverse.TypeWrapper caseType = new ExpressionTraverse().traverse(caseNode.value, scope);
+            final FlowType caseType = new ExpressionTraverse().traverse(caseNode.value, scope);
 
             if (caseType == null)
                 continue;
@@ -110,7 +111,7 @@ public class StatementTraverse {
     }
 
     private static void handleReturnStatement(final ReturnStatementNode returnStatementNode, final Scope scope) {
-        final ExpressionTraverse.TypeWrapper returnType = new ExpressionTraverse().traverse(returnStatementNode.returnValue, scope);
+        final FlowType returnType = new ExpressionTraverse().traverse(returnStatementNode.returnValue, scope);
 
         if (returnType == null)
             return;
@@ -121,17 +122,13 @@ public class StatementTraverse {
             return;
         }
 
-        if (returnType.type().equals("null")) {
+        if (returnType.name().equals("null")) {
             if (!functionDeclarationNode.returnType.isNullable()) {
                 LoggerFacade.error("Null cannot be a value of a non-null type '" + functionDeclarationNode.returnType + "'", returnStatementNode);
             }
         } else if (!scope.isSameType(
             returnType,
-            new ExpressionTraverse.TypeWrapper(
-                functionDeclarationNode.returnType.name(),
-                false,
-                functionDeclarationNode.returnType.isNullable()
-            )
+            functionDeclarationNode.returnType
         )) {
             LoggerFacade.error("Type mismatch: expected '"  + functionDeclarationNode.returnType + "' but received '" + returnType + "'", returnStatementNode);
         }

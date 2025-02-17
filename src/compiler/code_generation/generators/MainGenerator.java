@@ -19,8 +19,8 @@ public class MainGenerator {
             main == null
                 || !main.modifiers.contains("static")
                 || !main.modifiers.contains("public")
-                || !main.returnType.equals("Void")
-                || main.isReturnTypeNullable
+                || !main.returnType.name().equals("Void")
+                || main.returnType.isNullable()
         ) {
             return;
         }

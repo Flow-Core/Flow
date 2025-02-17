@@ -5,6 +5,7 @@ import compiler.code_generation.constants.CodeGenerationConstant;
 import compiler.code_generation.mappers.FQNameMapper;
 import compiler.code_generation.mappers.ModifierMapper;
 import org.objectweb.asm.ClassWriter;
+import parser.nodes.FlowType;
 import parser.nodes.classes.BaseClassNode;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.ConstructorNode;
@@ -51,8 +52,7 @@ public class ClassGenerator {
         for (final ConstructorNode constructorNode : classDeclarationNode.constructors) {
             final FunctionDeclarationNode function = new FunctionDeclarationNode(
                 "<init>",
-                "Void",
-                false,
+                new FlowType("Void", false, true),
                 List.of(constructorNode.accessModifier),
                 constructorNode.parameters,
                 constructorNode.body

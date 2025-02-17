@@ -13,14 +13,6 @@ public record FlowType(
         );
     }
 
-    public FlowType copy(boolean isPrimitive) {
-        return new FlowType(
-            name,
-            isNullable,
-            isPrimitive
-        );
-    }
-
     @Override
     public String toString() {
         return (isPrimitive ? name.toLowerCase() : name) + (isNullable ? "?" : "");

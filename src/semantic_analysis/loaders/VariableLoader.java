@@ -1,6 +1,7 @@
 package semantic_analysis.loaders;
 
 import logger.LoggerFacade;
+import parser.nodes.FlowType;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.expressions.BinaryExpressionNode;
 import parser.nodes.expressions.ExpressionBaseNode;
@@ -9,7 +10,6 @@ import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.visitors.ExpressionTraverse;
-import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
 
 import java.util.Objects;
 
@@ -44,12 +44,8 @@ public class VariableLoader {
             }
         }
 
-        final TypeWrapper varType = new TypeWrapper(
-            fieldNode.initialization.declaration.type,
-            false,
-            fieldNode.initialization.declaration.isNullable
-        );
-        TypeWrapper actualType = null;
+        final FlowType varType = fieldNode.initialization.declaration.type;
+        FlowType actualType = null;
         if (fieldNode.initialization.assignment != null) {
             actualType = new ExpressionTraverse().traverse(fieldNode.initialization.assignment.value, scope, isConst);
             if (isConst && !(fieldNode.initialization.assignment.value.expression instanceof LiteralNode)) {
@@ -57,26 +53,26 @@ public class VariableLoader {
             }
 
             fieldNode.isInitialized = true;
-        } else if (varType.type() == null) {
+        } else if (varType.name() == null) {
             LoggerFacade.error("Variable must either have an explicit type or be initialized", fieldNode);
             return;
         } else if (isConst) {
             LoggerFacade.error("Const must be initialized", fieldNode);
         }
 
-        if (varType.type() != null) {
-            if (!scope.findTypeDeclaration(varType.type())) {
-                LoggerFacade.error("Unresolved symbol: '" + varType.type() + "'", fieldNode);
+        if (varType != null) {
+            if (varType.name() == null || !scope.findTypeDeclaration(varType.name())) {
+                LoggerFacade.error("Unresolved symbol: '" + varType.name() + "'", fieldNode);
                 return;
             }
 
-            if (actualType == null || actualType.type() == null) {
+            if (actualType == null || actualType.name() == null) {
                 scope.symbols().fields().add(fieldNode);
                 return;
             }
 
-            if (actualType.type().equals("null")) {
-                if (!fieldNode.initialization.declaration.isNullable) {
+            if (actualType.name().equals("null")) {
+                if (!fieldNode.initialization.declaration.type.isNullable()) {
                     LoggerFacade.error("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'", fieldNode);
                 }
             } else if (!scope.isSameType(actualType, varType)) {
@@ -84,10 +80,10 @@ public class VariableLoader {
             }
         } else {
             if (actualType != null)
-                if (actualType.type().equals("null")) {
+                if (actualType.name().equals("null")) {
                     LoggerFacade.error("Cannot infer variable type from 'null'", fieldNode);
                 } else {
-                    fieldNode.initialization.declaration.type = fieldNode.initialization.declaration.type.copy(actualType.isNullable(), false);
+                    fieldNode.initialization.declaration.type = actualType.copy(actualType.isNullable(), false);
                 }
         }
 
@@ -107,11 +103,7 @@ public class VariableLoader {
             return;
         }
 
-        final TypeWrapper varType = new TypeWrapper(
-            fieldNode.initialization.declaration.type,
-            false,
-            fieldNode.initialization.declaration.isNullable
-        );
+        final FlowType varType = fieldNode.initialization.declaration.type;
         ExpressionBaseNode expressionBase = variableAssignment.value;
         if (!Objects.equals(variableAssignment.operator, "=")) {
             final String[] operators = variableAssignment.operator.split("");
@@ -124,10 +116,10 @@ public class VariableLoader {
             );
             variableAssignment.operator = "=";
         }
-        TypeWrapper actualType = new ExpressionTraverse().traverse(expressionBase, scope);
+        FlowType actualType = new ExpressionTraverse().traverse(expressionBase, scope);
         fieldNode.isInitialized = true;
 
-        if (actualType == null || actualType.type().equals("null")) {
+        if (actualType == null || actualType.name().equals("null")) {
             if (!fieldNode.initialization.declaration.type.isNullable()) {
                 LoggerFacade.error("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'", fieldNode);
             }

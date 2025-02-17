@@ -39,7 +39,7 @@ public class FunctionGenerator {
 
             BlockGenerator.generateFunctionBlock(functionDeclarationNode.block, file, mv, vm);
 
-            if (functionDeclarationNode.returnType.equals("Void")) {
+            if (functionDeclarationNode.returnType.name().equals("Void")) {
                 mv.visitInsn(Opcodes.RETURN);
             }
 
@@ -98,7 +98,7 @@ public class FunctionGenerator {
 
         BlockGenerator.generateFunctionBlock(functionDeclarationNode.block, file, mv, vm);
 
-        if (functionDeclarationNode.returnType.equals("Void")) {
+        if (functionDeclarationNode.returnType.name().equals("Void")) {
             mv.visitInsn(Opcodes.RETURN);
         }
 
@@ -115,10 +115,10 @@ public class FunctionGenerator {
         final StringBuilder sb = new StringBuilder("(");
 
         for (final ParameterNode parameterNode : parameters) {
-            sb.append(getJVMName(parameterNode.type.name(), parameterNode.type.isNullable(), scope));
+            sb.append(getJVMName(parameterNode.type, scope));
         }
 
-        sb.append(")").append(getJVMName(returnType.name(), returnType.isNullable(), scope));
+        sb.append(")").append(getJVMName(returnType, scope));
 
         return sb.toString();
     }
@@ -133,14 +133,13 @@ public class FunctionGenerator {
             final ParameterNode parameterNode = functionDeclarationNode.parameters.get(i);
 
             if (i > 0 || functionDeclarationNode.modifiers.contains("static")) {
-                sb.append(getJVMName(parameterNode.type.name(), parameterNode.type.isNullable(), scope));
+                sb.append(getJVMName(parameterNode.type, scope));
             }
         }
 
         sb.append(")").append(
             getJVMName(
-                functionDeclarationNode.returnType.name(),
-                functionDeclarationNode.returnType.isNullable(),
+                functionDeclarationNode.returnType,
                 scope
             )
         );
@@ -148,12 +147,12 @@ public class FunctionGenerator {
         return sb.toString();
     }
 
-    public static String getJVMName(String type, boolean isNullable, Scope scope) {
-        if (isNullable) {
-            return "L" + FQNameMapper.getFQName(type, scope) + ";";
+    public static String getJVMName(FlowType type, Scope scope) {
+        if (type.isNullable() || !type.isPrimitive()) {
+            return "L" + FQNameMapper.getFQName(type.name(), scope) + ";";
         }
 
-        return switch (type) {
+        return switch (type.name()) {
             case "Void" -> "V";
             case "Int" -> "I";
             case "Bool" -> "Z";
@@ -163,7 +162,7 @@ public class FunctionGenerator {
             case "Byte" -> "B";
             case "Char" -> "C";
             case "Short" -> "S";
-            default -> "L" + FQNameMapper.getFQName(type, scope) + ";";
+            default -> "L" + FQNameMapper.getFQName(type.name(), scope) + ";";
         };
     }
 }

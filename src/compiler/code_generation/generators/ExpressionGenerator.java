@@ -4,6 +4,7 @@ import compiler.code_generation.manager.VariableManager;
 import compiler.code_generation.mappers.FQNameMapper;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import parser.nodes.FlowType;
 import parser.nodes.classes.*;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.expressions.ExpressionNode;
@@ -87,7 +88,7 @@ public class ExpressionGenerator {
 
     private static void generateFieldReference(FieldReferenceNode refNode, Scope scope, MethodVisitor mv) {
         final String holderFQName = FQNameMapper.getFQName(refNode.holderType, scope);
-        final String descriptor = getJVMName(refNode.type.type(), refNode.type.isNullable(), scope);
+        final String descriptor = getJVMName(refNode.type, scope);
 
         if (refNode.isStatic)
             mv.visitFieldInsn(Opcodes.GETSTATIC, holderFQName, refNode.name, descriptor);
@@ -118,7 +119,11 @@ public class ExpressionGenerator {
             throw new RuntimeException("Constructor " + objNode.className + " was not found");
         }
 
-        final String constructorDescriptor = FunctionGenerator.getDescriptor(constructorNode.parameters, "Void", false, scope);
+        final String constructorDescriptor = FunctionGenerator.getDescriptor(
+            constructorNode.parameters,
+            new FlowType("Void", false, true),
+            scope
+        );
 
         for (ArgumentNode arg : objNode.arguments) {
             generate(arg.value.expression, mv, vm, file);

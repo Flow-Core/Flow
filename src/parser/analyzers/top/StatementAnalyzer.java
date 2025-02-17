@@ -6,6 +6,7 @@ import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
+import parser.nodes.FlowType;
 import parser.nodes.components.BlockNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.ExpressionBaseNode;
@@ -172,7 +173,10 @@ public class StatementAnalyzer extends TopAnalyzer {
 
                     catchNodes.add(
                         new CatchNode(
-                            new ParameterNode(type, false, parameterName, null),
+                            new ParameterNode(
+                                new FlowType(type, false, false),
+                                parameterName, null
+                            ),
                             catchBlock
                         )
                     );

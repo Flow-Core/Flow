@@ -12,7 +12,6 @@ import parser.nodes.variable.VariableDeclarationNode;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.visitors.BlockTraverse;
-import semantic_analysis.visitors.ExpressionTraverse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +38,7 @@ public class FunctionLoader {
                 scope.symbols().functions(),
                 functionDeclarationNode.name,
                 functionDeclarationNode.parameters.stream()
-                    .map(parameterNode -> new ExpressionTraverse.TypeWrapper(parameterNode.type, false, parameterNode.isNullable)).toList()
+                    .map(parameterNode -> parameterNode.type).toList()
             ) != null
         ) {
             LoggerFacade.error("Conflicting overloads for: " + functionDeclarationNode.name, functionDeclarationNode);
@@ -60,7 +59,7 @@ public class FunctionLoader {
 
     public static void checkParameters(final List<ParameterNode> parameters, final Scope scope)  {
         for (final ParameterNode parameter : parameters) {
-            if (!scope.findTypeDeclaration(parameter.type)) {
+            if (!scope.findTypeDeclaration(parameter.type.name())) {
                 LoggerFacade.error("Unresolved symbol: '" + parameter.type + "'", parameter);
             }
         }
@@ -80,7 +79,7 @@ public class FunctionLoader {
 
         BlockTraverse.traverse(functionDeclarationNode.block, new Scope(scope, symbolTable, functionDeclarationNode, Scope.Type.FUNCTION));
 
-        if (!functionDeclarationNode.returnType.equals("Void")) {
+        if (!functionDeclarationNode.returnType.name().equals("Void")) {
             boolean haveReturn = false;
             for (final ASTNode node : functionDeclarationNode.block.children) {
                 if (node instanceof ReturnStatementNode) {
@@ -105,8 +104,7 @@ public class FunctionLoader {
                         new VariableDeclarationNode(
                             "var",
                             parameter.type,
-                            parameter.name,
-                            parameter.isNullable
+                            parameter.name
                         ),
                         null
                     )

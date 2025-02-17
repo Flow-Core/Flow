@@ -1,6 +1,7 @@
 package semantic_analysis.visitors;
 
 import logger.LoggerFacade;
+import parser.nodes.FlowType;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.ConstructorNode;
 import parser.nodes.classes.FieldNode;
@@ -57,9 +58,12 @@ public class ClassTraverse {
                 new InitializedVariableNode(
                     new VariableDeclarationNode(
                         "val",
-                        type,
-                        "this",
-                        false
+                        new FlowType(
+                            type,
+                            false,
+                            false
+                        ),
+                        "this"
                     ),
                     null
                 )
