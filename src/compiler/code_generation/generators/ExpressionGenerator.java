@@ -38,7 +38,7 @@ public class ExpressionGenerator {
     }
 
     private static void generateVarReference(VariableReferenceNode refNode, VariableManager vm, MethodVisitor mv) {
-        mv.visitVarInsn(Opcodes.ALOAD, vm.loadVariable(refNode.variable));
+        vm.loadVariable(refNode.variable);
     }
 
     private static void generateFuncCall(FunctionCallNode funcCallNode, FileWrapper file, VariableManager vm, MethodVisitor mv) {

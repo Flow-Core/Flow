@@ -20,7 +20,7 @@ public class VariableAssignmentGenerator {
         final ExpressionNode variable = variableAssignmentNode.variable.expression;
         if (variable instanceof VariableReferenceNode variableReferenceNode) {
             ExpressionGenerator.generate(variableAssignmentNode.value.expression, mv, vm, file);
-            mv.visitVarInsn(Opcodes.ASTORE, vm.loadVariable(variableReferenceNode.variable));
+            vm.loadVariable(variableReferenceNode.variable);
         } else if (variable instanceof FieldReferenceNode fieldReferenceNode) {
             int opcode = Opcodes.PUTFIELD;
             final String holderFQName = FQNameMapper.getFQName(fieldReferenceNode.holderType, file.scope());

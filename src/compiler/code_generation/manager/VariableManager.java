@@ -24,12 +24,19 @@ public class VariableManager {
         storeVariable(name);
     }
 
-    public int loadVariable(String name) {
+    public void loadVariable(String name) {
         if (!variables.containsKey(name)) {
             throw new IllegalArgumentException("Variable '" + name + "' does not exist");
         }
+        final VariableInfo variableInfo = variables.get(name);
 
-        return variables.get(name).index;
+        mv.visitVarInsn(
+            getLoadOpCode(
+                variableInfo.type,
+                variableInfo.isNullable
+            ),
+            variableInfo.index
+        );
     }
 
     public void storeVariable(String name) {
@@ -52,6 +59,18 @@ public class VariableManager {
             case "Double" -> Opcodes.DSTORE;
             case "Long" -> Opcodes.LSTORE;
             default -> Opcodes.ASTORE;
+        };
+    }
+
+    private int getLoadOpCode(String type, boolean isNullable) {
+        if (isNullable) return Opcodes.ALOAD;
+
+        return switch (type) {
+            case "Int", "Bool", "Byte", "Short", "Char" -> Opcodes.ILOAD;
+            case "Float" -> Opcodes.FLOAD;
+            case "Double" -> Opcodes.DLOAD;
+            case "Long" -> Opcodes.LLOAD;
+            default -> Opcodes.ALOAD;
         };
     }
 
