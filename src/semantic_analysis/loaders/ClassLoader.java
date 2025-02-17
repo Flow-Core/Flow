@@ -3,6 +3,7 @@ package semantic_analysis.loaders;
 import logger.LoggerFacade;
 import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
+import parser.nodes.FlowType;
 import parser.nodes.classes.*;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.ExpressionBaseNode;
@@ -10,7 +11,6 @@ import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.visitors.ExpressionTraverse;
-import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -64,7 +64,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                             packageLevel,
                             constructor.parameters,
                             constructorNode.parameters.stream()
-                                .map(parameter -> new TypeWrapper(parameter.type, false, parameter.isNullable)).toList(),
+                                .map(parameter -> parameter.type).toList(),
                             false
                         )
                     ).toList().size() > 1
@@ -85,7 +85,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                 overriddenFunctions,
                 abstractFunction.name,
                 abstractFunction.parameters.stream()
-                    .map(parameter -> new TypeWrapper(parameter.name, false, parameter.isNullable)).toList(),
+                    .map(parameter -> parameter.type).toList(),
                 true
             );
             if (method == null) {
@@ -93,29 +93,15 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                 return;
             } else if ((method.returnType.isNullable() != abstractFunction.returnType.isNullable()) ||
                     !data.isSameType(
-                        new TypeWrapper(method.returnType,
-                            false,
-                            method.isReturnTypeNullable
-                        ),
-                        new TypeWrapper(
-                            abstractFunction.returnType,
-                            false,
-                            abstractFunction.isReturnTypeNullable
-                        )
+                        method.returnType,
+                        abstractFunction.returnType
                     )
                     && !packageLevel.isSameType(
-                        new TypeWrapper(method.returnType,
-                            false,
-                            method.isReturnTypeNullable
-                        ),
-                        new TypeWrapper(
-                            abstractFunction.returnType,
-                            false,
-                            abstractFunction.isReturnTypeNullable
-                        )
+                        method.returnType,
+                        abstractFunction.returnType
                     )
             ) {
-                LoggerFacade.error("Return type of function '" + abstractFunction.name + "' is not a subtype of the overridden member, expected a subtype of: '" + abstractFunction.returnType + (abstractFunction.isReturnTypeNullable ? "?" : "") + "' but found '" + method.returnType + (method.isReturnTypeNullable ? "?" : "") + "'", abstractFunction);
+                LoggerFacade.error("Return type of function '" + abstractFunction.name + "' is not a subtype of the overridden member, expected a subtype of: '" + abstractFunction.returnType + "' but found '" + method.returnType + "'", abstractFunction);
                 return;
             }
         }
@@ -127,7 +113,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
                     abstractFunctions,
                     overriddenFunction.name,
                     overriddenFunction.parameters.stream()
-                        .map(parameter -> new TypeWrapper(parameter.name, false, parameter.isNullable)).toList(),
+                        .map(parameter -> parameter.type).toList(),
                     true
                 ) == null
             ) {
@@ -266,7 +252,15 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     private void addThisParameterToInstanceMethods(ClassDeclarationNode classDeclaration) {
         for (FunctionDeclarationNode functionDeclaration : classDeclaration.methods) {
             if (!functionDeclaration.modifiers.contains("static")) {
-                functionDeclaration.parameters.add(0, new ParameterNode(classDeclaration.name, false, "this", null));
+                functionDeclaration.parameters.add(0, new ParameterNode(
+                    new FlowType(
+                        classDeclaration.name,
+                        false,
+                        false
+                    ),
+                    "this",
+                    null
+                ));
             }
             if (functionDeclaration.modifiers.contains("abstract")) {
                 if (!classDeclaration.modifiers.contains("abstract")) {
@@ -291,7 +285,15 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
 
         for (FunctionDeclarationNode functionDeclaration : interfaceDeclaration.methods) {
             if (!functionDeclaration.modifiers.contains("static")) {
-                functionDeclaration.parameters.add(0, new ParameterNode(interfaceDeclaration.name, false, "this", null));
+                functionDeclaration.parameters.add(0, new ParameterNode(
+                    new FlowType(
+                        interfaceDeclaration.name,
+                        false,
+                        false
+                    ),
+                    "this",
+                    null
+                ));
             }
         }
 

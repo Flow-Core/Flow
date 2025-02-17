@@ -20,4 +20,9 @@ public record FlowType(
             isPrimitive
         );
     }
+
+    @Override
+    public String toString() {
+        return (isPrimitive ? name.toLowerCase() : name) + (isNullable ? "?" : "");
+    }
 }
