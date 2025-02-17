@@ -27,6 +27,7 @@ public class PrimaryAnalyzer {
             case DOUBLE -> new DoubleLiteralNode(Double.parseDouble(token.value()));
             case INT -> new IntegerLiteralNode(Integer.parseInt(token.value()));
             case STRING -> new StringLiteralNode(token.value());
+            case CHAR -> new CharLiteralNode(token.value().charAt(0));
             case BOOLEAN -> new BooleanLiteralNode(Boolean.parseBoolean(token.value()));
             case IDENTIFIER -> new IdentifierReferenceAnalyzer().parse(parser);
             case NEW -> {

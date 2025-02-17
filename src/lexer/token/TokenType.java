@@ -73,8 +73,9 @@ public enum TokenType {
     // Identifiers
     IDENTIFIER("[a-zA-Z_][a-zA-Z0-9_]*"),
 
-    // Strings
+    // Strings and chars
     STRING("\"(\\\\.|[^\"])*\""),
+    CHAR("'(\\\\.|[^'\\\\])'"),
 
     // Operators
     ASSIGNMENT_OPERATOR("\\+=|-=|\\*=|/=|%=|&=|\\|=|\\^=|<<=|>>="),
