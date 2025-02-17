@@ -2,19 +2,18 @@ package parser.nodes.components;
 
 import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
+import parser.nodes.FlowType;
 import parser.nodes.expressions.ExpressionBaseNode;
 
 import java.util.Objects;
 
 public class ParameterNode implements ASTNode {
-    public String type;
-    public boolean isNullable;
+    public FlowType type;
     public String name;
     public ExpressionBaseNode defaultValue;
 
-    public ParameterNode(String type, boolean isNullable, String name, ExpressionBaseNode defaultValue) {
+    public ParameterNode(FlowType type, String name, ExpressionBaseNode defaultValue) {
         this.type = type;
-        this.isNullable = isNullable;
         this.name = name;
         this.defaultValue = defaultValue;
     }
@@ -35,7 +34,6 @@ public class ParameterNode implements ASTNode {
 
         ParameterNode that = (ParameterNode) o;
 
-        if (isNullable != that.isNullable) return false;
         if (!Objects.equals(type, that.type)) return false;
         if (!Objects.equals(name, that.name)) return false;
         return Objects.equals(defaultValue, that.defaultValue);
@@ -44,7 +42,6 @@ public class ParameterNode implements ASTNode {
     @Override
     public int hashCode() {
         int result = type != null ? type.hashCode() : 0;
-        result = 31 * result + (isNullable ? 1 : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (defaultValue != null ? defaultValue.hashCode() : 0);
         return result;
@@ -53,8 +50,7 @@ public class ParameterNode implements ASTNode {
     @Override
     public String toString() {
         return "ParameterNode{" +
-            "type='" + type + '\'' +
-            ", isNullable=" + isNullable +
+            "type=" + type +
             ", name='" + name + '\'' +
             ", defaultValue=" + defaultValue +
             '}';
