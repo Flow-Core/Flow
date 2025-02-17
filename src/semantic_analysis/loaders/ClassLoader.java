@@ -10,6 +10,7 @@ import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.visitors.ExpressionTraverse;
+import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
 
 import java.util.ArrayList;
 import java.util.HashSet;

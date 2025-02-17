@@ -5,6 +5,8 @@ import compiler.packer.Packer;
 import compiler.packer.PackerFacade;
 import lexer.Lexer;
 import lexer.token.Token;
+import logger.LoggerFacade;
+import logger.impl.ConsoleLogger;
 import parser.Parser;
 import parser.nodes.components.BlockNode;
 import semantic_analysis.SemanticAnalysis;
@@ -27,10 +29,12 @@ public class Main {
         
         func main() {
             val x = new A()
-            FlowIO.print(x)
+            foo(10, x)
         }
         
-        func foo(a: Int, b: A) {}
+        func foo(a: Int, b: A) {
+            FlowIO.print(10)
+        }
         
         class A : B(2) {
             static val y = 10
@@ -52,9 +56,11 @@ public class Main {
         final String file3 = """
         """;
 
-        final BlockNode file1Root = getFileAST(file1);
-        final BlockNode file2Root = getFileAST(file2);
-        final BlockNode file3Root = getFileAST(file3);
+        LoggerFacade.initLogger(new ConsoleLogger());
+
+        final BlockNode file1Root = getFileAST(file1, "File1.fl");
+        final BlockNode file2Root = getFileAST(file2, "File2.fl");
+        final BlockNode file3Root = getFileAST(file3, "File3.fl");
 
         LibLoader.LibOutput libOutput = null;
         try {
@@ -76,6 +82,11 @@ public class Main {
         final Map<String, PackageWrapper> packages = semanticAnalysis.analyze();
 
         Parser.printTree(file1Root);
+
+        if (LoggerFacade.getLogger().hasErrors()) {
+            LoggerFacade.getLogger().dump();
+            return;
+        }
 
         final CodeGeneration codeGeneration = new CodeGeneration(packages.get("").files().get(0));
         final List<CodeGeneration.ClassFile> bytes = codeGeneration.generate();
@@ -112,11 +123,11 @@ public class Main {
         }
     }
 
-    private static BlockNode getFileAST(final String file) {
-        final Lexer lexer = new Lexer(file);
+    private static BlockNode getFileAST(final String file, final String fileName) {
+        final Lexer lexer = new Lexer(file, fileName);
         final List<Token> tokens = lexer.tokenize();
 
-        final Parser parser = new Parser(tokens);
+        final Parser parser = new Parser(tokens, fileName);
 
         return parser.parse();
     }

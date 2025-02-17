@@ -379,11 +379,14 @@ public class SignatureLoader {
                     .filter(parameter -> parameter.name.equals(argumentNode.name))
                     .findFirst().orElse(null);
 
-                if (parameterNode == null)
-                    throw new SA_UnresolvedSymbolException(argumentNode.name);
-            } else if (foundNamed)
-                throw new SA_SemanticError("Unnamed arguments cannot follow named arguments"); // Log
-            else {
+                if (parameterNode == null) {
+                    LoggerFacade.error("Unresolved symbol: '" + argumentNode.name + "'", argumentNode);
+                    return false;
+                }
+            } else if (foundNamed) {
+                LoggerFacade.error("Unnamed arguments cannot follow named arguments", argumentNode);
+                return false;
+            } else {
                 parameterNode = parameters.get(i);
             }
 

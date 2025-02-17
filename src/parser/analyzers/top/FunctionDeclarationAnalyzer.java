@@ -100,12 +100,12 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
                 defaultValue = ExpressionAnalyzer.parseExpression(parser);
             }
 
-            ParameterNode arg = new ParameterNode(
+            ParameterNode arg = (ParameterNode) ASTMetaDataStore.getInstance().addMetadata(new ParameterNode(
                 type,
                 isNullable,
                 name,
                 new ExpressionBaseNode(defaultValue, line, parser.file)
-            );
+            ), line, parser.file);
 
             parameters.add(arg);
 

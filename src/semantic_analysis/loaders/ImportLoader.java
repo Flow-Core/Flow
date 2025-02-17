@@ -32,7 +32,7 @@ public class ImportLoader {
             final ASTNode node = root.children.get(i);
             if (node instanceof ImportNode importNode) {
                 if (finishedImports) {
-                    throw new SA_SemanticError("Import cannot be here");
+                    LoggerFacade.error("Import cannot be here", node);
                 }
 
                 validateImport(importNode, data, globalPackages);

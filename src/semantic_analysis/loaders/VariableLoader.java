@@ -9,6 +9,7 @@ import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.visitors.ExpressionTraverse;
+import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
 
 import java.util.Objects;
 
@@ -18,13 +19,14 @@ public class VariableLoader {
         final Scope scope
     ) {
         if (fieldNode.initialization == null) {
-            throw new SA_SemanticError("Variable must either have an explicit type or be initialized");
+            LoggerFacade.error("Variable must either have an explicit type or be initialized", fieldNode);
+            return;
         }
 
         final boolean isConst = fieldNode.initialization.declaration.modifier.equals("const");
         if (scope.type() == Scope.Type.FUNCTION) {
             if (isConst) {
-                throw new SA_SemanticError("Local variable cannot be const");
+                LoggerFacade.error("Local variable cannot be const", fieldNode);
             }
         } else {
             ModifierLoader.load(
@@ -51,7 +53,7 @@ public class VariableLoader {
         if (fieldNode.initialization.assignment != null) {
             actualType = new ExpressionTraverse().traverse(fieldNode.initialization.assignment.value, scope, isConst);
             if (isConst && !(fieldNode.initialization.assignment.value.expression instanceof LiteralNode)) {
-                throw new SA_SemanticError("Const must contain a literal");
+                LoggerFacade.error("Const must contain a literal", fieldNode);
             }
 
             fieldNode.isInitialized = true;
@@ -59,7 +61,7 @@ public class VariableLoader {
             LoggerFacade.error("Variable must either have an explicit type or be initialized", fieldNode);
             return;
         } else if (isConst) {
-            throw new SA_SemanticError("Const must be initialized");
+            LoggerFacade.error("Const must be initialized", fieldNode);
         }
 
         if (varType.type() != null) {

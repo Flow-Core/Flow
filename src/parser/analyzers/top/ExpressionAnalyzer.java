@@ -21,8 +21,7 @@ public class ExpressionAnalyzer extends TopAnalyzer {
         if (currValue == null) return null;
 
         return new AnalyzerResult(
-            new ExpressionBaseNode(parseExpression(parser)),
-            ASTMetaDataStore.getInstance().addMetadata(parseRHS(parser, 0, currValue), line, parser.file),
+            new ExpressionBaseNode(parseRHS(parser, 0, currValue), line, parser.file),
             parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
         );
     }

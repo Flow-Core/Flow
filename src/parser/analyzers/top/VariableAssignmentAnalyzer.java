@@ -30,11 +30,10 @@ public class VariableAssignmentAnalyzer extends TopAnalyzer {
 
         return new AnalyzerResult(
             ASTMetaDataStore.getInstance().addMetadata(
-                new VariableAssignmentNode(new ExpressionBaseNode(variable, line, parser.file), operator, new ExpressionBaseNode(expr, line, parser.file)),
+                new VariableAssignmentNode(variable, operator, new ExpressionBaseNode(expr, line, parser.file)),
                 line,
                 parser.file
             ),
-            new VariableAssignmentNode(variable, operator, new ExpressionBaseNode(expr)),
             parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
         );
     }

@@ -40,7 +40,7 @@ public class ExpressionTraverse {
 
     private static ExpressionNode transformValue(ExpressionBaseNode root, ExpressionNode expression, Scope scope) {
         if (expression instanceof VariableReferenceNode referenceNode) {
-            return transformVariableReference(referenceNode, scope);
+            return transformVariableReference(root, referenceNode, scope);
         }
 
         return transformOperators(root, expression, scope);
@@ -58,14 +58,14 @@ public class ExpressionTraverse {
             ClassDeclarationNode leftTypeNode = scope.getClass(leftType.type);
 
             if (leftTypeNode == null) {
-                LoggerFacade.error("Unresolved symbol: '" + leftType.type + "'", expression);
+                LoggerFacade.error("Unresolved symbol: '" + leftType.type + "'", root);
                 return null;
             }
 
             if (binaryExpression.operator.equals(".")) {
                 if (binaryExpression.right instanceof VariableReferenceNode reference) {
                     if (scope.findTypeDeclaration(reference.variable)) {
-                        LoggerFacade.error("Cannot access nested types", expression);
+                        LoggerFacade.error("Cannot access nested types", root);
                         return null;
                     }
 
@@ -75,7 +75,7 @@ public class ExpressionTraverse {
                     );
 
                     if (field == null) {
-                        LoggerFacade.error("Unresolved symbol: '" + leftType.type + "." + reference.variable + "'", expression);
+                        LoggerFacade.error("Unresolved symbol: '" + leftType.type + "." + reference.variable + "'", root);
                         return null;
                     }
 
@@ -119,11 +119,11 @@ public class ExpressionTraverse {
 
                     if (function == null) {
                         if (functions.isEmpty()) {
-                            LoggerFacade.error("Unresolved symbol: '" + leftType.type + "." + call.name + "'", expression);
+                            LoggerFacade.error("Unresolved symbol: '" + leftType.type + "." + call.name + "'", root);
                         } else {
                             LoggerFacade.error("None of the overrides for '" +
                                 leftType.type + "." + call.name +
-                                "' match the argument list", expression);
+                                "' match the argument list", root);
                         }
                         return null;
                     }
@@ -193,7 +193,7 @@ public class ExpressionTraverse {
                 );
             }
 
-            throw new SA_SemanticError("Could not resolve operator '" + binaryExpression.operator + "' for '" + binaryExpression.left + "' and '" + binaryExpression.right + "'");
+            LoggerFacade.error("Could not resolve operator '" + binaryExpression.operator + "' for '" + binaryExpression.left + "' and '" + binaryExpression.right + "'", expression);
         } else if (expression instanceof UnaryOperatorNode unaryExpression) {
             unaryExpression.operand = transformValue(root, unaryExpression.operand, scope);
 
@@ -230,13 +230,13 @@ public class ExpressionTraverse {
                 );
             }
 
-            throw new SA_SemanticError("Could not resolve operator '" + unaryExpression.operator + "' for '" + unaryExpression.operand);
+            LoggerFacade.error("Could not resolve operator '" + unaryExpression.operator + "' for '", root);
         }
 
         return expression;
     }
 
-    private static ExpressionNode transformVariableReference(VariableReferenceNode referenceNode, Scope scope) {
+    private static ExpressionNode transformVariableReference(ExpressionBaseNode root, VariableReferenceNode referenceNode, Scope scope) {
         if (
             scope.type() == Scope.Type.FUNCTION && scope.findLocalVariable(referenceNode.variable) ||
             scope.findTypeDeclaration(referenceNode.variable)
@@ -261,7 +261,8 @@ public class ExpressionTraverse {
             );
         }
 
-        throw new SA_UnresolvedSymbolException(referenceNode.variable); // LOG
+        LoggerFacade.error("Unresolved symbol: '" + referenceNode.variable + "'", root);
+        return null;
     }
 
     private static TypeWrapper determineType(ExpressionBaseNode root, ExpressionNode expression, Scope scope) {
@@ -281,8 +282,10 @@ public class ExpressionTraverse {
             return new TypeWrapper(objectNode.className, false, false);
         }
         if (expression instanceof BaseClassNode baseClassNode) {
-            if (!scope.findTypeDeclaration(baseClassNode.name))
-                throw new SA_UnresolvedSymbolException(baseClassNode.name); //Log
+            if (!scope.findTypeDeclaration(baseClassNode.name)) {
+                LoggerFacade.error("Unresolved symbol: '" + baseClassNode.name + "'", root);
+                return null;
+            }
 
             for (final ArgumentNode argNode : baseClassNode.arguments) {
                 argNode.type = new ExpressionTraverse().traverse(argNode.value, scope, true);
