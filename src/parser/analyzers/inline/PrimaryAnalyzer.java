@@ -25,7 +25,13 @@ public class PrimaryAnalyzer {
             case IPV4 -> new Ipv4LiteralNode(token.value());
             case FLOAT -> new FloatLiteralNode(Float.parseFloat(token.value()));
             case DOUBLE -> new DoubleLiteralNode(Double.parseDouble(token.value()));
-            case INT -> new IntegerLiteralNode(Integer.parseInt(token.value()));
+            case INT -> {
+                try {
+                    yield new IntegerLiteralNode(Integer.parseInt(token.value()));
+                } catch (NumberFormatException e) {
+                    yield new LongLiteralNode(Long.parseLong(token.value()));
+                }
+            }
             case STRING -> new StringLiteralNode(token.value());
             case CHAR -> new CharLiteralNode(token.value().charAt(0));
             case BOOLEAN -> new BooleanLiteralNode(Boolean.parseBoolean(token.value()));

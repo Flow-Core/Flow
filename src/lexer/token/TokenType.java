@@ -66,6 +66,7 @@ public enum TokenType {
     IPV4("^\\d+\\.\\d+\\.\\d+\\.\\d+"),
 
     // Numbers
+    LONG("^\\d+[lL]"),
     FLOAT("(^\\d+\\.\\d+f|^\\d+f|^\\.\\d+f)"),
     DOUBLE("(\\d+\\.\\d+|\\.\\d+)"),
     INT("^\\d+"),
