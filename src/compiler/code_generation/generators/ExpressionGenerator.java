@@ -87,7 +87,7 @@ public class ExpressionGenerator {
 
     private static void generateFieldReference(FieldReferenceNode refNode, Scope scope, MethodVisitor mv) {
         final String holderFQName = FQNameMapper.getFQName(refNode.holderType, scope);
-        final String descriptor = getJVMName(refNode.type.type(), scope);
+        final String descriptor = getJVMName(refNode.type.type(), refNode.type.isNullable(), scope);
 
         if (refNode.isStatic)
             mv.visitFieldInsn(Opcodes.GETSTATIC, holderFQName, refNode.name, descriptor);
@@ -118,7 +118,7 @@ public class ExpressionGenerator {
             throw new RuntimeException("Constructor " + objNode.className + " was not found");
         }
 
-        final String constructorDescriptor = FunctionGenerator.getDescriptor(constructorNode.parameters, "Void", scope);
+        final String constructorDescriptor = FunctionGenerator.getDescriptor(constructorNode.parameters, "Void", false, scope);
 
         mv.visitTypeInsn(Opcodes.NEW, fqObjectName);
         mv.visitInsn(Opcodes.DUP);

@@ -46,14 +46,19 @@ public class FunctionGenerator {
         mv.visitEnd();
     }
 
-    public static String getDescriptor(List<ParameterNode> parameters, String returnType, Scope scope) {
+    public static String getDescriptor(
+        List<ParameterNode> parameters,
+        String returnType,
+        boolean isReturnTypeNullable,
+        Scope scope
+    ) {
         final StringBuilder sb = new StringBuilder("(");
 
         for (final ParameterNode parameterNode : parameters) {
-            sb.append(getJVMName(parameterNode.type, scope));
+            sb.append(getJVMName(parameterNode.type, parameterNode.isNullable, scope));
         }
 
-        sb.append(")").append(getJVMName(returnType, scope));
+        sb.append(")").append(getJVMName(returnType, isReturnTypeNullable, scope));
 
         return sb.toString();
     }
@@ -65,20 +70,42 @@ public class FunctionGenerator {
             final ParameterNode parameterNode = functionDeclarationNode.parameters.get(i);
 
             if (i > 0 || functionDeclarationNode.modifiers.contains("static")) {
-                sb.append(getJVMName(parameterNode.type, scope));
+                sb.append(getJVMName(parameterNode.type, parameterNode.isNullable, scope));
             }
         }
 
-        sb.append(")").append(getJVMName(functionDeclarationNode.returnType, scope));
+        sb.append(")").append(getJVMName(functionDeclarationNode.returnType, functionDeclarationNode.isReturnTypeNullable, scope));
 
         return sb.toString();
     }
 
-    public static String getJVMName(String type, Scope scope) {
-        if (type.equalsIgnoreCase("Void")) {
-            return "V";
+    public static String getJVMName(String type, boolean isNullable, Scope scope) {
+        if (isNullable) {
+            return switch (type) {
+                case "Int" -> "Ljava/lang/Integer;";
+                case "Bool" -> "Ljava/lang/Boolean;";
+                case "Float" -> "Ljava/lang/Float;";
+                case "Double" -> "Ljava/lang/Double;";
+                case "Long" -> "Ljava/lang/Long;";
+                case "Byte" -> "Ljava/lang/Byte;";
+                case "Char" -> "Ljava/lang/Character;";
+                case "Short" -> "Ljava/lang/Short;";
+                case "Void" -> "Ljava/lang/Void;";
+                default -> "L" + FQNameMapper.getFQName(type, scope) + ";";
+            };
         }
 
-        return "L" + FQNameMapper.getFQName(type, scope) + ";";
+        return switch (type) {
+            case "Void" -> "V";
+            case "Int" -> "I";
+            case "Bool" -> "Z";
+            case "Float" -> "F";
+            case "Double" -> "D";
+            case "Long" -> "J";
+            case "Byte" -> "B";
+            case "Char" -> "C";
+            case "Short" -> "S";
+            default -> "L" + FQNameMapper.getFQName(type, scope) + ";";
+        };
     }
 }

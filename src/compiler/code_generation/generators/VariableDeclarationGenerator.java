@@ -39,7 +39,7 @@ public class VariableDeclarationGenerator {
         cw.visitField(
             ModifierMapper.map(fieldNode.modifiers),
             fieldNode.initialization.declaration.name,
-            getJVMName(fieldNode.initialization.declaration.type, file.scope()),
+            getJVMName(fieldNode.initialization.declaration.type, fieldNode.initialization.declaration.isNullable, file.scope()),
             null,
             fieldNode.initialization.declaration.modifier.equals("const")
                 ? ((LiteralNode) fieldNode.initialization.assignment.value.expression).getValue()
