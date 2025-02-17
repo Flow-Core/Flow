@@ -1,10 +1,10 @@
 package parser.nodes.classes;
 
 import parser.nodes.ASTVisitor;
+import parser.nodes.FlowType;
 import parser.nodes.components.BlockNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.scopes.Scope;
-import semantic_analysis.visitors.ExpressionTraverse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +70,7 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
     public FunctionDeclarationNode findMethod(
         Scope scope,
         String name,
-        List<ExpressionTraverse.TypeWrapper> parameterTypes
+        List<FlowType> parameterTypes
     ) {
         ClassDeclarationNode caller = this;
         FunctionDeclarationNode function = findMethodWithParameters(

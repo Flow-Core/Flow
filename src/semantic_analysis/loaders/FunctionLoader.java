@@ -29,7 +29,7 @@ public class FunctionLoader {
                 : ModifierLoader.ModifierType.FUNCTION
         );
 
-        if (!scope.findTypeDeclaration(functionDeclarationNode.returnType)) {
+        if (!scope.findTypeDeclaration(functionDeclarationNode.returnType.name())) {
             LoggerFacade.error("Unresolved symbol: '" + functionDeclarationNode.returnType + "'", functionDeclarationNode);
         }
 

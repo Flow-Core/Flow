@@ -91,8 +91,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
             if (method == null) {
                 LoggerFacade.error("Class '" + classDeclaration.name + "' is not abstract and does not implement abstract base class member '" + abstractFunction.name + "'", classDeclaration);
                 return;
-            } else if (
-                (method.isReturnTypeNullable != abstractFunction.isReturnTypeNullable) ||
+            } else if ((method.returnType.isNullable() != abstractFunction.returnType.isNullable()) ||
                     !data.isSameType(
                         new TypeWrapper(method.returnType,
                             false,

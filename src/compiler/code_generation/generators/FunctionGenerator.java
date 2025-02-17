@@ -6,6 +6,7 @@ import compiler.code_generation.mappers.ModifierMapper;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import parser.nodes.FlowType;
 import parser.nodes.classes.BaseClassNode;
 import parser.nodes.classes.ObjectNode;
 import parser.nodes.components.ParameterNode;
@@ -33,7 +34,7 @@ public class FunctionGenerator {
             VariableManager vm =  new VariableManager(mv);
 
             for (ParameterNode parameterNode : functionDeclarationNode.parameters) {
-                vm.recognizeVariable(parameterNode.name, parameterNode.type, parameterNode.isNullable);
+                vm.recognizeVariable(parameterNode.name, parameterNode.type);
             }
 
             BlockGenerator.generateFunctionBlock(functionDeclarationNode.block, file, mv, vm);
@@ -55,7 +56,6 @@ public class FunctionGenerator {
             getDescriptor(
                 functionDeclarationNode.parameters,
                 functionDeclarationNode.returnType,
-                functionDeclarationNode.isReturnTypeNullable,
                 file.scope()
             ),
             null,
@@ -67,7 +67,7 @@ public class FunctionGenerator {
         VariableManager vm =  new VariableManager(mv);
 
         for (ParameterNode parameterNode : functionDeclarationNode.parameters) {
-            vm.recognizeVariable(parameterNode.name, parameterNode.type, parameterNode.isNullable);
+            vm.recognizeVariable(parameterNode.name, parameterNode.type);
         }
 
         mv.visitVarInsn(Opcodes.ALOAD, 0);
@@ -109,17 +109,16 @@ public class FunctionGenerator {
 
     public static String getDescriptor(
         List<ParameterNode> parameters,
-        String returnType,
-        boolean isReturnTypeNullable,
+        FlowType returnType,
         Scope scope
     ) {
         final StringBuilder sb = new StringBuilder("(");
 
         for (final ParameterNode parameterNode : parameters) {
-            sb.append(getJVMName(parameterNode.type, parameterNode.isNullable, scope));
+            sb.append(getJVMName(parameterNode.type.name(), parameterNode.type.isNullable(), scope));
         }
 
-        sb.append(")").append(getJVMName(returnType, isReturnTypeNullable, scope));
+        sb.append(")").append(getJVMName(returnType.name(), returnType.isNullable(), scope));
 
         return sb.toString();
     }
@@ -134,11 +133,17 @@ public class FunctionGenerator {
             final ParameterNode parameterNode = functionDeclarationNode.parameters.get(i);
 
             if (i > 0 || functionDeclarationNode.modifiers.contains("static")) {
-                sb.append(getJVMName(parameterNode.type, parameterNode.isNullable, scope));
+                sb.append(getJVMName(parameterNode.type.name(), parameterNode.type.isNullable(), scope));
             }
         }
 
-        sb.append(")").append(getJVMName(functionDeclarationNode.returnType, functionDeclarationNode.isReturnTypeNullable, scope));
+        sb.append(")").append(
+            getJVMName(
+                functionDeclarationNode.returnType.name(),
+                functionDeclarationNode.returnType.isNullable(),
+                scope
+            )
+        );
 
         return sb.toString();
     }

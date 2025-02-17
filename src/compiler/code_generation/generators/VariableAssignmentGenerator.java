@@ -24,7 +24,7 @@ public class VariableAssignmentGenerator {
         } else if (variable instanceof FieldReferenceNode fieldReferenceNode) {
             int opcode = Opcodes.PUTFIELD;
             final String holderFQName = FQNameMapper.getFQName(fieldReferenceNode.holderType, file.scope());
-            final String typeFQName = FQNameMapper.getFQName(fieldReferenceNode.type.type(), file.scope());
+            final String typeFQName = FQNameMapper.getFQName(fieldReferenceNode.type.name(), file.scope());
 
             if (fieldReferenceNode.holder == null) {
                 opcode = Opcodes.PUTSTATIC;

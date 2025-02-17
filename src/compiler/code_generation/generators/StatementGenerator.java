@@ -119,12 +119,12 @@ public class StatementGenerator {
                 tryStart,
                 tryEnd,
                 catchLabel,
-                FQNameMapper.getFQName(catchNode.parameter.type, file.scope())
+                FQNameMapper.getFQName(catchNode.parameter.type.name(), file.scope())
             );
 
             mv.visitLabel(catchLabel);
 
-            vm.declareVariable(catchNode.parameter.name, catchNode.parameter.type, catchNode.parameter.isNullable);
+            vm.declareVariable(catchNode.parameter.name, catchNode.parameter.type);
 
             BlockGenerator.generateFunctionBlock(catchNode.body, file, mv, vm);
 

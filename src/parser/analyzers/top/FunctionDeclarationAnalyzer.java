@@ -6,6 +6,7 @@ import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
+import parser.nodes.FlowType;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.functions.FunctionDeclarationNode;
@@ -70,8 +71,11 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
 
         return new FunctionDeclarationNode(
             funcName.value(),
-            returnType,
-            isReturnTypeNullable,
+            new FlowType(
+                returnType,
+                isReturnTypeNullable,
+                false
+            ),
             modifiers,
             parameters,
             null
@@ -101,8 +105,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
             }
 
             ParameterNode arg = (ParameterNode) ASTMetaDataStore.getInstance().addMetadata(new ParameterNode(
-                type,
-                isNullable,
+                new FlowType(type, isNullable, false),
                 name,
                 new ExpressionBaseNode(defaultValue, line, parser.file)
             ), line, parser.file);

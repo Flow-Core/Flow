@@ -6,6 +6,7 @@ import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.TopAnalyzer;
 import parser.analyzers.top.ExpressionAnalyzer;
+import parser.nodes.FlowType;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.variable.InitializedVariableNode;
@@ -25,7 +26,7 @@ public class VariableAnalyzer {
         if (parser.check(TokenType.EQUAL_OPERATOR)) {
             parser.advance();
             final ExpressionNode expr = ExpressionAnalyzer.parseExpression(parser);
-            final VariableDeclarationNode declaration = new VariableDeclarationNode(modifier.value(), null, name.value(), false);
+            final VariableDeclarationNode declaration = new VariableDeclarationNode(modifier.value(), null, name.value());
             final VariableAssignmentNode assignment = new VariableAssignmentNode(
                 new ExpressionBaseNode(new VariableReferenceNode(name.value()), line, parser.file),
                 "=",
@@ -45,9 +46,8 @@ public class VariableAnalyzer {
 
             VariableDeclarationNode variableDeclarationNode = new VariableDeclarationNode(
                 modifier.value(),
-                type,
-                name.value(),
-                isNullable
+                new FlowType(type, isNullable, false),
+                name.value()
             );
             if (parser.peek().type() != TokenType.EQUAL_OPERATOR) {
                 return new InitializedVariableNode(variableDeclarationNode, null);

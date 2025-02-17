@@ -7,6 +7,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
+import parser.nodes.FlowType;
 import parser.nodes.classes.BaseClassNode;
 import parser.nodes.classes.BaseInterfaceNode;
 import parser.nodes.classes.ClassDeclarationNode;
@@ -111,12 +112,12 @@ public class LibLoader {
 
         List<parser.nodes.classes.FieldNode> fields = new ArrayList<>();
         for (FieldNode field : classNode.fields) {
-            String fieldType = Type.getType(field.desc).getClassName();
+            FlowType fieldType = TypeMapper.mapType(Type.getType(field.desc).getClassName());
 
             parser.nodes.classes.FieldNode fieldNode = new parser.nodes.classes.FieldNode(
                 extractModifiers(field.access),
                 new parser.nodes.variable.InitializedVariableNode(
-                    new parser.nodes.variable.VariableDeclarationNode("var", fieldType, field.name, true),
+                    new parser.nodes.variable.VariableDeclarationNode("var", fieldType, field.name),
                     null
                 )
             );
@@ -163,12 +164,11 @@ public class LibLoader {
     }
 
     private static FunctionDeclarationNode convertToFlowMethod(ClassNode classNode, MethodNode method) {
-        TypeMapper.TypeInfo returnType = mapType(Type.getReturnType(method.desc).getClassName());
+        FlowType returnType = mapType(Type.getReturnType(method.desc).getClassName());
 
         return new FunctionDeclarationNode(
             method.name,
-            returnType.flowType(),
-            returnType.isNullable(),
+            returnType,
             extractModifiers(method.access),
             parseParameters(classNode, method, false),
             null
@@ -189,15 +189,14 @@ public class LibLoader {
         List<ParameterNode> parameters = new ArrayList<>();
 
         for (int i = 0; i < argumentTypes.length; i++) {
-            TypeMapper.TypeInfo type = mapType(argumentTypes[i].getClassName());
+            FlowType type = mapType(argumentTypes[i].getClassName());
             String paramName = (methodNode.parameters != null && i < methodNode.parameters.size())
                 ? methodNode.parameters.get(i).name
                 : null;
 
             parameters.add(
                 new ParameterNode(
-                    type.flowType(),
-                    type.isNullable(),
+                    type,
                     paramName,
                     null
                 )
@@ -205,7 +204,13 @@ public class LibLoader {
         }
 
         if (!isConstructor && (methodNode.access & Opcodes.ACC_STATIC) == 0) {
-            parameters.add(0, new ParameterNode(classNode.name.replace("/", "."), false, "this", null));
+            parameters.add(
+                0,
+                    new ParameterNode(new FlowType(classNode.name.replace("/", "."), true, false),
+                    "this",
+                    null
+                )
+            );
         }
 
         return parameters;

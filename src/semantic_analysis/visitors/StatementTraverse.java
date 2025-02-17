@@ -64,8 +64,7 @@ public class StatementTraverse {
                 new VariableDeclarationNode(
                     "var",
                     varType.type(),
-                    ((VariableReferenceNode) forStatementNode.initialization.variable.expression).variable,
-                    varType.isNullable()
+                    ((VariableReferenceNode) forStatementNode.initialization.variable.expression).variable
                 ),
                 forStatementNode.initialization
             )
@@ -123,15 +122,16 @@ public class StatementTraverse {
         }
 
         if (returnType.type().equals("null")) {
-            if (!functionDeclarationNode.isReturnTypeNullable) {
+            if (!functionDeclarationNode.returnType.isNullable()) {
                 LoggerFacade.error("Null cannot be a value of a non-null type '" + functionDeclarationNode.returnType + "'", returnStatementNode);
             }
         } else if (!scope.isSameType(
             returnType,
             new ExpressionTraverse.TypeWrapper(
-                functionDeclarationNode.returnType,
+                functionDeclarationNode.returnType.name(),
                 false,
-                functionDeclarationNode.isReturnTypeNullable)
+                functionDeclarationNode.returnType.isNullable()
+            )
         )) {
             LoggerFacade.error("Type mismatch: expected '"  + functionDeclarationNode.returnType + "' but received '" + returnType + "'", returnStatementNode);
         }

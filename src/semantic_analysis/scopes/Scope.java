@@ -1,12 +1,12 @@
 package semantic_analysis.scopes;
 
 import parser.nodes.ASTNode;
+import parser.nodes.FlowType;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.InterfaceNode;
 import parser.nodes.classes.TypeDeclarationNode;
 import parser.nodes.functions.FunctionDeclarationNode;
-import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
 
 public record Scope (
     Scope parent,
@@ -70,7 +70,7 @@ public record Scope (
             parent != null ? parent.getField(symbol) : null;
     }
 
-    public boolean isSameType(TypeWrapper type, TypeWrapper superType) {
+    public boolean isSameType(FlowType type, FlowType superType) {
         return symbols().isSameType(type, superType) || parent != null && parent.isSameType(type, superType);
     }
 

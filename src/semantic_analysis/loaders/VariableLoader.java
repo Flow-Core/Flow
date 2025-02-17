@@ -87,8 +87,7 @@ public class VariableLoader {
                 if (actualType.type().equals("null")) {
                     LoggerFacade.error("Cannot infer variable type from 'null'", fieldNode);
                 } else {
-                    fieldNode.initialization.declaration.type = actualType.type();
-                    fieldNode.initialization.declaration.isNullable = actualType.isNullable();
+                    fieldNode.initialization.declaration.type = fieldNode.initialization.declaration.type.copy(actualType.isNullable(), false);
                 }
         }
 
@@ -129,7 +128,7 @@ public class VariableLoader {
         fieldNode.isInitialized = true;
 
         if (actualType == null || actualType.type().equals("null")) {
-            if (!fieldNode.initialization.declaration.isNullable) {
+            if (!fieldNode.initialization.declaration.type.isNullable()) {
                 LoggerFacade.error("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'", fieldNode);
             }
         } else if (!scope.isSameType(actualType, varType)) {

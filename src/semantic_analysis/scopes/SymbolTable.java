@@ -1,9 +1,9 @@
 package semantic_analysis.scopes;
 
 import parser.nodes.ASTNode;
+import parser.nodes.FlowType;
 import parser.nodes.classes.*;
 import parser.nodes.functions.FunctionDeclarationNode;
-import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
 
 import java.util.*;
 
@@ -18,47 +18,48 @@ public record SymbolTable(
         return new SymbolTable(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new IdentityHashMap<>());
     }
 
-    public boolean isSameType(TypeWrapper type, TypeWrapper superType) {
+    public boolean isSameType(FlowType type, FlowType superType) {
         if (!superType.isNullable() && type.isNullable())
             return false;
 
-        if (Objects.equals(type.type(), superType.type())) {
+        if (Objects.equals(type.name(), superType.name())) {
             return true;
         }
 
-        final ClassDeclarationNode classDeclarationNode = getClass(type.type());
+        final ClassDeclarationNode classDeclarationNode = getClass(type.name());
         if (classDeclarationNode != null) {
-            if (!classDeclarationNode.baseClasses.isEmpty() && classDeclarationNode.baseClasses.get(0).name.equals(superType.type())) {
+            if (!classDeclarationNode.baseClasses.isEmpty() && classDeclarationNode.baseClasses.get(0).name.equals(superType.name())) {
                 return true;
             }
             if (!classDeclarationNode.baseClasses.isEmpty() &&
                 isSameType(
-                    new TypeWrapper(
+                    new FlowType(
                         classDeclarationNode.baseClasses.get(0).name,
-                        false,
-                        type.isNullable()
+                        type.isNullable(),
+                        type.isPrimitive()
                     ),
-                    superType)
+                    superType
+                )
             ) {
                 return true;
             }
         }
 
-        final TypeDeclarationNode typeDeclarationNode = getTypeDeclaration(type.type());
+        final TypeDeclarationNode typeDeclarationNode = getTypeDeclaration(type.name());
         if (typeDeclarationNode != null) {
-            final TypeDeclarationNode superTypeDeclaration = getTypeDeclaration(superType.type());
+            final TypeDeclarationNode superTypeDeclaration = getTypeDeclaration(superType.name());
 
             if (typeDeclarationNode.equals(superTypeDeclaration)) {
                 return true;
             }
 
-            for (final BaseInterfaceNode baseInterfaceNode : getTypeDeclaration(type.type()).implementedInterfaces) {
-                if (baseInterfaceNode.name.equals(superType.type()) ||
+            for (final BaseInterfaceNode baseInterfaceNode : getTypeDeclaration(type.name()).implementedInterfaces) {
+                if (baseInterfaceNode.name.equals(superType.name()) ||
                     isSameType(
-                        new TypeWrapper(
+                        new FlowType(
                             baseInterfaceNode.name,
-                            false,
-                            type.isNullable()
+                            type.isNullable(),
+                            type.isPrimitive()
                         ),
                         superType
                     )
