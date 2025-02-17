@@ -81,18 +81,7 @@ public class FunctionGenerator {
 
     public static String getJVMName(String type, boolean isNullable, Scope scope) {
         if (isNullable) {
-            return switch (type) {
-                case "Int" -> "Ljava/lang/Integer;";
-                case "Bool" -> "Ljava/lang/Boolean;";
-                case "Float" -> "Ljava/lang/Float;";
-                case "Double" -> "Ljava/lang/Double;";
-                case "Long" -> "Ljava/lang/Long;";
-                case "Byte" -> "Ljava/lang/Byte;";
-                case "Char" -> "Ljava/lang/Character;";
-                case "Short" -> "Ljava/lang/Short;";
-                case "Void" -> "Ljava/lang/Void;";
-                default -> "L" + FQNameMapper.getFQName(type, scope) + ";";
-            };
+            return "L" + FQNameMapper.getFQName(type, scope) + ";";
         }
 
         return switch (type) {

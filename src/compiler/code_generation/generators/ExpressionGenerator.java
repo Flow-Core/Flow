@@ -21,7 +21,7 @@ import static compiler.code_generation.generators.FunctionGenerator.getJVMName;
 public class ExpressionGenerator {
     public static void generate(ExpressionNode expression, MethodVisitor mv, VariableManager vm, FileWrapper file) {
         if (expression instanceof VariableReferenceNode referenceNode) {
-            generateVarReference(referenceNode, vm, mv);
+            generateVarReference(referenceNode, vm);
         } else if (expression instanceof FunctionCallNode functionCallNode) {
             generateFuncCall(functionCallNode, file, vm, mv);
         } else if (expression instanceof ObjectNode objectNode) {
@@ -37,7 +37,7 @@ public class ExpressionGenerator {
         }
     }
 
-    private static void generateVarReference(VariableReferenceNode refNode, VariableManager vm, MethodVisitor mv) {
+    private static void generateVarReference(VariableReferenceNode refNode, VariableManager vm) {
         vm.loadVariable(refNode.variable);
     }
 
@@ -195,35 +195,16 @@ public class ExpressionGenerator {
                 mv.visitLdcInsn((int) value);
             }
             return;
+        } else if (literalNode instanceof StringLiteralNode stringLiteralNode) {
+            mv.visitTypeInsn(Opcodes.NEW, "flow/String");
+            mv.visitInsn(Opcodes.DUP);
+
+            mv.visitLdcInsn(stringLiteralNode.getValue());
+
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "flow/String", "<init>", "(Ljava/lang/String;)V", false);
+            return;
         }
 
         mv.visitLdcInsn(literalNode.getValue());
-    }
-
-    private static void boxPrimitive(String type, MethodVisitor mv, Scope scope) {
-        String wrapperType = getBoxedType(type);
-        String descriptor = "(" + getJVMName(type, false, scope) + ")L" + wrapperType + ";";
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, wrapperType, "valueOf", descriptor, false);
-    }
-
-    private static boolean isPrimitive(String type) {
-        return switch (type) {
-            case "Int", "Bool", "Float", "Double", "Long", "Byte", "Char", "Short" -> true;
-            default -> false;
-        };
-    }
-
-    private static String getBoxedType(String primitive) {
-        return switch (primitive) {
-            case "Int" -> "java/lang/Integer";
-            case "Bool" -> "java/lang/Boolean";
-            case "Float" -> "java/lang/Float";
-            case "Double" -> "java/lang/Double";
-            case "Long" -> "java/lang/Long";
-            case "Byte" -> "java/lang/Byte";
-            case "Char" -> "java/lang/Character";
-            case "Short" -> "java/lang/Short";
-            default -> throw new IllegalArgumentException("Unexpected primitive: " + primitive);
-        };
     }
 }

@@ -1,5 +1,6 @@
 package compiler.code_generation.manager;
 
+import compiler.code_generation.mappers.BoxMapper;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -29,6 +30,10 @@ public class VariableManager {
             throw new IllegalArgumentException("Variable '" + name + "' does not exist");
         }
         final VariableInfo variableInfo = variables.get(name);
+
+        if (!variableInfo.isNullable && isPrimitive(variableInfo.type)) {
+            BoxMapper.unbox(variableInfo.type, mv);
+        }
 
         mv.visitVarInsn(
             getLoadOpCode(
@@ -71,6 +76,13 @@ public class VariableManager {
             case "Double" -> Opcodes.DLOAD;
             case "Long" -> Opcodes.LLOAD;
             default -> Opcodes.ALOAD;
+        };
+    }
+
+    private boolean isPrimitive(String type) {
+        return switch (type) {
+            case "Int", "Bool", "Float", "Double", "Long", "Byte", "Char", "Short" -> true;
+            default -> false;
         };
     }
 

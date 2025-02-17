@@ -24,8 +24,7 @@ public class Main {
 
         final String file2 = """
         func main() {
-            val x = 10
-            FlowIO.print("Hello, world!")
+            FlowIO.println("Hello, world!")
         }
         """;
 

@@ -10,7 +10,7 @@ public class FQNameMapper {
             throw new IllegalArgumentException("Class should be loaded in the binding context");
         }
 
-        return map(ExportTypeMapper.map(fqName));
+        return map(fqName);
     }
 
     public static String getFQName(String name, Scope scope) {
