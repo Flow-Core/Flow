@@ -141,8 +141,62 @@ public class ExpressionGenerator {
         } else if (literalNode instanceof BooleanLiteralNode booleanLiteralNode) {
             mv.visitInsn(booleanLiteralNode.value ? Opcodes.ICONST_1 : Opcodes.ICONST_0);
             return;
+        } else if (literalNode instanceof IntegerLiteralNode intLiteralNode) {
+            int value = intLiteralNode.value;
+            if (value >= -1 && value <= 5) {
+                mv.visitInsn(Opcodes.ICONST_0 + value);
+            } else if (value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE) {
+                mv.visitIntInsn(Opcodes.BIPUSH, value);
+            } else if (value >= Short.MIN_VALUE && value <= Short.MAX_VALUE) {
+                mv.visitIntInsn(Opcodes.SIPUSH, value);
+            } else {
+                mv.visitLdcInsn(value);
+            }
+            return;
+        } else if (literalNode instanceof FloatLiteralNode floatLiteralNode) {
+            float value = floatLiteralNode.value;
+            if (value == 0.0f) {
+                mv.visitInsn(Opcodes.FCONST_0);
+            } else if (value == 1.0f) {
+                mv.visitInsn(Opcodes.FCONST_1);
+            } else if (value == 2.0f) {
+                mv.visitInsn(Opcodes.FCONST_2);
+            } else {
+                mv.visitLdcInsn(value);
+            }
+            return;
+        } else if (literalNode instanceof DoubleLiteralNode doubleLiteralNode) {
+            double value = doubleLiteralNode.value;
+            if (value == 0.0) {
+                mv.visitInsn(Opcodes.DCONST_0);
+            } else if (value == 1.0) {
+                mv.visitInsn(Opcodes.DCONST_1);
+            } else {
+                mv.visitLdcInsn(value);
+            }
+            return;
+        } else if (literalNode instanceof LongLiteralNode longLiteralNode) {
+            long value = longLiteralNode.value;
+            if (value == 0L) {
+                mv.visitInsn(Opcodes.LCONST_0);
+            } else if (value == 1L) {
+                mv.visitInsn(Opcodes.LCONST_1);
+            } else {
+                mv.visitLdcInsn(value);
+            }
+            return;
+        } else if (literalNode instanceof CharLiteralNode charLiteralNode) {
+            char value = charLiteralNode.value;
+            if (value <= 5) {
+                mv.visitInsn(Opcodes.ICONST_0 + value);
+            } else if (value <= Byte.MAX_VALUE) {
+                mv.visitIntInsn(Opcodes.BIPUSH, value);
+            } else {
+                mv.visitLdcInsn((int) value);
+            }
+            return;
         }
-        
+
         mv.visitLdcInsn(literalNode.getValue());
     }
 }
