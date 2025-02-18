@@ -23,7 +23,7 @@ public class VariableDeclarationGenerator {
         final VariableAssignmentNode assignment = fieldNode.initialization.assignment;
 
         if (assignment != null) {
-            ExpressionGenerator.generate(assignment.value.expression, mv, vm, file);
+            ExpressionGenerator.generate(assignment.value.expression, mv, vm, file, fieldNode.initialization.declaration.type);
         } else {
             mv.visitInsn(Opcodes.ACONST_NULL);
         }

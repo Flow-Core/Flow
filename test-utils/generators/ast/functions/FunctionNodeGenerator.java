@@ -10,7 +10,7 @@ import java.util.List;
 
 public class FunctionNodeGenerator {
     private String name = "testFunction";
-    private FlowType returnType = new FlowType("Void", false, true);
+    private FlowType returnType = new FlowType("Void", false, false);
     private List<String> modifiers = new ArrayList<>();
     private List<ParameterNode> parameters = new ArrayList<>();
     private BlockNode block = new BlockNode(new ArrayList<>());

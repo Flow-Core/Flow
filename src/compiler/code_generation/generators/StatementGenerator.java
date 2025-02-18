@@ -5,7 +5,9 @@ import compiler.code_generation.mappers.FQNameMapper;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import parser.nodes.FlowType;
 import parser.nodes.classes.ObjectNode;
+import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.statements.*;
 import semantic_analysis.files.FileWrapper;
 
@@ -24,7 +26,7 @@ public class StatementGenerator {
         } else if (statementNode instanceof SwitchStatementNode switchStatementNode) {
             generateSwitchStatement(switchStatementNode, mv, vm, file);
         } else if (statementNode instanceof ThrowNode throwNode) {
-            ExpressionGenerator.generate(throwNode.throwValue.expression, mv, vm, file);
+            ExpressionGenerator.generate(throwNode.throwValue.expression, mv, vm, file, new FlowType("Throwable", true, false));
 
             mv.visitInsn(Opcodes.ATHROW);
         } else {
@@ -36,9 +38,7 @@ public class StatementGenerator {
         final Label elseLabel = new Label();
         final Label endLabel = new Label();
 
-        ExpressionGenerator.generate(ifStatementNode.condition.expression, mv, vm, file);
-
-        mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Bool", "value", "Z");
+        ExpressionGenerator.generate(ifStatementNode.condition.expression, mv, vm, file, new FlowType("Bool", false, true));
         mv.visitJumpInsn(Opcodes.IFEQ, elseLabel);
 
         BlockGenerator.generateFunctionBlock(ifStatementNode.trueBranch, file, mv, vm);
@@ -58,8 +58,7 @@ public class StatementGenerator {
 
         mv.visitLabel(startLabel);
 
-        ExpressionGenerator.generate(whileStatementNode.condition.expression, mv, vm, file);
-        mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Bool", "value", "Z");
+        ExpressionGenerator.generate(whileStatementNode.condition.expression, mv, vm, file, new FlowType("Bool", false, true));
         mv.visitJumpInsn(Opcodes.IFEQ, endLabel);
 
         BlockGenerator.generateFunctionBlock(whileStatementNode.loopBlock, file, mv, vm);
@@ -74,9 +73,23 @@ public class StatementGenerator {
             return;
         }
 
-        ExpressionGenerator.generate(returnStatementNode.returnValue.expression, mv, vm, file);
+        FlowType expectedReturnType = ((FunctionDeclarationNode) file.scope().currentParent()).returnType;
+        ExpressionGenerator.generate(returnStatementNode.returnValue.expression, mv, vm, file, expectedReturnType);
 
-        mv.visitInsn(Opcodes.ARETURN);
+        mv.visitInsn(getReturnOpcode(expectedReturnType));
+    }
+
+    private static int getReturnOpcode(FlowType returnType) {
+        if (returnType.isPrimitive()) {
+            return switch (returnType.name()) {
+                case "Int", "Bool", "Byte", "Short", "Char" -> Opcodes.IRETURN;
+                case "Float" -> Opcodes.FRETURN;
+                case "Double" -> Opcodes.DRETURN;
+                case "Long" -> Opcodes.LRETURN;
+                default -> Opcodes.ARETURN;
+            };
+        }
+        return Opcodes.ARETURN;
     }
 
     private static void generateForStatement(ForStatementNode forStatementNode, MethodVisitor mv, VariableManager vm, FileWrapper file) {
@@ -87,8 +100,7 @@ public class StatementGenerator {
 
         mv.visitLabel(startLabel);
 
-        ExpressionGenerator.generate(forStatementNode.condition.expression, mv, vm, file);
-        mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Bool", "value", "Z");
+        ExpressionGenerator.generate(forStatementNode.condition.expression, mv, vm, file, new FlowType("Bool", false, true));
         mv.visitJumpInsn(Opcodes.IFEQ, endLabel);
 
         BlockGenerator.generateFunctionBlock(forStatementNode.loopBlock, file, mv, vm);

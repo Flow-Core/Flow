@@ -1,12 +1,14 @@
 package compiler.code_generation.generators;
 
 import compiler.code_generation.manager.VariableManager;
+import compiler.code_generation.mappers.BoxMapper;
 import compiler.code_generation.mappers.FQNameMapper;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import parser.nodes.FlowType;
 import parser.nodes.classes.*;
 import parser.nodes.components.ArgumentNode;
+import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
@@ -17,12 +19,14 @@ import semantic_analysis.files.FileWrapper;
 import semantic_analysis.loaders.SignatureLoader;
 import semantic_analysis.scopes.Scope;
 
+import java.util.List;
+
 import static compiler.code_generation.generators.FunctionGenerator.getJVMName;
 
 public class ExpressionGenerator {
-    public static void generate(ExpressionNode expression, MethodVisitor mv, VariableManager vm, FileWrapper file) {
+    public static void generate(ExpressionNode expression, MethodVisitor mv, VariableManager vm, FileWrapper file, FlowType expectedType) {
         if (expression instanceof VariableReferenceNode referenceNode) {
-            generateVarReference(referenceNode, vm);
+            generateVarReference(referenceNode, vm, expectedType);
         } else if (expression instanceof FunctionCallNode functionCallNode) {
             generateFuncCall(functionCallNode, file, vm, mv);
         } else if (expression instanceof ObjectNode objectNode) {
@@ -30,7 +34,7 @@ public class ExpressionGenerator {
         } else if (expression instanceof FieldReferenceNode fieldReferenceNode) {
             generateFieldReference(fieldReferenceNode, file.scope(), mv);
         } else if (expression instanceof LiteralNode literalNode) {
-            generateLiteral(literalNode, mv);
+            generateLiteral(literalNode, mv, expectedType);
         } else if (expression instanceof NullLiteral) {
             mv.visitInsn(Opcodes.ACONST_NULL);
         } else {
@@ -38,15 +42,11 @@ public class ExpressionGenerator {
         }
     }
 
-    private static void generateVarReference(VariableReferenceNode refNode, VariableManager vm) {
-        vm.loadVariable(refNode.variable);
+    private static void generateVarReference(VariableReferenceNode refNode, VariableManager vm, FlowType expectedType) {
+        vm.loadVariable(refNode.variable, expectedType);
     }
 
     private static void generateFuncCall(FunctionCallNode funcCallNode, FileWrapper file, VariableManager vm, MethodVisitor mv) {
-        for (ArgumentNode arg : funcCallNode.arguments) {
-            generate(arg.value.expression, mv, vm, file);
-        }
-
         if (funcCallNode.callerType == null) {
             final String topLevelClassName = file.name() + "Fl";
             final String fqTopLevelName = FQNameMapper.getFQName(topLevelClassName, file.scope());
@@ -58,6 +58,14 @@ public class ExpressionGenerator {
                     .map(argument -> argument.type).toList()
             );
             final String descriptor = FunctionGenerator.getDescriptor(declaration, file.scope());
+
+            processFunctionArguments(
+                declaration.parameters,
+                funcCallNode.arguments,
+                mv,
+                vm,
+                file
+            );
 
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, fqTopLevelName, funcCallNode.name, descriptor, false);
         } else {
@@ -77,6 +85,14 @@ public class ExpressionGenerator {
             );
             final String descriptor = FunctionGenerator.getDescriptor(declaration, file.scope());
             final boolean isStatic = declaration.modifiers.contains("static");
+
+            processFunctionArguments(
+                declaration.parameters,
+                funcCallNode.arguments,
+                mv,
+                vm,
+                file
+            );
 
             final int callType = isInterface ? Opcodes.INVOKEINTERFACE
                 : isStatic ? Opcodes.INVOKESTATIC : Opcodes.INVOKEVIRTUAL;
@@ -126,7 +142,7 @@ public class ExpressionGenerator {
         );
 
         for (ArgumentNode arg : objNode.arguments) {
-            generate(arg.value.expression, mv, vm, file);
+            generate(arg.value.expression, mv, vm, file, arg.type);
         }
 
         // TODO: figure out why
@@ -145,11 +161,14 @@ public class ExpressionGenerator {
         generateConstructorCall(objNode, scope, file, vm, mv);
     }
 
-    public static void generateLiteral(LiteralNode literalNode, MethodVisitor mv) {
+    public static void generateLiteral(LiteralNode literalNode, MethodVisitor mv, FlowType expectedType) {
         if (literalNode instanceof VoidLiteralNode) {
             return;
         } else if (literalNode instanceof BooleanLiteralNode booleanLiteralNode) {
             mv.visitInsn(booleanLiteralNode.value ? Opcodes.ICONST_1 : Opcodes.ICONST_0);
+            if (!expectedType.isPrimitive()) {
+                BoxMapper.box("Bool", mv);
+            }
             return;
         } else if (literalNode instanceof IntegerLiteralNode intLiteralNode) {
             int value = intLiteralNode.value;
@@ -161,6 +180,10 @@ public class ExpressionGenerator {
                 mv.visitIntInsn(Opcodes.SIPUSH, value);
             } else {
                 mv.visitLdcInsn(value);
+            }
+
+            if (!expectedType.isPrimitive()) {
+                BoxMapper.box("Int", mv);
             }
             return;
         } else if (literalNode instanceof FloatLiteralNode floatLiteralNode) {
@@ -174,6 +197,10 @@ public class ExpressionGenerator {
             } else {
                 mv.visitLdcInsn(value);
             }
+
+            if (!expectedType.isPrimitive()) {
+                BoxMapper.box("Float", mv);
+            }
             return;
         } else if (literalNode instanceof DoubleLiteralNode doubleLiteralNode) {
             double value = doubleLiteralNode.value;
@@ -183,6 +210,10 @@ public class ExpressionGenerator {
                 mv.visitInsn(Opcodes.DCONST_1);
             } else {
                 mv.visitLdcInsn(value);
+            }
+
+            if (!expectedType.isPrimitive()) {
+                BoxMapper.box("Double", mv);
             }
             return;
         } else if (literalNode instanceof LongLiteralNode longLiteralNode) {
@@ -194,6 +225,10 @@ public class ExpressionGenerator {
             } else {
                 mv.visitLdcInsn(value);
             }
+
+            if (!expectedType.isPrimitive()) {
+                BoxMapper.box("Long", mv);
+            }
             return;
         } else if (literalNode instanceof CharLiteralNode charLiteralNode) {
             char value = charLiteralNode.value;
@@ -203,6 +238,10 @@ public class ExpressionGenerator {
                 mv.visitIntInsn(Opcodes.BIPUSH, value);
             } else {
                 mv.visitLdcInsn((int) value);
+            }
+
+            if (!expectedType.isPrimitive()) {
+                BoxMapper.box("Char", mv);
             }
             return;
         } else if (literalNode instanceof StringLiteralNode stringLiteralNode) {
@@ -216,5 +255,25 @@ public class ExpressionGenerator {
         }
 
         mv.visitLdcInsn(literalNode.getValue());
+    }
+
+    private static void processFunctionArguments(
+        List<ParameterNode> expectedParams,
+        List<ArgumentNode> providedArgs,
+        MethodVisitor mv,
+        VariableManager vm,
+        FileWrapper file
+    ) {
+        for (int i = 0; i < expectedParams.size(); i++) {
+            ParameterNode param = expectedParams.get(i);
+            FlowType expectedArgType = param.type;
+
+            if (i < providedArgs.size()) {
+                ArgumentNode arg = providedArgs.get(i);
+                ExpressionGenerator.generate(arg.value.expression, mv, vm, file, expectedArgType);
+            } else if (param.defaultValue != null) {
+                ExpressionGenerator.generate(param.defaultValue.expression, mv, vm, file, expectedArgType);
+            }
+        }
     }
 }

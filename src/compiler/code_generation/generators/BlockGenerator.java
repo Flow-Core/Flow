@@ -20,7 +20,7 @@ public class BlockGenerator {
     public static void generateFunctionBlock(BlockNode blockNode, FileWrapper file, MethodVisitor mv, VariableManager vm) {
         for (final ASTNode node : blockNode.children) {
             if (node instanceof ExpressionBaseNode expressionBaseNode) {
-                ExpressionGenerator.generate(expressionBaseNode.expression, mv, vm, file);
+                ExpressionGenerator.generate(expressionBaseNode.expression, mv, vm, file, null);
             } else if (node instanceof StatementNode statementNode) {
                 StatementGenerator.generate(statementNode, mv, vm, file);
             } else if (node instanceof FieldNode fieldNode) {

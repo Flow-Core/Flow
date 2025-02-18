@@ -76,7 +76,7 @@ class TopLevelTransformerTest {
     void test_transform_with_mixed_top_level_elements() {
         FunctionDeclarationNode function = FunctionNodeGenerator.builder()
             .name("printHello")
-            .returnType(new FlowType("Void", false, true))
+            .returnType(new FlowType("Void", false, false))
             .parameters(new ArrayList<>())
             .block(BlockNodeGenerator.builder().children(new ArrayList<>()).build())
             .build();

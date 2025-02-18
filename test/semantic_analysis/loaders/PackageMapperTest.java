@@ -27,7 +27,7 @@ class PackageMapperTest {
     void test_single_file_with_no_package_should_go_to_empty_path() {
         FunctionDeclarationNode mainFunction = FunctionNodeGenerator.builder()
             .name("main")
-            .returnType(new FlowType("Void", false, true))
+            .returnType(new FlowType("Void", false, false))
             .parameters(List.of())
             .block(BlockNodeGenerator.builder().children(List.of()).build())
             .build();

@@ -26,23 +26,27 @@ public class VariableManager {
         storeVariable(name);
     }
 
-    public void loadVariable(String name) {
+    public void loadVariable(String name, FlowType expectedType) {
         if (!variables.containsKey(name)) {
             throw new IllegalArgumentException("Variable '" + name + "' does not exist");
         }
-        final VariableInfo variableInfo = variables.get(name);
-
-        if (!variableInfo.type.isPrimitive() && !variableInfo.type.isNullable() && isPrimitiveType(variableInfo.type.name())) {
-            BoxMapper.unbox(variableInfo.type().name(), mv);
-        }
+        final VariableInfo varInfo = variables.get(name);
 
         mv.visitVarInsn(
             getLoadOpCode(
-                variableInfo.type().name(),
-                variableInfo.type().isNullable()
+                varInfo.type().name(),
+                varInfo.type().isNullable()
             ),
-            variableInfo.index
+            varInfo.index
         );
+
+        if (expectedType != null) {
+            if (varInfo.type.isPrimitive() && !expectedType.isPrimitive()) {
+                BoxMapper.box(varInfo.type.name(), mv);
+            } else if (!varInfo.type.isPrimitive() && expectedType.isPrimitive()) {
+                BoxMapper.unbox(varInfo.type.name(), mv);
+            }
+        }
     }
 
     public void storeVariable(String name) {
@@ -51,15 +55,15 @@ public class VariableManager {
             throw new IllegalArgumentException("Variable '" + name + "' does not exist");
         }
 
-        int opcode = getStoreOpcode(varInfo.type.name(), varInfo.type.isNullable());
+        int opcode = getStoreOpcode(varInfo.type);
         mv.visitVarInsn(opcode, varInfo.index);
         availableCell++;
     }
 
-    private int getStoreOpcode(String type, boolean isNullable) {
-        if (isNullable) return Opcodes.ASTORE;
+    private int getStoreOpcode(FlowType type) {
+        if (type.isNullable() || !type.isPrimitive()) return Opcodes.ASTORE;
 
-        return switch (type) {
+        return switch (type.name()) {
             case "Int", "Bool", "Byte", "Short", "Char" -> Opcodes.ISTORE;
             case "Float" -> Opcodes.FSTORE;
             case "Double" -> Opcodes.DSTORE;
@@ -79,13 +83,5 @@ public class VariableManager {
             default -> Opcodes.ALOAD;
         };
     }
-
-    private boolean isPrimitiveType(String type) {
-        return switch (type) {
-            case "Int", "Bool", "Float", "Double", "Long", "Byte", "Char", "Short" -> true;
-            default -> false;
-        };
-    }
-
     private record VariableInfo(int index, FlowType type) {}
 }

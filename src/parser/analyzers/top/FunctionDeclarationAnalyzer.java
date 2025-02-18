@@ -56,26 +56,21 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
 
         List<ParameterNode> parameters = parseParameters(parser);
 
-        String returnType = "Void";
-        boolean isReturnTypeNullable = false;
+        FlowType returnType = new FlowType("Void", false, true);
 
         if (parser.check(TokenType.COLON_OPERATOR)) {
             parser.advance();
-            returnType = parser.consume(TokenType.IDENTIFIER).value();
+            returnType = new FlowType(parser.consume(TokenType.IDENTIFIER).value(), false, false);
 
             if (parser.check(TokenType.NULLABLE)) {
                 parser.advance();
-                isReturnTypeNullable = true;
+                returnType = returnType.copy(true, false);
             }
         }
 
         return new FunctionDeclarationNode(
             funcName.value(),
-            new FlowType(
-                returnType,
-                isReturnTypeNullable,
-                false
-            ),
+            returnType,
             modifiers,
             parameters,
             null

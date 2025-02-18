@@ -4,6 +4,20 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 public class BoxMapper {
+    public static void box(String type, MethodVisitor mv) {
+        switch (type) {
+            case "Int" -> mv.visitMethodInsn(Opcodes.INVOKESTATIC, "flow/Int", "fromPrimitive", "(I)Lflow/Int;", false);
+            case "Bool" -> mv.visitMethodInsn(Opcodes.INVOKESTATIC, "flow/Bool", "fromPrimitive", "(Z)Lflow/Bool;", false);
+            case "Float" -> mv.visitMethodInsn(Opcodes.INVOKESTATIC, "flow/Float", "fromPrimitive", "(F)Lflow/Float;", false);
+            case "Double" -> mv.visitMethodInsn(Opcodes.INVOKESTATIC, "flow/Double", "fromPrimitive", "(D)Lflow/Double;", false);
+            case "Long" -> mv.visitMethodInsn(Opcodes.INVOKESTATIC, "flow/Long", "fromPrimitive", "(J)Lflow/Long;", false);
+            case "Byte" -> mv.visitMethodInsn(Opcodes.INVOKESTATIC, "flow/Byte", "fromPrimitive", "(B)Lflow/Byte;", false);
+            case "Char" -> mv.visitMethodInsn(Opcodes.INVOKESTATIC, "flow/Char", "fromPrimitive", "(C)Lflow/Char;", false);
+            case "Short" -> mv.visitMethodInsn(Opcodes.INVOKESTATIC, "flow/Short", "fromPrimitive", "(S)Lflow/Short;", false);
+            default -> throw new IllegalArgumentException("Cannot box unknown type: " + type);
+        }
+    }
+
     public static void unbox(String type, MethodVisitor mv) {
         switch (type) {
             case "Int" -> mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Int", "value", "I");
@@ -15,33 +29,5 @@ public class BoxMapper {
             case "Char" -> mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Char", "value", "C");
             case "Short" -> mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Short", "value", "S");
         }
-    }
-
-    public static String getPrimitiveDescriptor(String type) {
-        return switch (type) {
-            case "Int" -> "I";
-            case "Bool" -> "Z";
-            case "Float" -> "F";
-            case "Double" -> "D";
-            case "Long" -> "J";
-            case "Byte" -> "B";
-            case "Char" -> "C";
-            case "Short" -> "S";
-            default -> null;
-        };
-    }
-
-    private static String getBoxedType(String type) {
-        return switch (type) {
-            case "Int" -> "flow/Int";
-            case "Bool" -> "flow/Bool";
-            case "Float" -> "flow/Float";
-            case "Double" -> "flow/Double";
-            case "Long" -> "flow/Long";
-            case "Byte" -> "flow/Byte";
-            case "Char" -> "flow/Char";
-            case "Short" -> "flow/Short";
-            default -> type;
-        };
     }
 }
