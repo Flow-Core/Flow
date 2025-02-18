@@ -48,7 +48,7 @@ public class StatementGenerator {
 
         mv.visitLabel(elseLabel);
         if (ifStatementNode.falseBranch != null) {
-            BlockGenerator.generateFunctionBlock(ifStatementNode.trueBranch.scope, ifStatementNode.trueBranch.blockNode, file, mv, vm);
+            BlockGenerator.generateFunctionBlock(ifStatementNode.falseBranch.scope, ifStatementNode.falseBranch.blockNode, file, mv, vm);
         }
 
         mv.visitLabel(endLabel);
