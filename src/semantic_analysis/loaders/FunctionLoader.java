@@ -28,7 +28,7 @@ public class FunctionLoader {
                 : ModifierLoader.ModifierType.FUNCTION
         );
 
-        if (!scope.findTypeDeclaration(functionDeclarationNode.returnType.name())) {
+        if (!scope.findTypeDeclaration(functionDeclarationNode.returnType.name)) {
             LoggerFacade.error("Unresolved symbol: '" + functionDeclarationNode.returnType + "'", functionDeclarationNode);
         }
 
@@ -59,7 +59,7 @@ public class FunctionLoader {
 
     public static void checkParameters(final List<ParameterNode> parameters, final Scope scope)  {
         for (final ParameterNode parameter : parameters) {
-            if (!scope.findTypeDeclaration(parameter.type.name())) {
+            if (!scope.findTypeDeclaration(parameter.type.name)) {
                 LoggerFacade.error("Unresolved symbol: '" + parameter.type + "'", parameter);
             }
         }
@@ -77,11 +77,13 @@ public class FunctionLoader {
             addThisToSymbolTable(symbolTable, containingType.name);
         }
 
-        BlockTraverse.traverse(functionDeclarationNode.block, new Scope(scope, symbolTable, functionDeclarationNode, Scope.Type.FUNCTION));
+        final Scope functionScope = new Scope(scope, symbolTable, functionDeclarationNode, Scope.Type.FUNCTION);
+        BlockTraverse.traverse(functionDeclarationNode.block.blockNode, functionScope);
+        functionDeclarationNode.block.scope = functionScope;
 
-        if (!functionDeclarationNode.returnType.name().equals("Void")) {
+        if (!functionDeclarationNode.returnType.name.equals("Void")) {
             boolean haveReturn = false;
-            for (final ASTNode node : functionDeclarationNode.block.children) {
+            for (final ASTNode node : functionDeclarationNode.block.blockNode.children) {
                 if (node instanceof ReturnStatementNode) {
                     haveReturn = true;
                     break;

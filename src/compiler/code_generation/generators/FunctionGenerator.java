@@ -1,6 +1,7 @@
 package compiler.code_generation.generators;
 
 import compiler.code_generation.manager.VariableManager;
+import compiler.code_generation.mappers.BoxMapper;
 import compiler.code_generation.mappers.FQNameMapper;
 import compiler.code_generation.mappers.ModifierMapper;
 import org.objectweb.asm.ClassWriter;
@@ -37,9 +38,9 @@ public class FunctionGenerator {
                 vm.recognizeVariable(parameterNode.name, parameterNode.type);
             }
 
-            BlockGenerator.generateFunctionBlock(functionDeclarationNode.block, file, mv, vm);
+            BlockGenerator.generateFunctionBlock(functionDeclarationNode.block.scope, functionDeclarationNode.block.blockNode, file, mv, vm);
 
-            if (functionDeclarationNode.returnType.name().equals("Void")) {
+            if (functionDeclarationNode.returnType.name.equals("Void")) {
                 mv.visitInsn(Opcodes.RETURN);
             }
 
@@ -96,12 +97,9 @@ public class FunctionGenerator {
             );
         }
 
-        BlockGenerator.generateFunctionBlock(functionDeclarationNode.block, file, mv, vm);
+        BlockGenerator.generateFunctionBlock(functionDeclarationNode.block.scope, functionDeclarationNode.block.blockNode, file, mv, vm);
 
-        if (functionDeclarationNode.returnType.name().equals("Void")) {
-            mv.visitInsn(Opcodes.RETURN);
-        }
-
+        mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(0, 0);
 
         mv.visitEnd();
@@ -148,11 +146,11 @@ public class FunctionGenerator {
     }
 
     public static String getJVMName(FlowType type, Scope scope) {
-        if (type.isNullable() || !type.isPrimitive()) {
-            return "L" + FQNameMapper.getFQName(type.name(), scope) + ";";
+        if (!BoxMapper.needUnboxing(type) && !type.name.equals("Void")) {
+            return "L" + FQNameMapper.getFQName(type.name, scope) + ";";
         }
 
-        return switch (type.name()) {
+        return switch (type.name) {
             case "Void" -> "V";
             case "Int" -> "I";
             case "Bool" -> "Z";
@@ -162,7 +160,7 @@ public class FunctionGenerator {
             case "Byte" -> "B";
             case "Char" -> "C";
             case "Short" -> "S";
-            default -> "L" + FQNameMapper.getFQName(type.name(), scope) + ";";
+            default -> "L" + FQNameMapper.getFQName(type.name, scope) + ";";
         };
     }
 }

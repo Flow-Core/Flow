@@ -3,8 +3,8 @@ package parser.nodes.functions;
 import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
 import parser.nodes.FlowType;
+import parser.nodes.components.BodyNode;
 import parser.nodes.components.ParameterNode;
-import parser.nodes.components.BlockNode;
 
 import java.util.List;
 import java.util.Objects;
@@ -14,9 +14,9 @@ public class FunctionDeclarationNode implements ASTNode {
     public FlowType returnType;
     public List<String> modifiers;
     public List<ParameterNode> parameters;
-    public BlockNode block;
+    public BodyNode block;
 
-    public FunctionDeclarationNode(String name, FlowType returnType, List<String> modifiers, List<ParameterNode> parameters, BlockNode block) {
+    public FunctionDeclarationNode(String name, FlowType returnType, List<String> modifiers, List<ParameterNode> parameters, BodyNode block) {
         this.name = name;
         this.returnType = returnType;
         this.modifiers = modifiers;

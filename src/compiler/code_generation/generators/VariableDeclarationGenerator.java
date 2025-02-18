@@ -18,7 +18,7 @@ public class VariableDeclarationGenerator {
         MethodVisitor mv,
         VariableManager vm,
         FileWrapper file
-    ) {
+        ) {
         final String fieldName = fieldNode.initialization.declaration.name;
         final VariableAssignmentNode assignment = fieldNode.initialization.assignment;
 

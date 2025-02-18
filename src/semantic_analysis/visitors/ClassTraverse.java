@@ -47,7 +47,9 @@ public class ClassTraverse {
 
             addThisToSymbolTable(symbolTable, classDeclaration.name);
 
-            BlockTraverse.traverse(constructorNode.body, new Scope(scope, symbolTable, classDeclaration, Scope.Type.FUNCTION));
+            final Scope bodyScope = new Scope(scope, symbolTable, classDeclaration, Scope.Type.FUNCTION);
+            BlockTraverse.traverse(constructorNode.body.blockNode, bodyScope);
+            constructorNode.body.scope = bodyScope;
         }
     }
 

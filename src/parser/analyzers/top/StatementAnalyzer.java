@@ -8,6 +8,7 @@ import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
 import parser.nodes.FlowType;
 import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
@@ -45,8 +46,8 @@ public class StatementAnalyzer extends TopAnalyzer {
                     ASTMetaDataStore.getInstance().addMetadata(
                         new IfStatementNode(
                             new ExpressionBaseNode(ifCondition, line, parser.file),
-                            trueBranch,
-                            falseBranch
+                            new BodyNode(trueBranch),
+                            new BodyNode(falseBranch)
                         ),
                         line,
                         parser.file
@@ -75,8 +76,8 @@ public class StatementAnalyzer extends TopAnalyzer {
                         new ForStatementNode(
                             loopVariable,
                             new ExpressionBaseNode(forCondition, line, parser.file),
-                            loopActionBlock,
-                            forBlock
+                            new BodyNode(loopActionBlock),
+                            new BodyNode(forBlock)
                         ),
                         line,
                         parser.file
@@ -99,7 +100,7 @@ public class StatementAnalyzer extends TopAnalyzer {
                         new ForeachStatementNode(
                             foreachVariable,
                             foreachCollection,
-                            foreachBlock
+                            new BodyNode(foreachBlock)
                         ),
                         line,
                         parser.file
@@ -117,7 +118,7 @@ public class StatementAnalyzer extends TopAnalyzer {
                     ASTMetaDataStore.getInstance().addMetadata(
                         new WhileStatementNode(
                             new ExpressionBaseNode(whileCondition, line, parser.file),
-                            whileBlock
+                            new BodyNode(whileBlock)
                         ),
                         line,
                         parser.file
@@ -144,8 +145,8 @@ public class StatementAnalyzer extends TopAnalyzer {
                                 .toList(),
                             switchBlock.children
                                 .stream()
-                                .filter(node -> node instanceof BlockNode)
-                                .map(node -> (BlockNode) node)
+                                .filter(node -> node instanceof BodyNode)
+                                .map(node -> (BodyNode) node)
                                 .findFirst()
                                 .orElse(null)
                         ),
@@ -177,7 +178,7 @@ public class StatementAnalyzer extends TopAnalyzer {
                                 new FlowType(type, false, false),
                                 parameterName, null
                             ),
-                            catchBlock
+                            new BodyNode(catchBlock)
                         )
                     );
                 } while (parser.check(TokenType.CATCH));
@@ -191,9 +192,9 @@ public class StatementAnalyzer extends TopAnalyzer {
 
                 return new AnalyzerResult(
                     new TryStatementNode(
-                        tryBlock,
+                        new BodyNode(tryBlock),
                         catchNodes,
-                        finallyBlock
+                        new BodyNode(finallyBlock)
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );

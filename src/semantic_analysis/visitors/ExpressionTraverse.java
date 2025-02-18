@@ -56,7 +56,7 @@ public class ExpressionTraverse {
                 return null;
             }
 
-            ClassDeclarationNode leftTypeNode = scope.getClass(leftType.type.name());
+            ClassDeclarationNode leftTypeNode = scope.getClass(leftType.type.name);
 
             if (leftTypeNode == null) {
                 LoggerFacade.error("Unresolved symbol: '" + leftType.type + "'", root);
@@ -76,12 +76,12 @@ public class ExpressionTraverse {
                     );
 
                     if (field == null) {
-                        LoggerFacade.error("Unresolved symbol: '" + leftType.type.name() + "." + reference.variable + "'", root);
+                        LoggerFacade.error("Unresolved symbol: '" + leftType.type.name + "." + reference.variable + "'", root);
                         return null;
                     }
 
                     return new FieldReferenceNode(
-                        leftType.type.name(),
+                        leftType.type.name,
                         reference.variable,
                         binaryExpression.left,
                         field.initialization.declaration.type,
@@ -125,7 +125,7 @@ public class ExpressionTraverse {
                     }
 
                     return new FunctionCallNode(
-                        leftType.type.name(),
+                        leftType.type.name,
                         call.name,
                         call.arguments
                     );
@@ -180,7 +180,7 @@ public class ExpressionTraverse {
 
             if (functionDecl != null) {
                 return new FunctionCallNode(
-                    leftType.type.name(),
+                    leftType.type.name,
                     operatorName,
                     List.of(
                         new ArgumentNode(null, new ExpressionBaseNode(binaryExpression.left)),
@@ -200,7 +200,7 @@ public class ExpressionTraverse {
                 return null;
             }
 
-            ClassDeclarationNode operandTypeNode = scope.getClass(operandType.type.name());
+            ClassDeclarationNode operandTypeNode = scope.getClass(operandType.type.name);
 
             if (operandTypeNode == null) {
                 LoggerFacade.error("Unresolved symbol: '" + operandType.type + "'", root);
@@ -218,7 +218,7 @@ public class ExpressionTraverse {
 
             if (functionDecl != null) {
                 return new FunctionCallNode(
-                    operandType.type.name(),
+                    operandType.type.name,
                     operatorName,
                     List.of(
                         new ArgumentNode(null, new ExpressionBaseNode(unaryExpression.operand))

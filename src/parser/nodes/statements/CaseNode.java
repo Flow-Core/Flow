@@ -1,16 +1,16 @@
 package parser.nodes.statements;
 
 import parser.nodes.ASTVisitor;
-import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 
 import java.util.Objects;
 
 public class CaseNode implements StatementNode {
     public ExpressionBaseNode value;
-    public BlockNode body;
+    public BodyNode body;
 
-    public CaseNode(ExpressionBaseNode value, BlockNode body) {
+    public CaseNode(ExpressionBaseNode value, BodyNode body) {
         this.value = value;
         this.body = body;
     }

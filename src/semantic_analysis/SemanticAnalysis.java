@@ -64,14 +64,14 @@ public class SemanticAnalysis {
                     else if (node instanceof ClassDeclarationNode classDeclaration) {
                         typeScopes.put(
                             classDeclaration,
-                            new Scope(file.scope(), SymbolTable.getEmptySymbolTable(), null, Scope.Type.CLASS)
+                            new Scope(file.scope(), SymbolTable.getEmptySymbolTable(), classDeclaration, Scope.Type.CLASS)
                         );
 
                         ClassTraverse.loadMethodSignatures(classDeclaration, typeScopes.get(classDeclaration), false);
                     } else if (node instanceof InterfaceNode interfaceNode) {
                         typeScopes.put(
                             interfaceNode,
-                            new Scope(file.scope(), SymbolTable.getEmptySymbolTable(), null, Scope.Type.CLASS)
+                            new Scope(file.scope(), SymbolTable.getEmptySymbolTable(), interfaceNode, Scope.Type.CLASS)
                         );
 
                         ClassTraverse.loadMethodSignatures(interfaceNode, typeScopes.get(interfaceNode), true);

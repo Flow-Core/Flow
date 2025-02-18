@@ -2,10 +2,23 @@ package compiler.code_generation.mappers;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import parser.nodes.FlowType;
 
 public class BoxMapper {
-    public static void box(String type, MethodVisitor mv) {
-        switch (type) {
+    public static boolean needBoxing(FlowType type, FlowType expectedType) {
+        return (type.isPrimitive && (expectedType.isNullable || !expectedType.isPrimitive)) && isPrimitiveType(type.name);
+    }
+
+    public static boolean needUnboxing(FlowType type, FlowType expectedType) {
+        return expectedType.isPrimitive && needUnboxing(type) && isPrimitiveType(type.name);
+    }
+
+    public static boolean needUnboxing(FlowType type) {
+        return !type.isPrimitive && !type.isNullable && isPrimitiveType(type.name);
+    }
+
+    public static void box(FlowType type, MethodVisitor mv) {
+        switch (type.name) {
             case "Int" -> mv.visitMethodInsn(Opcodes.INVOKESTATIC, "flow/Int", "fromPrimitive", "(I)Lflow/Int;", false);
             case "Bool" -> mv.visitMethodInsn(Opcodes.INVOKESTATIC, "flow/Bool", "fromPrimitive", "(Z)Lflow/Bool;", false);
             case "Float" -> mv.visitMethodInsn(Opcodes.INVOKESTATIC, "flow/Float", "fromPrimitive", "(F)Lflow/Float;", false);
@@ -16,10 +29,12 @@ public class BoxMapper {
             case "Short" -> mv.visitMethodInsn(Opcodes.INVOKESTATIC, "flow/Short", "fromPrimitive", "(S)Lflow/Short;", false);
             default -> throw new IllegalArgumentException("Cannot box unknown type: " + type);
         }
+
+        type.isPrimitive = false;
     }
 
-    public static void unbox(String type, MethodVisitor mv) {
-        switch (type) {
+    public static void unbox(FlowType type, MethodVisitor mv) {
+        switch (type.name) {
             case "Int" -> mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Int", "value", "I");
             case "Bool" -> mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Bool", "value", "Z");
             case "Float" -> mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Float", "value", "F");
@@ -29,5 +44,14 @@ public class BoxMapper {
             case "Char" -> mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Char", "value", "C");
             case "Short" -> mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Short", "value", "S");
         }
+
+        type.isPrimitive = false;
+    }
+
+    private static boolean isPrimitiveType(String type) {
+        return switch (type) {
+            case "Int", "Bool", "Float", "Double", "Long", "Byte", "Char", "Short" -> true;
+            default -> false;
+        };
     }
 }

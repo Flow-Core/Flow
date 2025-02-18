@@ -1,17 +1,17 @@
 package parser.nodes.statements;
 
 import parser.nodes.ASTVisitor;
-import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 
 import java.util.Objects;
 
 public class IfStatementNode implements StatementNode {
     public ExpressionBaseNode condition;
-    public BlockNode trueBranch;
-    public BlockNode falseBranch;
+    public BodyNode trueBranch;
+    public BodyNode falseBranch;
 
-    public IfStatementNode(ExpressionBaseNode condition, BlockNode trueBranch, BlockNode falseBranch) {
+    public IfStatementNode(ExpressionBaseNode condition, BodyNode trueBranch, BodyNode falseBranch) {
         this.condition = condition;
         this.trueBranch = trueBranch;
         this.falseBranch = falseBranch;

@@ -9,6 +9,7 @@ import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.InterfaceNode;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.BinaryExpressionNode;
 import parser.nodes.expressions.ExpressionBaseNode;
@@ -94,7 +95,14 @@ public class SignatureLoader {
         ConstructorNode primaryConstructor = new ConstructorNode(
             "public",
             primaryParameters,
-            new BlockNode(assignments)
+            new BodyNode(new BlockNode(assignments))
+        );
+
+        primaryConstructor.body.scope = new Scope(
+            null,
+            SymbolTable.getEmptySymbolTable(),
+            classDeclaration,
+            Scope.Type.FUNCTION
         );
 
         classDeclaration.constructors.add(primaryConstructor);

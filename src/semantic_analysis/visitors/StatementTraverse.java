@@ -31,24 +31,29 @@ public class StatementTraverse {
 
     private static void handleIfStatement(final IfStatementNode ifStatementNode, final Scope scope) {
         final FlowType conditionType = new ExpressionTraverse().traverse(ifStatementNode.condition, scope);
-        if (conditionType == null || !conditionType.name().equals("Bool") && !conditionType.isNullable()) {
+        if (conditionType == null || !conditionType.name.equals("Bool") && !conditionType.isNullable) {
             LoggerFacade.error("Condition type mismatch: 'Bool' was expected", ifStatementNode);
         }
 
-        BlockTraverse.traverse(ifStatementNode.trueBranch, new Scope(scope, SymbolTable.getEmptySymbolTable(), scope.currentParent(), Scope.Type.FUNCTION));
+        final Scope trueBranchScope = new Scope(scope, SymbolTable.getEmptySymbolTable(), scope.currentParent(), Scope.Type.FUNCTION);
+        BlockTraverse.traverse(ifStatementNode.trueBranch.blockNode, trueBranchScope);
+        ifStatementNode.trueBranch.scope = trueBranchScope;
 
         if (ifStatementNode.falseBranch != null) {
-            BlockTraverse.traverse(ifStatementNode.falseBranch, new Scope(scope, SymbolTable.getEmptySymbolTable(), scope.currentParent(), Scope.Type.FUNCTION));
+            final Scope falseBranchScope = new Scope(scope, SymbolTable.getEmptySymbolTable(), scope.currentParent(), Scope.Type.FUNCTION);
+            BlockTraverse.traverse(ifStatementNode.falseBranch.blockNode, falseBranchScope);
         }
     }
 
     private static void handleWhileStatement(final WhileStatementNode whileStatementNode, final Scope scope) {
         final FlowType conditionType = new ExpressionTraverse().traverse(whileStatementNode.condition, scope);
-        if (conditionType == null || !conditionType.name().equals("Bool") && !conditionType.isNullable()) {
+        if (conditionType == null || !conditionType.name.equals("Bool") && !conditionType.isNullable) {
             LoggerFacade.error("Condition type mismatch: 'Bool' was expected", whileStatementNode);
         }
 
-        BlockTraverse.traverse(whileStatementNode.loopBlock, new Scope(scope, SymbolTable.getEmptySymbolTable(), scope.currentParent(), Scope.Type.FUNCTION));
+        final Scope whileScope = new Scope(scope, SymbolTable.getEmptySymbolTable(), scope.currentParent(), Scope.Type.FUNCTION);
+        BlockTraverse.traverse(whileStatementNode.loopBlock.blockNode, whileScope);
+        whileStatementNode.loopBlock.scope = whileScope;
     }
 
     private static void handleForStatement(final ForStatementNode forStatementNode, final Scope scope) {
@@ -78,12 +83,15 @@ public class StatementTraverse {
             return;
         }
 
-        if (!conditionType.name().equals("Bool") && !conditionType.isNullable()) {
+        if (!conditionType.name.equals("Bool") && !conditionType.isNullable) {
             LoggerFacade.error("Loop condition type mismatch: must be of type 'Bool'", forStatementNode.condition);
         }
 
-        BlockTraverse.traverse(forStatementNode.action, forScope);
-        BlockTraverse.traverse(forStatementNode.loopBlock, forScope);
+        BlockTraverse.traverse(forStatementNode.action.blockNode, forScope);
+        BlockTraverse.traverse(forStatementNode.loopBlock.blockNode, forScope);
+
+        forStatementNode.action.scope = forScope;
+        forStatementNode.loopBlock.scope = forScope;
     }
 
     private static void handleSwitchStatement(final SwitchStatementNode switchStatementNode, final Scope scope) {
@@ -102,11 +110,15 @@ public class StatementTraverse {
                 LoggerFacade.error("Switch case type mismatch: Expected '" + switchType + "' but found '" + caseType + "'", caseNode);
             }
 
-            BlockTraverse.traverse(caseNode.body, new Scope(scope, SymbolTable.getEmptySymbolTable(), scope.currentParent(), Scope.Type.FUNCTION));
+            final Scope caseScope = new Scope(scope, SymbolTable.getEmptySymbolTable(), scope.currentParent(), Scope.Type.FUNCTION);
+            BlockTraverse.traverse(caseNode.body.blockNode, caseScope);
+            caseNode.body.scope = caseScope;
         }
 
         if (switchStatementNode.defaultBlock != null) {
-            BlockTraverse.traverse(switchStatementNode.defaultBlock, new Scope(scope, SymbolTable.getEmptySymbolTable(), scope.currentParent(), Scope.Type.FUNCTION));
+            final Scope defaultScope = new Scope(scope, SymbolTable.getEmptySymbolTable(), scope.currentParent(), Scope.Type.FUNCTION);
+            BlockTraverse.traverse(switchStatementNode.defaultBlock.blockNode, defaultScope);
+            switchStatementNode.defaultBlock.scope = defaultScope;
         }
     }
 
@@ -122,8 +134,8 @@ public class StatementTraverse {
             return;
         }
 
-        if (returnType.name().equals("null")) {
-            if (!functionDeclarationNode.returnType.isNullable()) {
+        if (returnType.name.equals("null")) {
+            if (!functionDeclarationNode.returnType.isNullable) {
                 LoggerFacade.error("Null cannot be a value of a non-null type '" + functionDeclarationNode.returnType + "'", returnStatementNode);
             }
         } else if (!scope.isSameType(

@@ -1,17 +1,17 @@
 package parser.nodes.statements;
 
 import parser.nodes.ASTVisitor;
-import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 
 import java.util.List;
 import java.util.Objects;
 
 public class TryStatementNode implements StatementNode {
-    public BlockNode tryBranch;
+    public BodyNode tryBranch;
     public List<CatchNode> exceptionBranches;
-    public BlockNode finallyBranch;
+    public BodyNode finallyBranch;
 
-    public TryStatementNode(BlockNode tryBranch, List<CatchNode> exceptionBranches, BlockNode finallyBranch) {
+    public TryStatementNode(BodyNode tryBranch, List<CatchNode> exceptionBranches, BodyNode finallyBranch) {
         this.tryBranch = tryBranch;
         this.exceptionBranches = exceptionBranches;
         this.finallyBranch = finallyBranch;

@@ -33,18 +33,15 @@ public class VariableManager {
         final VariableInfo varInfo = variables.get(name);
 
         mv.visitVarInsn(
-            getLoadOpCode(
-                varInfo.type().name(),
-                varInfo.type().isNullable()
-            ),
+            getLoadOpCode(varInfo.type()),
             varInfo.index
         );
 
         if (expectedType != null) {
-            if (varInfo.type.isPrimitive() && !expectedType.isPrimitive()) {
-                BoxMapper.box(varInfo.type.name(), mv);
-            } else if (!varInfo.type.isPrimitive() && expectedType.isPrimitive()) {
-                BoxMapper.unbox(varInfo.type.name(), mv);
+            if (BoxMapper.needBoxing(varInfo.type, expectedType)) {
+                BoxMapper.box(varInfo.type, mv);
+            } else if (BoxMapper.needUnboxing(varInfo.type, expectedType)) {
+                BoxMapper.unbox(varInfo.type, mv);
             }
         }
     }
@@ -55,15 +52,19 @@ public class VariableManager {
             throw new IllegalArgumentException("Variable '" + name + "' does not exist");
         }
 
+        if (BoxMapper.needUnboxing(varInfo.type)) {
+            BoxMapper.unbox(varInfo.type, mv);
+        }
+
         int opcode = getStoreOpcode(varInfo.type);
         mv.visitVarInsn(opcode, varInfo.index);
         availableCell++;
     }
 
     private int getStoreOpcode(FlowType type) {
-        if (type.isNullable() || !type.isPrimitive()) return Opcodes.ASTORE;
+        if (type.isNullable) return Opcodes.ASTORE;
 
-        return switch (type.name()) {
+        return switch (type.name) {
             case "Int", "Bool", "Byte", "Short", "Char" -> Opcodes.ISTORE;
             case "Float" -> Opcodes.FSTORE;
             case "Double" -> Opcodes.DSTORE;
@@ -72,10 +73,10 @@ public class VariableManager {
         };
     }
 
-    private int getLoadOpCode(String type, boolean isNullable) {
-        if (isNullable) return Opcodes.ALOAD;
+    private int getLoadOpCode(FlowType type) {
+        if (type.isNullable) return Opcodes.ALOAD;
 
-        return switch (type) {
+        return switch (type.name) {
             case "Int", "Bool", "Byte", "Short", "Char" -> Opcodes.ILOAD;
             case "Float" -> Opcodes.FLOAD;
             case "Double" -> Opcodes.DLOAD;
@@ -83,5 +84,6 @@ public class VariableManager {
             default -> Opcodes.ALOAD;
         };
     }
+
     private record VariableInfo(int index, FlowType type) {}
 }

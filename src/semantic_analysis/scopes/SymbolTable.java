@@ -19,24 +19,24 @@ public record SymbolTable(
     }
 
     public boolean isSameType(FlowType type, FlowType superType) {
-        if (!superType.isNullable() && type.isNullable())
+        if (!superType.isNullable && type.isNullable)
             return false;
 
-        if (Objects.equals(type.name(), superType.name())) {
+        if (Objects.equals(type.name, superType.name)) {
             return true;
         }
 
-        final ClassDeclarationNode classDeclarationNode = getClass(type.name());
+        final ClassDeclarationNode classDeclarationNode = getClass(type.name);
         if (classDeclarationNode != null) {
-            if (!classDeclarationNode.baseClasses.isEmpty() && classDeclarationNode.baseClasses.get(0).name.equals(superType.name())) {
+            if (!classDeclarationNode.baseClasses.isEmpty() && classDeclarationNode.baseClasses.get(0).name.equals(superType.name)) {
                 return true;
             }
             if (!classDeclarationNode.baseClasses.isEmpty() &&
                 isSameType(
                     new FlowType(
                         classDeclarationNode.baseClasses.get(0).name,
-                        type.isNullable(),
-                        type.isPrimitive()
+                        type.isNullable,
+                        type.isPrimitive
                     ),
                     superType
                 )
@@ -45,21 +45,21 @@ public record SymbolTable(
             }
         }
 
-        final TypeDeclarationNode typeDeclarationNode = getTypeDeclaration(type.name());
+        final TypeDeclarationNode typeDeclarationNode = getTypeDeclaration(type.name);
         if (typeDeclarationNode != null) {
-            final TypeDeclarationNode superTypeDeclaration = getTypeDeclaration(superType.name());
+            final TypeDeclarationNode superTypeDeclaration = getTypeDeclaration(superType.name);
 
             if (typeDeclarationNode.equals(superTypeDeclaration)) {
                 return true;
             }
 
-            for (final BaseInterfaceNode baseInterfaceNode : getTypeDeclaration(type.name()).implementedInterfaces) {
-                if (baseInterfaceNode.name.equals(superType.name()) ||
+            for (final BaseInterfaceNode baseInterfaceNode : getTypeDeclaration(type.name).implementedInterfaces) {
+                if (baseInterfaceNode.name.equals(superType.name) ||
                     isSameType(
                         new FlowType(
                             baseInterfaceNode.name,
-                            type.isNullable(),
-                            type.isPrimitive()
+                            type.isNullable,
+                            type.isPrimitive
                         ),
                         superType
                     )

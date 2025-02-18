@@ -53,7 +53,7 @@ public class VariableLoader {
             }
 
             fieldNode.isInitialized = true;
-        } else if (varType == null || varType.name() == null) {
+        } else if (varType == null || varType.name == null) {
             LoggerFacade.error("Variable must either have an explicit type or be initialized", fieldNode);
             return;
         } else if (isConst) {
@@ -61,18 +61,18 @@ public class VariableLoader {
         }
 
         if (varType != null) {
-            if (varType.name() == null || !scope.findTypeDeclaration(varType.name())) {
-                LoggerFacade.error("Unresolved symbol: '" + varType.name() + "'", fieldNode);
+            if (varType.name == null || !scope.findTypeDeclaration(varType.name)) {
+                LoggerFacade.error("Unresolved symbol: '" + varType + "'", fieldNode);
                 return;
             }
 
-            if (actualType == null || actualType.name() == null) {
+            if (actualType == null || actualType.name == null) {
                 scope.symbols().fields().add(fieldNode);
                 return;
             }
 
-            if (actualType.name().equals("null")) {
-                if (!fieldNode.initialization.declaration.type.isNullable()) {
+            if (actualType.name.equals("null")) {
+                if (!fieldNode.initialization.declaration.type.isNullable) {
                     LoggerFacade.error("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'", fieldNode);
                 }
             } else if (!scope.isSameType(actualType, varType)) {
@@ -80,10 +80,10 @@ public class VariableLoader {
             }
         } else {
             if (actualType != null)
-                if (actualType.name().equals("null")) {
+                if (actualType.name.equals("null")) {
                     LoggerFacade.error("Cannot infer variable type from 'null'", fieldNode);
                 } else {
-                    fieldNode.initialization.declaration.type = actualType.copy(actualType.isNullable(), false);
+                    fieldNode.initialization.declaration.type = actualType;
                 }
         }
 
@@ -119,8 +119,8 @@ public class VariableLoader {
         FlowType actualType = new ExpressionTraverse().traverse(expressionBase, scope);
         fieldNode.isInitialized = true;
 
-        if (actualType == null || actualType.name().equals("null")) {
-            if (!fieldNode.initialization.declaration.type.isNullable()) {
+        if (actualType == null || actualType.name.equals("null")) {
+            if (!fieldNode.initialization.declaration.type.isNullable) {
                 LoggerFacade.error("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'", fieldNode);
             }
         } else if (!scope.isSameType(actualType, varType)) {

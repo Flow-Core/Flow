@@ -13,6 +13,7 @@ import parser.nodes.classes.BaseInterfaceNode;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.ConstructorNode;
 import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.files.PackageWrapper;
@@ -180,7 +181,7 @@ public class LibLoader {
         return new ConstructorNode(
             modifier.isEmpty() ? "public" : modifier.get(0),
             parseParameters(classNode, method, true),
-            new BlockNode(new ArrayList<>())
+            new BodyNode(new BlockNode(new ArrayList<>()), new Scope(null, SymbolTable.getEmptySymbolTable(), null, Scope.Type.FUNCTION))
         );
     }
 

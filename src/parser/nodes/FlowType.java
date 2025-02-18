@@ -1,16 +1,14 @@
 package parser.nodes;
 
-public record FlowType(
-    String name,
-    boolean isNullable,
-    boolean isPrimitive
-) {
-    public FlowType copy(boolean isNullable, boolean isPrimitive) {
-        return new FlowType(
-            name,
-            isNullable,
-            isPrimitive
-        );
+public class FlowType {
+    public String name;
+    public boolean isNullable;
+    public boolean isPrimitive;
+
+    public FlowType(String name, boolean isNullable, boolean isPrimitive) {
+        this.name = name;
+        this.isNullable = isNullable;
+        this.isPrimitive = isPrimitive;
     }
 
     @Override

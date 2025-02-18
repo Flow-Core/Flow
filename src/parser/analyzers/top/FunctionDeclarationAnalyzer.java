@@ -7,6 +7,7 @@ import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
 import parser.nodes.FlowType;
+import parser.nodes.components.BodyNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.functions.FunctionDeclarationNode;
@@ -29,7 +30,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
 
             parser.consume(TokenType.CLOSE_BRACES);
 
-            functionDeclaration.block = block;
+            functionDeclaration.block = new BodyNode(block);
         }
 
         return new AnalyzerResult(
@@ -64,7 +65,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
 
             if (parser.check(TokenType.NULLABLE)) {
                 parser.advance();
-                returnType = returnType.copy(true, false);
+                returnType.isNullable = true;
             }
         }
 

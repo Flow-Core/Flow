@@ -7,6 +7,7 @@ import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
 import parser.analyzers.top.BlockAnalyzer;
 import parser.analyzers.top.ExpressionAnalyzer;
+import parser.nodes.components.BodyNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.components.BlockNode;
@@ -30,7 +31,7 @@ public class CaseAnalyzer extends TopAnalyzer {
             ASTMetaDataStore.getInstance().addMetadata(
                 new CaseNode(
                     new ExpressionBaseNode(expression, line, parser.file),
-                    block
+                    new BodyNode(block)
                 ),
                 line,
                 parser.file

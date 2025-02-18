@@ -1,6 +1,7 @@
 package compiler.code_generation.generators;
 
 import compiler.code_generation.manager.VariableManager;
+import compiler.code_generation.mappers.BoxMapper;
 import compiler.code_generation.mappers.FQNameMapper;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -10,9 +11,10 @@ import parser.nodes.classes.ObjectNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.statements.*;
 import semantic_analysis.files.FileWrapper;
+import semantic_analysis.scopes.Scope;
 
 public class StatementGenerator {
-    public static void generate(StatementNode statementNode, MethodVisitor mv, VariableManager vm, FileWrapper file) {
+    public static void generate(StatementNode statementNode, MethodVisitor mv, VariableManager vm, FileWrapper file, Scope currentScope) {
         if (statementNode instanceof IfStatementNode ifStatementNode) {
             generateIfStatement(ifStatementNode, mv, vm, file);
         } else if (statementNode instanceof WhileStatementNode whileStatementNode) {
@@ -20,7 +22,7 @@ public class StatementGenerator {
         } else if (statementNode instanceof ForStatementNode forStatementNode) {
             generateForStatement(forStatementNode, mv, vm, file);
         } else if (statementNode instanceof ReturnStatementNode returnStatementNode) {
-            generateReturnStatement(returnStatementNode, mv, vm, file);
+            generateReturnStatement(returnStatementNode, mv, vm, file, currentScope);
         } else if (statementNode instanceof TryStatementNode tryStatementNode) {
             generateTryStatement(tryStatementNode, mv, vm, file);
         } else if (statementNode instanceof SwitchStatementNode switchStatementNode) {
@@ -41,12 +43,12 @@ public class StatementGenerator {
         ExpressionGenerator.generate(ifStatementNode.condition.expression, mv, vm, file, new FlowType("Bool", false, true));
         mv.visitJumpInsn(Opcodes.IFEQ, elseLabel);
 
-        BlockGenerator.generateFunctionBlock(ifStatementNode.trueBranch, file, mv, vm);
+        BlockGenerator.generateFunctionBlock(ifStatementNode.trueBranch.scope, ifStatementNode.trueBranch.blockNode, file, mv, vm);
         mv.visitJumpInsn(Opcodes.GOTO, endLabel);
 
         mv.visitLabel(elseLabel);
         if (ifStatementNode.falseBranch != null) {
-            BlockGenerator.generateFunctionBlock(ifStatementNode.falseBranch, file, mv, vm);
+            BlockGenerator.generateFunctionBlock(ifStatementNode.trueBranch.scope, ifStatementNode.trueBranch.blockNode, file, mv, vm);
         }
 
         mv.visitLabel(endLabel);
@@ -61,27 +63,33 @@ public class StatementGenerator {
         ExpressionGenerator.generate(whileStatementNode.condition.expression, mv, vm, file, new FlowType("Bool", false, true));
         mv.visitJumpInsn(Opcodes.IFEQ, endLabel);
 
-        BlockGenerator.generateFunctionBlock(whileStatementNode.loopBlock, file, mv, vm);
+        BlockGenerator.generateFunctionBlock(whileStatementNode.loopBlock.scope, whileStatementNode.loopBlock.blockNode, file, mv, vm);
 
         mv.visitJumpInsn(Opcodes.GOTO, startLabel);
         mv.visitLabel(endLabel);
     }
 
-    private static void generateReturnStatement(ReturnStatementNode returnStatementNode, MethodVisitor mv, VariableManager vm, FileWrapper file) {
+    private static void generateReturnStatement(ReturnStatementNode returnStatementNode, MethodVisitor mv, VariableManager vm, FileWrapper file, Scope currentScope) {
         if (returnStatementNode.returnValue.expression instanceof ObjectNode objectNode && objectNode.className.equals("Void")) {
             mv.visitInsn(Opcodes.RETURN);
             return;
         }
 
-        FlowType expectedReturnType = ((FunctionDeclarationNode) file.scope().currentParent()).returnType;
+        FunctionDeclarationNode functionDeclarationNode = (FunctionDeclarationNode) currentScope.currentParent();
+        FlowType expectedReturnType = functionDeclarationNode.returnType;
+
+        if (BoxMapper.needUnboxing(expectedReturnType)) {
+            expectedReturnType.isPrimitive = true;
+        }
+
         ExpressionGenerator.generate(returnStatementNode.returnValue.expression, mv, vm, file, expectedReturnType);
 
         mv.visitInsn(getReturnOpcode(expectedReturnType));
     }
 
     private static int getReturnOpcode(FlowType returnType) {
-        if (returnType.isPrimitive()) {
-            return switch (returnType.name()) {
+        if (returnType.isPrimitive) {
+            return switch (returnType.name) {
                 case "Int", "Bool", "Byte", "Short", "Char" -> Opcodes.IRETURN;
                 case "Float" -> Opcodes.FRETURN;
                 case "Double" -> Opcodes.DRETURN;
@@ -103,8 +111,8 @@ public class StatementGenerator {
         ExpressionGenerator.generate(forStatementNode.condition.expression, mv, vm, file, new FlowType("Bool", false, true));
         mv.visitJumpInsn(Opcodes.IFEQ, endLabel);
 
-        BlockGenerator.generateFunctionBlock(forStatementNode.loopBlock, file, mv, vm);
-        BlockGenerator.generateFunctionBlock(forStatementNode.action, file, mv, vm);
+        BlockGenerator.generateFunctionBlock(forStatementNode.loopBlock.scope, forStatementNode.loopBlock.blockNode, file, mv, vm);
+        BlockGenerator.generateFunctionBlock(forStatementNode.action.scope, forStatementNode.action.blockNode, file, mv, vm);
 
         mv.visitJumpInsn(Opcodes.GOTO, startLabel);
         mv.visitLabel(endLabel);
@@ -117,7 +125,7 @@ public class StatementGenerator {
         final Label finallyEnd = new Label();
 
         mv.visitLabel(tryStart);
-        BlockGenerator.generateFunctionBlock(tryStatementNode.tryBranch, file, mv, vm);
+        BlockGenerator.generateFunctionBlock(tryStatementNode.tryBranch.scope, tryStatementNode.tryBranch.blockNode, file, mv, vm);
         mv.visitLabel(tryEnd);
 
         if (tryStatementNode.finallyBranch != null) {
@@ -131,14 +139,14 @@ public class StatementGenerator {
                 tryStart,
                 tryEnd,
                 catchLabel,
-                FQNameMapper.getFQName(catchNode.parameter.type.name(), file.scope())
+                FQNameMapper.getFQName(catchNode.parameter.type.name, file.scope())
             );
 
             mv.visitLabel(catchLabel);
 
             vm.declareVariable(catchNode.parameter.name, catchNode.parameter.type);
 
-            BlockGenerator.generateFunctionBlock(catchNode.body, file, mv, vm);
+            BlockGenerator.generateFunctionBlock(catchNode.body.scope, catchNode.body.blockNode, file, mv, vm);
 
             if (tryStatementNode.finallyBranch != null) {
                 mv.visitJumpInsn(Opcodes.GOTO, finallyStart);
@@ -148,7 +156,7 @@ public class StatementGenerator {
         if (tryStatementNode.finallyBranch != null) {
             mv.visitTryCatchBlock(tryStart, tryEnd, finallyStart, null);
             mv.visitLabel(finallyStart);
-            BlockGenerator.generateFunctionBlock(tryStatementNode.finallyBranch, file, mv, vm);
+            BlockGenerator.generateFunctionBlock(tryStatementNode.finallyBranch.scope, tryStatementNode.finallyBranch.blockNode, file, mv, vm);
             mv.visitLabel(finallyEnd);
         }
     }

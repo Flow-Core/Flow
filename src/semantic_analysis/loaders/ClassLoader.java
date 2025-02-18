@@ -91,7 +91,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
             if (method == null) {
                 LoggerFacade.error("Class '" + classDeclaration.name + "' is not abstract and does not implement abstract base class member '" + abstractFunction.name + "'", classDeclaration);
                 return;
-            } else if ((method.returnType.isNullable() != abstractFunction.returnType.isNullable()) ||
+            } else if ((method.returnType.isNullable != abstractFunction.returnType.isNullable) ||
                     !data.isSameType(
                         method.returnType,
                         abstractFunction.returnType
@@ -142,9 +142,9 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
             checkCircularInheritance(classDeclaration.name, baseClass, new HashSet<>(), data);
 
             final Scope currentScope = new Scope(
-                new Scope(null, packageLevel, null, Scope.Type.TOP),
+                new Scope(null, packageLevel, classDeclaration, Scope.Type.TOP),
                 data,
-                null,
+                classDeclaration,
                 Scope.Type.TOP
             );
 

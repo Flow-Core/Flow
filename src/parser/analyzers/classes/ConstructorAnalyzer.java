@@ -8,6 +8,7 @@ import parser.analyzers.top.BlockAnalyzer;
 import parser.nodes.ASTMetaDataStore;
 import parser.nodes.classes.ConstructorNode;
 import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.components.ParameterNode;
 
 import java.util.List;
@@ -39,7 +40,7 @@ public class ConstructorAnalyzer extends TopAnalyzer {
                 new ConstructorNode(
                     accessModifier,
                     parameters,
-                    block
+                    new BodyNode(block)
                 ),
                 line,
                 parser.file
