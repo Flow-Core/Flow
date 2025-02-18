@@ -39,7 +39,7 @@ public class StatementTraverse {
         BlockTraverse.traverse(ifStatementNode.trueBranch.blockNode, trueBranchScope);
         ifStatementNode.trueBranch.scope = trueBranchScope;
 
-        if (ifStatementNode.falseBranch != null) {
+        if (ifStatementNode.falseBranch.blockNode != null) {
             final Scope falseBranchScope = new Scope(scope, SymbolTable.getEmptySymbolTable(), scope.currentParent(), Scope.Type.FUNCTION);
             BlockTraverse.traverse(ifStatementNode.falseBranch.blockNode, falseBranchScope);
         }

@@ -32,7 +32,7 @@ public class ExpressionGenerator {
         } else if (expression instanceof ObjectNode objectNode) {
             generateObjectInstantiation(objectNode, file.scope(), file, vm, mv);
         } else if (expression instanceof FieldReferenceNode fieldReferenceNode) {
-            generateFieldReference(fieldReferenceNode, file.scope(), mv);
+            generateFieldReference(fieldReferenceNode, file.scope(), mv, expectedType);
         } else if (expression instanceof LiteralNode literalNode) {
             generateLiteral(literalNode, mv, expectedType);
         } else if (expression instanceof NullLiteral) {
@@ -110,7 +110,7 @@ public class ExpressionGenerator {
         }
     }
 
-    private static void generateFieldReference(FieldReferenceNode refNode, Scope scope, MethodVisitor mv) {
+    private static void generateFieldReference(FieldReferenceNode refNode, Scope scope, MethodVisitor mv, FlowType expectedType) {
         final String holderFQName = FQNameMapper.getFQName(refNode.holderType, scope);
         final String descriptor = getJVMName(refNode.type, scope);
 
@@ -118,6 +118,10 @@ public class ExpressionGenerator {
             mv.visitFieldInsn(Opcodes.GETSTATIC, holderFQName, refNode.name, descriptor);
         else
             mv.visitFieldInsn(Opcodes.GETFIELD, holderFQName, refNode.name, descriptor);
+
+        if (expectedType != null && BoxMapper.needBoxing(refNode.type, expectedType)) {
+            BoxMapper.box(refNode.type, mv);
+        }
     }
 
     public static void generateConstructorCall(ObjectNode objNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv) {
@@ -153,11 +157,6 @@ public class ExpressionGenerator {
             generate(arg.value.expression, mv, vm, file, arg.type);
         }
 
-        // TODO: figure out why
-        if (objNode.className.equals("Bool")) {
-            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "flow/Bool", "<init>", "(I)V", false);
-            return;
-        }
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, fqObjectName, "<init>", constructorDescriptor, false);
     }
 

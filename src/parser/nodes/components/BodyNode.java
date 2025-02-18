@@ -23,7 +23,9 @@ public class BodyNode implements ASTNode {
     public <D> void accept(ASTVisitor<D> visitor, D data) {
         ASTNode.super.accept(visitor, data);
 
-        blockNode.accept(visitor, data);
+        if (blockNode != null) {
+            blockNode.accept(visitor, data);
+        }
     }
 
     @Override
