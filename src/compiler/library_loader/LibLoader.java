@@ -34,11 +34,14 @@ import static compiler.library_loader.TypeMapper.mapType;
 public class LibLoader {
     public static LibOutput loadLibraries(String libFolderPath) throws Exception {
         File libFolder = new File(libFolderPath);
-        if (!libFolder.exists() || !libFolder.isDirectory()) {
-            throw new IllegalArgumentException("Library folder not found: " + libFolderPath);
-        }
-
         Map<String, PackageWrapper> packages = new HashMap<>();
+
+        if (!libFolder.exists() || !libFolder.isDirectory()) {
+            return new LibOutput(
+                new File[0],
+                packages
+            );
+        }
 
         File[] jarFiles = libFolder.listFiles((dir, name) -> name.endsWith(".jar"));
         if (jarFiles == null) {

@@ -1,12 +1,14 @@
-package compiler.code_generation.build_system;
+package compiler.build_system;
 
 import compiler.code_generation.CodeGeneration;
 import compiler.library_loader.LibLoader;
 import lexer.Lexer;
 import lexer.token.Token;
+import logger.LoggerFacade;
 import parser.Parser;
 import parser.nodes.components.BlockNode;
 import semantic_analysis.SemanticAnalysis;
+import semantic_analysis.files.FileWrapper;
 import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.loaders.PackageMapper;
 
@@ -22,8 +24,8 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public class BuildSystem {
-    public static final String flowExtension = ".fl";
-    public static final String buildPath = "build";
+    public static final List<String> flowExtensions = List.of(".fl", ".flow");
+    public final String buildPath;
 
     private final Path dirPath;
     private final LibLoader.LibOutput libOutput;
@@ -31,15 +33,16 @@ public class BuildSystem {
     private final List<String> fileNames;
     private final List<BlockNode> fileRoots;
 
-    public BuildSystem(final Path srcPath, final LibLoader.LibOutput libOutput) {
-        this.dirPath = srcPath;
+    public BuildSystem(final String srcPath, final LibLoader.LibOutput libOutput, final String projectPath) {
+        this.dirPath = Path.of(projectPath + srcPath);
         this.libOutput = libOutput;
+        buildPath = projectPath + "build";
 
         this.fileNames = new ArrayList<>();
         this.fileRoots = new ArrayList<>();
     }
 
-    public void build() {
+    public boolean build() {
         walk();
 
         final Map<String, PackageWrapper> files = PackageMapper.map(fileRoots, fileNames);
@@ -50,37 +53,50 @@ public class BuildSystem {
         );
         final Map<String, PackageWrapper> packages = semanticAnalysis.analyze();
 
-        final CodeGeneration codeGeneration = new CodeGeneration(packages.get("").files().get(0));
-        final List<CodeGeneration.ClassFile> bytes = codeGeneration.generate();
+        if (LoggerFacade.getLogger().hasErrors()) {
+            LoggerFacade.getLogger().dump();
+            return false;
+        }
 
-        File buildDir = new File(buildPath);
-        if (!buildDir.exists()) {
-            if (!buildDir.mkdir()) {
-                System.err.println("Couldn't make build dir");
+        for (final var packageWrapper : packages.entrySet()) {
+            for (final FileWrapper file : packageWrapper.getValue().files()) {
+                final CodeGeneration codeGeneration = new CodeGeneration(file);
+                final List<CodeGeneration.ClassFile> bytes = codeGeneration.generate();
+
+                File buildDir = new File(buildPath);
+                if (!buildDir.exists()) {
+                    if (!buildDir.mkdir()) {
+                        System.err.println("Couldn't make build dir");
+                        return false;
+                    }
+                }
+
+                for (final CodeGeneration.ClassFile classFile : bytes) {
+                    File outputFile = new File(buildDir, classFile.name());
+                    try (FileOutputStream fos = new FileOutputStream(outputFile)) {
+                        fos.write(classFile.content());
+                    } catch (IOException e) {
+                        System.err.println("Failed to write class file");
+                        return false;
+                    }
+                }
             }
         }
 
-        for (final CodeGeneration.ClassFile classFile : bytes) {
-            File outputFile = new File(buildDir, classFile.name());
-            try (FileOutputStream fos = new FileOutputStream(outputFile)) {
-                fos.write(classFile.content());
-            } catch (IOException e) {
-                System.out.println("Failed to write class file");
-            }
-        }
+        return true;
     }
 
     private void walk() {
         try (Stream<Path> stream = Files.walk(dirPath)) {
             stream.forEach(path -> {
                 if (Files.isRegularFile(path) &&
-                    path.getFileName().toString().endsWith(flowExtension)
+                    flowExtensions.stream().anyMatch(extension -> path.getFileName().toString().endsWith(extension))
                 ) {
                     buildFile(path);
                 }
             });
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
         }
     }
 
@@ -92,21 +108,21 @@ public class BuildSystem {
         try {
             fileContent = Files.readString(path);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
             return;
         }
 
-        final BlockNode root = getFileAST(fileContent);
+        final BlockNode root = getFileAST(fileContent, fileName);
 
         fileNames.add(fileName);
         fileRoots.add(root);
     }
 
-    private static BlockNode getFileAST(final String file) {
-        final Lexer lexer = new Lexer(file);
+    private static BlockNode getFileAST(final String file, final String fileName) {
+        final Lexer lexer = new Lexer(file, fileName);
         final List<Token> tokens = lexer.tokenize();
 
-        final Parser parser = new Parser(tokens);
+        final Parser parser = new Parser(tokens, fileName);
 
         return parser.parse();
     }

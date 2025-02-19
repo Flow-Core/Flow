@@ -1,18 +1,15 @@
-import compiler.code_generation.build_system.BuildSystem;
+import compiler.build_system.BuildSystem;
 import compiler.library_loader.LibLoader;
 import compiler.packer.JarPacker;
 import compiler.packer.Packer;
 import compiler.packer.PackerFacade;
-import lexer.Lexer;
-import lexer.token.Token;
-import parser.Parser;
-import parser.nodes.components.BlockNode;
+import logger.Logger;
+import logger.LoggerFacade;
+import logger.impl.ConsoleLogger;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
@@ -21,11 +18,15 @@ public class Main {
             libOutput = LibLoader.loadLibraries("./libs");
         } catch (Exception e) {
             System.err.println("Could not load libraries");
-            e.printStackTrace();
         }
 
-        final BuildSystem buildSystem = new BuildSystem(Path.of("./src"), libOutput);
-        buildSystem.build();
+        final Logger logger = new ConsoleLogger();
+        LoggerFacade.initLogger(logger);
+
+        final BuildSystem buildSystem = new BuildSystem("src", libOutput, "./");
+        if (!buildSystem.build()) {
+            return;
+        }
 
         final Packer packer = new JarPacker();
         PackerFacade.initPacker(packer);
@@ -39,16 +40,6 @@ public class Main {
             );
         } catch (IOException e) {
             System.err.println("Couldn't pack jar file");
-            e.printStackTrace();
         }
-    }
-
-    private static BlockNode getFileAST(final String file) {
-        final Lexer lexer = new Lexer(file);
-        final List<Token> tokens = lexer.tokenize();
-
-        final Parser parser = new Parser(tokens);
-
-        return parser.parse();
     }
 }

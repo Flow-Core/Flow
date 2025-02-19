@@ -23,7 +23,7 @@ public class JarPacker implements Packer {
         try (JarOutputStream jarOutputStream = new JarOutputStream(new FileOutputStream(outputFileName), manifest)) {
             File buildDir = new File(buildPath);
             if (!buildDir.exists() || !buildDir.isDirectory()) {
-                throw new IllegalArgumentException("Invalid build path: " + buildPath);
+                throw new IllegalArgumentException("Build directory not found: " + buildPath);
             }
 
             addFilesToJar(jarOutputStream, buildDir, buildDir.getAbsolutePath().length() + 1);
