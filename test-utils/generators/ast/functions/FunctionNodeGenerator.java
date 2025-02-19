@@ -2,6 +2,7 @@ package generators.ast.functions;
 
 import parser.nodes.FlowType;
 import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 
@@ -45,6 +46,6 @@ public class FunctionNodeGenerator {
     }
 
     public FunctionDeclarationNode build() {
-        return new FunctionDeclarationNode(name, returnType, modifiers, parameters, block);
+        return new FunctionDeclarationNode(name, returnType, modifiers, parameters, new BodyNode(block));
     }
 }

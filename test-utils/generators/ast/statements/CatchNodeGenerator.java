@@ -1,6 +1,7 @@
 package generators.ast.statements;
 
 import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.statements.CatchNode;
 import parser.nodes.components.ParameterNode;
 
@@ -23,6 +24,6 @@ public class CatchNodeGenerator {
     }
 
     public CatchNode build() {
-        return new CatchNode(parameter, body);
+        return new CatchNode(parameter, new BodyNode(body));
     }
 }

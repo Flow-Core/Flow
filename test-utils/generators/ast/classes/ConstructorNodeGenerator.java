@@ -2,6 +2,7 @@ package generators.ast.classes;
 
 import parser.nodes.classes.ConstructorNode;
 import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.components.ParameterNode;
 
 import java.util.ArrayList;
@@ -32,6 +33,6 @@ public class ConstructorNodeGenerator {
     }
 
     public ConstructorNode build() {
-        return new ConstructorNode(accessModifier, parameters, body);
+        return new ConstructorNode(accessModifier, parameters, new BodyNode(body));
     }
 }

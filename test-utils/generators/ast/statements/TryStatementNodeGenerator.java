@@ -1,6 +1,7 @@
 package generators.ast.statements;
 
 import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.statements.TryStatementNode;
 import parser.nodes.statements.CatchNode;
 
@@ -31,6 +32,6 @@ public class TryStatementNodeGenerator {
     }
 
     public TryStatementNode build() {
-        return new TryStatementNode(tryBranch, exceptionBranches, finallyBranch);
+        return new TryStatementNode(new BodyNode(tryBranch), exceptionBranches, new BodyNode(finallyBranch));
     }
 }

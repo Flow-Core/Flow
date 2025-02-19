@@ -1,6 +1,7 @@
 package generators.ast.statements;
 
 import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.statements.CaseNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 
@@ -23,6 +24,6 @@ public class CaseNodeGenerator {
     }
 
     public CaseNode build() {
-        return new CaseNode(value, body);
+        return new CaseNode(value, new BodyNode(body));
     }
 }

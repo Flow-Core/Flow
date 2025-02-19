@@ -76,7 +76,7 @@ class VariableLoaderTest {
 
         VariableLoader.loadDeclaration(fieldNode, scope);
 
-        Assertions.assertEquals("Int", fieldNode.initialization.declaration.type.name(), "Variable type should be inferred as 'Int'");
+        Assertions.assertEquals("Int", fieldNode.initialization.declaration.type.name, "Variable type should be inferred as 'Int'");
         Assertions.assertTrue(scope.symbols().findField("x"), "Variable should be added to scope");
     }
 

@@ -1,6 +1,7 @@
 package generators.ast.statements;
 
 import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.statements.SwitchStatementNode;
 import parser.nodes.statements.CaseNode;
@@ -32,6 +33,6 @@ public class SwitchStatementNodeGenerator {
     }
 
     public SwitchStatementNode build() {
-        return new SwitchStatementNode(condition, cases, defaultBlock);
+        return new SwitchStatementNode(condition, cases, new BodyNode(defaultBlock));
     }
 }

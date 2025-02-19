@@ -80,7 +80,7 @@ class ExpressionTraverseTest {
             ExpressionBaseNodeGenerator.builder().expression(new IntegerLiteralNode(10)).build(),
             scope
         );
-        Assertions.assertEquals(new FlowType("Int", false, true), type, "Integer literal should be recognized as Int");
+        Assertions.assertEquals(new FlowType("Int", false, true).toString(), type.toString(), "Integer literal should be recognized as Int");
     }
 
     @Test
@@ -98,7 +98,7 @@ class ExpressionTraverseTest {
             scope
         );
 
-        Assertions.assertEquals(new FlowType("Int", false, true), type, "Variable reference should return declared type");
+        Assertions.assertEquals(new FlowType("Int", false, true).toString(), type.toString(), "Variable reference should return declared type");
     }
 
     @Test
@@ -108,7 +108,7 @@ class ExpressionTraverseTest {
             scope
         );
 
-        Assertions.assertEquals(new FlowType("null", true, false), type, "Null literal should return 'null' type");
+        Assertions.assertEquals(new FlowType("null", true, false).toString(), type.toString(), "Null literal should return 'null' type");
     }
 
     @Test
@@ -122,7 +122,7 @@ class ExpressionTraverseTest {
 
         FlowType type = new ExpressionTraverse().traverse(binaryExpression, scope);
 
-        Assertions.assertEquals(new FlowType("Int", false, true), type, "Binary expression should return correct inferred type");
+        Assertions.assertEquals(new FlowType("Int", false, true).toString(), type.toString(), "Binary expression should return correct inferred type");
     }
 
     @Test
@@ -142,7 +142,7 @@ class ExpressionTraverseTest {
             scope
         );
 
-        Assertions.assertEquals(new FlowType("Int", false, true), type, "Function call should return correct return type");
+        Assertions.assertEquals(new FlowType("Int", false, true).toString(), type.toString(), "Function call should return correct return type");
     }
 
     @Test
@@ -166,7 +166,7 @@ class ExpressionTraverseTest {
             scope
         );
 
-        Assertions.assertEquals(new FlowType("Person", false, false), type, "Static method call should return correct type");
+        Assertions.assertEquals(new FlowType("Person", false, false).toString(), type.toString(), "Static method call should return correct type");
     }
 
     @Test

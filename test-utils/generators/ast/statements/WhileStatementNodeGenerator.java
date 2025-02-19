@@ -1,6 +1,7 @@
 package generators.ast.statements;
 
 import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.statements.WhileStatementNode;
 
@@ -23,6 +24,6 @@ public class WhileStatementNodeGenerator {
     }
 
     public WhileStatementNode build() {
-        return new WhileStatementNode(condition, loopBlock);
+        return new WhileStatementNode(condition, new BodyNode(loopBlock));
     }
 }
