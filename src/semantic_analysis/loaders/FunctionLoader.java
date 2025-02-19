@@ -91,7 +91,7 @@ public class FunctionLoader {
             }
 
             if (!haveReturn) {
-                LoggerFacade.error("Unresolved symbol: '" + functionDeclarationNode.returnType + "'", functionDeclarationNode);
+                LoggerFacade.error("Missing return statement", functionDeclarationNode);
             }
         }
     }

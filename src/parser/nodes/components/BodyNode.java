@@ -44,7 +44,6 @@ public class BodyNode implements ASTNode {
     public String toString() {
         return "BodyNode{" +
             "blockNode=" + blockNode +
-            ", scope=" + scope +
             '}';
     }
 }

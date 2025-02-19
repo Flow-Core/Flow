@@ -207,4 +207,6 @@ public record SymbolTable(
             existingField -> existingField.initialization.declaration.name.equals(symbol)
         );
     }
+
+
 }
