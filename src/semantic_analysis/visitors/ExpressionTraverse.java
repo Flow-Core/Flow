@@ -52,7 +52,7 @@ public class ExpressionTraverse {
             binaryExpression.left = transformValue(root, binaryExpression.left, scope);
 
             TypeWrapper leftType = determineType(root, binaryExpression.left, scope);
-            if (leftType == null) {
+            if (leftType == null || leftType.type == null) {
                 return null;
             }
 
