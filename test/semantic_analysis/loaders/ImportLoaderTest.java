@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import parser.nodes.FlowType;
 import parser.nodes.components.BlockNode;
+import semantic_analysis.files.FileWrapper;
 import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
@@ -61,7 +62,7 @@ class ImportLoaderTest {
             ))
             .build();
 
-        importLoader.load(block, fileSymbols, globalPackages);
+        importLoader.load(new FileWrapper(block, null, "File"), fileSymbols, globalPackages);
 
         Assertions.assertFalse(LoggerFacade.getLogger().hasErrors());
         Assertions.assertTrue(fileSymbols.findClass("MyClass"), "Class should be imported");
@@ -81,7 +82,7 @@ class ImportLoaderTest {
             ))
             .build();
 
-        importLoader.load(block, fileSymbols, globalPackages);
+        importLoader.load(new FileWrapper(block, null, "File"), fileSymbols, globalPackages);
 
         Assertions.assertFalse(LoggerFacade.getLogger().hasErrors());
         Assertions.assertTrue(fileSymbols.findFunction("myFunction"), "Function should be imported");
@@ -102,7 +103,7 @@ class ImportLoaderTest {
             ))
             .build();
 
-        importLoader.load(block, fileSymbols, globalPackages);
+        importLoader.load(new FileWrapper(block, null, "File"), fileSymbols, globalPackages);
 
         Assertions.assertFalse(LoggerFacade.getLogger().hasErrors());
         Assertions.assertTrue(fileSymbols.findClass("MyClass"), "Wildcard import should include classes");
@@ -118,7 +119,7 @@ class ImportLoaderTest {
             ))
             .build();
 
-        importLoader.load(block, fileSymbols, globalPackages);
+        importLoader.load(new FileWrapper(block, null, "File"), fileSymbols, globalPackages);
         Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Importing from a non-existent package should fail");
     }
 
@@ -135,7 +136,7 @@ class ImportLoaderTest {
             ))
             .build();
 
-        importLoader.load(block, fileSymbols, globalPackages);
+        importLoader.load(new FileWrapper(block, null, "File"), fileSymbols, globalPackages);
         Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Importing a non-existent symbol should fail");
     }
 
@@ -151,7 +152,7 @@ class ImportLoaderTest {
             ))
             .build();
 
-        importLoader.load(block, fileSymbols, globalPackages);
+        importLoader.load(new FileWrapper(block, null, "File"), fileSymbols, globalPackages);
         Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Renaming a wildcard import should fail");
     }
 
@@ -168,7 +169,7 @@ class ImportLoaderTest {
             ))
             .build();
 
-        importLoader.load(block, fileSymbols, globalPackages);
+        importLoader.load(new FileWrapper(block, null, "File"), fileSymbols, globalPackages);
         Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Package declaration after imports should fail");
     }
 }

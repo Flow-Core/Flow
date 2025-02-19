@@ -1,35 +1,40 @@
 package semantic_analysis.loaders;
 
 import logger.LoggerFacade;
+import parser.nodes.ASTMetaDataStore;
 import parser.nodes.ASTNode;
 import parser.nodes.classes.BaseClassNode;
 import parser.nodes.classes.BaseInterfaceNode;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.InterfaceNode;
-import parser.nodes.components.BlockNode;
 import parser.nodes.packages.ImportNode;
 import parser.nodes.packages.PackageNode;
+import semantic_analysis.files.FileWrapper;
 import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.scopes.SymbolTable;
 
 import java.util.Map;
 
 public class ImportLoader {
-    public void load(final BlockNode root, final SymbolTable data, final Map<String, PackageWrapper> globalPackages) {
+    public void load(final FileWrapper file, final SymbolTable data, final Map<String, PackageWrapper> globalPackages) {
         boolean finishedImports = false;
 
         validateImport(
-            new ImportNode(
-                "flow.*",
-                "*",
-                true
+            (ImportNode) ASTMetaDataStore.getInstance().addMetadata(
+                new ImportNode(
+                    "flow.*",
+                    "*",
+                    true
+                ),
+                0,
+                file.name()
             ),
             data,
             globalPackages
         );
 
-        for (int i = 0; i < root.children.size(); i++) {
-            final ASTNode node = root.children.get(i);
+        for (int i = 0; i < file.root().children.size(); i++) {
+            final ASTNode node = file.root().children.get(i);
             if (node instanceof ImportNode importNode) {
                 if (finishedImports) {
                     LoggerFacade.error("Import cannot be here", node);

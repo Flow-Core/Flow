@@ -44,7 +44,7 @@ public class SemanticAnalysis {
                 packagesWithLibs.putAll(packages);
                 packagesWithLibs.putAll(libs);
 
-                new ImportLoader().load(file.root(), file.scope().symbols(), packagesWithLibs);
+                new ImportLoader().load(file, file.scope().symbols(), packagesWithLibs);
             }
         }
 
