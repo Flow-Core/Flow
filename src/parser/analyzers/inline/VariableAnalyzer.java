@@ -2,6 +2,7 @@ package parser.analyzers.inline;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
+import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.TopAnalyzer;
 import parser.analyzers.top.ExpressionAnalyzer;
@@ -18,6 +19,7 @@ public class VariableAnalyzer {
     public static InitializedVariableNode parseInitialization(final Parser parser) {
         final Token modifier = TopAnalyzer.testFor(parser, TokenType.VAR, TokenType.VAL, TokenType.CONST);
         final Token name = parser.consume(TokenType.IDENTIFIER);
+        final int line = name.line();
 
         // Check for type specification
         if (parser.check(TokenType.EQUAL_OPERATOR)) {
@@ -25,11 +27,12 @@ public class VariableAnalyzer {
             final ExpressionNode expr = ExpressionAnalyzer.parseExpression(parser);
             final VariableDeclarationNode declaration = new VariableDeclarationNode(modifier.value(), null, name.value(), false);
             final VariableAssignmentNode assignment = new VariableAssignmentNode(
-                new ExpressionBaseNode(new VariableReferenceNode(name.value())),
+                new ExpressionBaseNode(new VariableReferenceNode(name.value()), line, parser.file),
                 "=",
-                new ExpressionBaseNode(expr));
+                new ExpressionBaseNode(expr, line, parser.file)
+            );
 
-            return new InitializedVariableNode(declaration, assignment);
+            return (InitializedVariableNode) ASTMetaDataStore.getInstance().addMetadata(new InitializedVariableNode(declaration, assignment), line, parser.file);
         } else if (parser.check(TokenType.COLON_OPERATOR)) {
             parser.advance();
             final String type = parseModulePath(parser);
@@ -53,11 +56,19 @@ public class VariableAnalyzer {
             parser.consume(TokenType.EQUAL_OPERATOR);
             final ExpressionNode expr = ExpressionAnalyzer.parseExpression(parser);
             final VariableAssignmentNode assignment = new VariableAssignmentNode(
-                new ExpressionBaseNode(new VariableReferenceNode(name.value())),
+                new ExpressionBaseNode(new VariableReferenceNode(name.value()), line, parser.file),
                 "=",
-                new ExpressionBaseNode(expr));
+                new ExpressionBaseNode(expr, line, parser.file)
+            );
 
-            return new InitializedVariableNode(variableDeclarationNode, assignment);
+            return (InitializedVariableNode) ASTMetaDataStore.getInstance().addMetadata(
+                new InitializedVariableNode(
+                    variableDeclarationNode,
+                    assignment
+                ),
+                line,
+                parser.file
+            );
         }
 
         return null;

@@ -1,14 +1,14 @@
 package semantic_analysis.loaders;
 
+import logger.LoggerFacade;
 import parser.nodes.ASTNode;
 import parser.nodes.classes.FieldNode;
+import parser.nodes.classes.TypeDeclarationNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.statements.ReturnStatementNode;
 import parser.nodes.variable.InitializedVariableNode;
 import parser.nodes.variable.VariableDeclarationNode;
-import semantic_analysis.exceptions.SA_SemanticError;
-import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.visitors.BlockTraverse;
@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
+import static semantic_analysis.visitors.ClassTraverse.addThisToSymbolTable;
 
 public class FunctionLoader {
     public static void loadSignature(final FunctionDeclarationNode functionDeclarationNode, final Scope scope, boolean isInterface) {
@@ -29,7 +30,7 @@ public class FunctionLoader {
         );
 
         if (!scope.findTypeDeclaration(functionDeclarationNode.returnType)) {
-            throw new SA_UnresolvedSymbolException(functionDeclarationNode.returnType);
+            LoggerFacade.error("Unresolved symbol: '" + functionDeclarationNode.returnType + "'", functionDeclarationNode);
         }
 
         if (
@@ -41,7 +42,7 @@ public class FunctionLoader {
                     .map(parameterNode -> new ExpressionTraverse.TypeWrapper(parameterNode.type, false, parameterNode.isNullable)).toList()
             ) != null
         ) {
-            throw new SA_SemanticError("Conflicting overloads: ");
+            LoggerFacade.error("Conflicting overloads for: " + functionDeclarationNode.name, functionDeclarationNode);
         }
 
         checkParameters(functionDeclarationNode.parameters, scope);
@@ -60,16 +61,21 @@ public class FunctionLoader {
     public static void checkParameters(final List<ParameterNode> parameters, final Scope scope)  {
         for (final ParameterNode parameter : parameters) {
             if (!scope.findTypeDeclaration(parameter.type)) {
-                throw new SA_UnresolvedSymbolException(parameter.type);
+                LoggerFacade.error("Unresolved symbol: '" + parameter.type + "'", parameter);
             }
         }
     }
 
     public static void loadBody(final FunctionDeclarationNode functionDeclarationNode, final Scope scope) {
         final SymbolTable symbolTable = loadParameters(functionDeclarationNode.parameters);
+        final TypeDeclarationNode containingType = scope.getContainingType();
 
         if (functionDeclarationNode.block == null) {
             return;
+        }
+
+        if (containingType != null && !functionDeclarationNode.modifiers.contains("static")) {
+            addThisToSymbolTable(symbolTable, scope, containingType.name);
         }
 
         BlockTraverse.traverse(functionDeclarationNode.block, new Scope(scope, symbolTable, functionDeclarationNode, Scope.Type.FUNCTION));
@@ -84,7 +90,7 @@ public class FunctionLoader {
             }
 
             if (!haveReturn) {
-                throw new SA_SemanticError("Missing return statement");
+                LoggerFacade.error("Unresolved symbol: '" + functionDeclarationNode.returnType + "'", functionDeclarationNode);
             }
         }
     }

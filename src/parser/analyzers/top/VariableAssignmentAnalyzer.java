@@ -1,6 +1,7 @@
 package parser.analyzers.top;
 
 import lexer.token.TokenType;
+import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.TopAnalyzer;
 import parser.exceptions.PARSE_WrongAnalyzer;
@@ -23,11 +24,16 @@ public class VariableAssignmentAnalyzer extends TopAnalyzer {
         }
 
         final ExpressionBaseNode variable = new ExpressionBaseNode(variableResult);
+        final int line = parser.peek().line();
         final String operator = supportsAugmented ? TopAnalyzer.testFor(parser, TokenType.EQUAL_OPERATOR, TokenType.ASSIGNMENT_OPERATOR).value() : TopAnalyzer.testFor(parser, TokenType.EQUAL_OPERATOR).value();
         final ExpressionNode expr = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
 
         return new AnalyzerResult(
-            new VariableAssignmentNode(variable, operator, new ExpressionBaseNode(expr)),
+            ASTMetaDataStore.getInstance().addMetadata(
+                new VariableAssignmentNode(variable, operator, new ExpressionBaseNode(expr, line, parser.file)),
+                line,
+                parser.file
+            ),
             parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
         );
     }

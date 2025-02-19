@@ -2,9 +2,9 @@ package parser;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
+import logger.LoggerFacade;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.top.BlockAnalyzer;
-import parser.exceptions.PARSE_UnexpectedToken;
 import parser.nodes.ASTNode;
 import parser.nodes.components.BlockNode;
 
@@ -14,12 +14,15 @@ import java.util.Stack;
 
 public class Parser {
     private final List<Token> tokens;
+    public final String file;
 
     private int currentToken;
     private final Stack<Integer> checkpoints;
 
-    public Parser(final List<Token> tokens) {
+    public Parser(final List<Token> tokens, final String file) {
         this.tokens = tokens;
+        this.file = file;
+
         checkpoints = new Stack<>();
         currentToken = 0;
     }
@@ -67,9 +70,9 @@ public class Parser {
 
         if (Arrays.stream(expectedTypes).noneMatch(tokenType -> peek().type() == tokenType)) {
             if (expectedTypes.length == 1) {
-                throw new PARSE_UnexpectedToken("Expected " + Arrays.stream(expectedTypes).findFirst().get() + " but found '" + peek().value() + "'");
+                throw LoggerFacade.getLogger().panic("Expected " + Arrays.stream(expectedTypes).findFirst().get() + " but found '" + peek().type() + "'", peek().line(), file);
             }
-            throw new PARSE_UnexpectedToken("Expected one of " + Arrays.toString(expectedTypes) + " but found '" + peek().value() + "'");
+            throw LoggerFacade.getLogger().panic("Expected one of " + Arrays.toString(expectedTypes) + " but found '" + peek().type() + "'", peek().line(), file);
         }
 
         return advance();

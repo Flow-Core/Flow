@@ -66,6 +66,7 @@ public enum TokenType {
     IPV4("^\\d+\\.\\d+\\.\\d+\\.\\d+"),
 
     // Numbers
+    LONG("^\\d+[lL]"),
     FLOAT("(^\\d+\\.\\d+f|^\\d+f|^\\.\\d+f)"),
     DOUBLE("(\\d+\\.\\d+|\\.\\d+)"),
     INT("^\\d+"),
@@ -73,8 +74,9 @@ public enum TokenType {
     // Identifiers
     IDENTIFIER("[a-zA-Z_][a-zA-Z0-9_]*"),
 
-    // Strings
+    // Strings and chars
     STRING("\"(\\\\.|[^\"])*\""),
+    CHAR("'(\\\\.|[^'\\\\])'"),
 
     // Operators
     ASSIGNMENT_OPERATOR("\\+=|-=|\\*=|/=|%=|&=|\\|=|\\^=|<<=|>>="),

@@ -2,6 +2,7 @@ package parser.analyzers.inline;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
+import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.top.ExpressionAnalyzer;
 import parser.nodes.components.ArgumentNode;
@@ -16,6 +17,7 @@ import java.util.List;
 public class IdentifierReferenceAnalyzer {
     public ExpressionNode parse(final Parser parser) {
         final Token identifierToken = parser.peek(-1);
+        final int line = identifierToken.line();
 
         if (parser.check(TokenType.OPEN_PARENTHESES)) {
             parser.advance();
@@ -25,7 +27,7 @@ public class IdentifierReferenceAnalyzer {
             return new FunctionCallNode(identifierToken.value(), args);
         }
 
-        return new VariableReferenceNode(identifierToken.value());
+        return (ExpressionNode) ASTMetaDataStore.getInstance().addMetadata(new VariableReferenceNode(identifierToken.value()), line, parser.file);
     }
 
     public static List<ArgumentNode> parseArguments(final Parser parser) {
@@ -42,10 +44,10 @@ public class IdentifierReferenceAnalyzer {
                 parser.consume(TokenType.EQUAL_OPERATOR);
                 final ExpressionNode value = ExpressionAnalyzer.parseExpression(parser);
 
-                args.add(new ArgumentNode(argumentName.value(), new ExpressionBaseNode(value)));
+                args.add((ArgumentNode) ASTMetaDataStore.getInstance().addMetadata(new ArgumentNode(argumentName.value(), new ExpressionBaseNode(value, parser.peek().line(), parser.file)), parser.peek().line(), parser.file));
             } else {
                 final ExpressionNode value = ExpressionAnalyzer.parseExpression(parser);
-                args.add(new ArgumentNode(null, new ExpressionBaseNode(value)));
+                args.add((ArgumentNode) ASTMetaDataStore.getInstance().addMetadata(new ArgumentNode(null, new ExpressionBaseNode(value, parser.peek().line(), parser.file)), parser.peek().line(), parser.file));
             }
 
             if (!parser.check(TokenType.CLOSE_PARENTHESES)) {

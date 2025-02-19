@@ -1,11 +1,15 @@
 package semantic_analysis.loaders;
 
+import fakes.LoggerFake;
 import generators.ast.classes.FieldNodeGenerator;
 import generators.ast.expressions.ExpressionBaseNodeGenerator;
 import generators.ast.variables.InitializedVariableNodeGenerator;
 import generators.ast.variables.VariableAssignmentNodeGenerator;
 import generators.ast.variables.VariableDeclarationNodeGenerator;
+import logger.LoggerFacade;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.FieldNode;
@@ -14,8 +18,6 @@ import parser.nodes.literals.IntegerLiteralNode;
 import parser.nodes.literals.NullLiteral;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableReferenceNode;
-import semantic_analysis.exceptions.SA_SemanticError;
-import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
 
@@ -23,6 +25,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 class VariableLoaderTest {
+
+    @BeforeEach
+    void setUp() {
+        LoggerFacade.initLogger(new LoggerFake());
+    }
+
+    @AfterEach
+    void tearDown() {
+        LoggerFacade.clearLogger();
+    }
 
     @Test
     void test_variable_with_explicit_type_should_be_added_to_scope() {
@@ -82,7 +94,9 @@ class VariableLoaderTest {
                 ).build()
             ).build();
 
-        Assertions.assertThrows(SA_SemanticError.class, () -> VariableLoader.loadDeclaration(fieldNode, scope), "Uninitialized variable should fail");
+        VariableLoader.loadDeclaration(fieldNode, scope);
+
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Uninitialized variable should fail");
     }
 
     @Test
@@ -94,13 +108,16 @@ class VariableLoaderTest {
             .initialization(
                 InitializedVariableNodeGenerator.builder().declaration(
                     VariableDeclarationNodeGenerator.builder()
+                        .modifier("var")
                         .name("x")
                         .modifier("var")
                         .type("UnknownType")
                         .build()
                 ).build()).build();
 
-        Assertions.assertThrows(SA_UnresolvedSymbolException.class, () -> VariableLoader.loadDeclaration(fieldNode, scope), "Unknown type should fail");
+        VariableLoader.loadDeclaration(fieldNode, scope);
+
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Unknown type should fail");
     }
 
     @Test
@@ -126,7 +143,9 @@ class VariableLoaderTest {
                 ).build()
             ).build();
 
-        Assertions.assertThrows(SA_SemanticError.class, () -> VariableLoader.loadDeclaration(fieldNode, scope), "Null assignment to non-nullable type should fail");
+        VariableLoader.loadDeclaration(fieldNode, scope);
+
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Null assignment to non-nullable type should fail");
     }
 
     @Test
@@ -152,7 +171,9 @@ class VariableLoaderTest {
                         .build()
                 ).build()).build();
 
-        Assertions.assertDoesNotThrow(() -> VariableLoader.loadDeclaration(fieldNode, scope), "Nullable variable should allow null");
+        VariableLoader.loadDeclaration(fieldNode, scope);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(), "Nullable variable should allow null");
     }
 
     @Test
@@ -185,6 +206,7 @@ class VariableLoaderTest {
             .operator("=")
             .build();
 
-        Assertions.assertThrows(SA_SemanticError.class, () -> VariableLoader.loadAssignment(assignment, scope), "Cannot reassign final variable");
+        VariableLoader.loadAssignment(assignment, scope);
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Cannot reassign final variable");
     }
 }

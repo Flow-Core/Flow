@@ -1,13 +1,12 @@
 package semantic_analysis.loaders;
 
+import logger.LoggerFacade;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.expressions.BinaryExpressionNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.literals.LiteralNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableReferenceNode;
-import semantic_analysis.exceptions.SA_SemanticError;
-import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.visitors.ExpressionTraverse;
 import semantic_analysis.visitors.ExpressionTraverse.TypeWrapper;
@@ -20,13 +19,14 @@ public class VariableLoader {
         final Scope scope
     ) {
         if (fieldNode.initialization == null) {
-            throw new SA_SemanticError("Variable must either have an explicit type or be initialized");
+            LoggerFacade.error("Variable must either have an explicit type or be initialized", fieldNode);
+            return;
         }
 
         final boolean isConst = fieldNode.initialization.declaration.modifier.equals("const");
         if (scope.type() == Scope.Type.FUNCTION) {
             if (isConst) {
-                throw new SA_SemanticError("Local variable cannot be const");
+                LoggerFacade.error("Local variable cannot be const", fieldNode);
             }
         } else {
             ModifierLoader.load(
@@ -53,19 +53,21 @@ public class VariableLoader {
         if (fieldNode.initialization.assignment != null) {
             actualType = new ExpressionTraverse().traverse(fieldNode.initialization.assignment.value, scope, isConst);
             if (isConst && !(fieldNode.initialization.assignment.value.expression instanceof LiteralNode)) {
-                throw new SA_SemanticError("Const must contain a literal");
+                LoggerFacade.error("Const must contain a literal", fieldNode);
             }
 
             fieldNode.isInitialized = true;
         } else if (varType.type() == null) {
-            throw new SA_SemanticError("Variable must either have an explicit type or be initialized");
+            LoggerFacade.error("Variable must either have an explicit type or be initialized", fieldNode);
+            return;
         } else if (isConst) {
-            throw new SA_SemanticError("Const must be initialized");
+            LoggerFacade.error("Const must be initialized", fieldNode);
         }
 
         if (varType.type() != null) {
             if (!scope.findTypeDeclaration(varType.type())) {
-                throw new SA_UnresolvedSymbolException(varType.type());
+                LoggerFacade.error("Unresolved symbol: '" + varType.type() + "'", fieldNode);
+                return;
             }
 
             if (actualType == null || actualType.type() == null) {
@@ -75,17 +77,19 @@ public class VariableLoader {
 
             if (actualType.type().equals("null")) {
                 if (!fieldNode.initialization.declaration.isNullable) {
-                    throw new SA_SemanticError("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'");
+                    LoggerFacade.error("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'", fieldNode);
                 }
             } else if (!scope.isSameType(actualType, varType)) {
-                throw new SA_SemanticError("Type mismatch: expected '"  + varType + "' but received '" + actualType + "'");
+                LoggerFacade.error("Type mismatch: expected '"  + varType + "' but received '" + actualType + "'", fieldNode);
             }
         } else {
-            if (actualType.type().equals("null")) {
-                throw new SA_SemanticError("Cannot infer variable type from 'null'");
-            }
-            fieldNode.initialization.declaration.type = actualType.type();
-            fieldNode.initialization.declaration.isNullable = actualType.isNullable();
+            if (actualType != null)
+                if (actualType.type().equals("null")) {
+                    LoggerFacade.error("Cannot infer variable type from 'null'", fieldNode);
+                } else {
+                    fieldNode.initialization.declaration.type = actualType.type();
+                    fieldNode.initialization.declaration.isNullable = actualType.isNullable();
+                }
         }
 
         if (scope.type() == Scope.Type.TOP && !fieldNode.modifiers.contains("static")) {
@@ -100,6 +104,9 @@ public class VariableLoader {
         final Scope scope
     ) {
         final FieldNode fieldNode = getFieldNode(variableAssignment, scope);
+        if (fieldNode == null) {
+            return;
+        }
 
         final TypeWrapper varType = new TypeWrapper(
             fieldNode.initialization.declaration.type,
@@ -121,30 +128,31 @@ public class VariableLoader {
         TypeWrapper actualType = new ExpressionTraverse().traverse(expressionBase, scope);
         fieldNode.isInitialized = true;
 
-        if (actualType.type().equals("null")) {
+        if (actualType == null || actualType.type().equals("null")) {
             if (!fieldNode.initialization.declaration.isNullable) {
-                throw new SA_SemanticError("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'");
+                LoggerFacade.error("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'", fieldNode);
             }
         } else if (!scope.isSameType(actualType, varType)) {
-            throw new SA_SemanticError("Type mismatch: expected '"  + varType + "' but received '" + actualType + "'");
+            LoggerFacade.error("Type mismatch: expected '"  + varType + "' but received '" + actualType + "'", fieldNode);
         }
     }
 
     private static FieldNode getFieldNode(VariableAssignmentNode variableAssignment, Scope scope) {
         final FieldNode fieldNode = scope.getField(((VariableReferenceNode) variableAssignment.variable.expression).variable);
         if (fieldNode == null) {
-            throw new SA_UnresolvedSymbolException(((VariableReferenceNode) variableAssignment.variable.expression).variable);
+            LoggerFacade.error("Unresolved symbol: '" + ((VariableReferenceNode) variableAssignment.variable.expression).variable + "'", variableAssignment);
+            return null;
         }
 
         if (
             fieldNode.initialization.declaration.modifier.equals("const")
                 || fieldNode.initialization.declaration.modifier.equals("val") && fieldNode.isInitialized
         ) {
-            throw new SA_SemanticError(fieldNode.initialization.declaration.modifier + " cannot be reassigned");
+            LoggerFacade.error(fieldNode.initialization.declaration.modifier + " cannot be reassigned", variableAssignment);
         }
 
         if (scope.type() == Scope.Type.FUNCTION && !fieldNode.modifiers.isEmpty()) {
-            throw new SA_SemanticError("Modifier are not applicable to 'local variable'");
+            LoggerFacade.error("Modifier are not applicable to 'local variable'", variableAssignment);
         }
 
         return fieldNode;

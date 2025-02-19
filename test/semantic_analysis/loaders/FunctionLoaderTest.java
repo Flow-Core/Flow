@@ -1,18 +1,20 @@
 package semantic_analysis.loaders;
 
+import fakes.LoggerFake;
 import generators.ast.classes.ClassNodeGenerator;
 import generators.ast.components.BlockNodeGenerator;
 import generators.ast.components.ParameterNodeGenerator;
 import generators.ast.expressions.ExpressionBaseNodeGenerator;
 import generators.ast.functions.FunctionNodeGenerator;
 import generators.ast.statements.ReturnStatementNodeGenerator;
+import logger.LoggerFacade;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.literals.VoidLiteralNode;
 import parser.nodes.variable.VariableReferenceNode;
-import semantic_analysis.exceptions.SA_SemanticError;
-import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
 
@@ -20,6 +22,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 class FunctionLoaderTest {
+
+    @BeforeEach
+    void setUp() {
+        LoggerFacade.initLogger(new LoggerFake());
+    }
+
+    @AfterEach
+    void tearDown() {
+        LoggerFacade.clearLogger();
+    }
 
     @Test
     void test_valid_function_signature_should_add_to_scope() {
@@ -33,7 +45,7 @@ class FunctionLoaderTest {
             .parameters(List.of(ParameterNodeGenerator.builder().type("Int").name("a").build()))
             .build();
 
-        FunctionLoader.loadSignature(function, scope, true);
+        FunctionLoader.loadSignature(function, scope, false);
 
         Assertions.assertTrue(scope.symbols().findFunction("sum"), "Function should be added to scope");
     }
@@ -56,9 +68,10 @@ class FunctionLoaderTest {
             .parameters(List.of(ParameterNodeGenerator.builder().type("Int").name("a").build()))
             .build();
 
-        FunctionLoader.loadSignature(function1, scope, true);
+        FunctionLoader.loadSignature(function1, scope, false);
+        FunctionLoader.loadSignature(function2, scope, false);
 
-        Assertions.assertThrows(SA_SemanticError.class, () -> FunctionLoader.loadSignature(function2, scope, true), "Duplicate function should throw an error");
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Duplicate function should throw an error");
     }
 
     @Test
@@ -83,7 +96,9 @@ class FunctionLoaderTest {
                 .build()
         );
 
-        Assertions.assertDoesNotThrow(() -> FunctionLoader.loadSignature(function1, scope, true), "Duplicate function in different scopes should not throw an error");
+        FunctionLoader.loadSignature(function1, scope, false);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(), "Duplicate function in different scopes should not throw an error");
     }
 
     @Test
@@ -96,8 +111,9 @@ class FunctionLoaderTest {
             .returnType("UnknownType")
             .parameters(List.of(ParameterNodeGenerator.builder().type("Int").name("a").build()))
             .build();
+        FunctionLoader.loadSignature(function, scope, false);
 
-        Assertions.assertThrows(SA_UnresolvedSymbolException.class, () -> FunctionLoader.loadSignature(function, scope, true), "Unknown return type should fail");
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Unknown return type should fail");
     }
 
     @Test
@@ -111,7 +127,8 @@ class FunctionLoaderTest {
             .parameters(List.of(ParameterNodeGenerator.builder().type("UnknownType").name("a").build()))
             .build();
 
-        Assertions.assertThrows(SA_UnresolvedSymbolException.class, () -> FunctionLoader.loadSignature(function, scope, true), "Unknown parameter type should fail");
+        FunctionLoader.loadSignature(function, scope, false);
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Unknown parameter type should fail");
     }
 
     @Test
@@ -133,9 +150,11 @@ class FunctionLoaderTest {
                 .build())
             .build();
 
-        FunctionLoader.loadSignature(function, scope, true);
+        FunctionLoader.loadSignature(function, scope, false);
 
-        Assertions.assertDoesNotThrow(() -> FunctionLoader.loadBody(function, scope), "Valid function body should pass");
+        FunctionLoader.loadBody(function, scope);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(), "Valid function body should pass");
     }
 
     @Test
@@ -153,9 +172,9 @@ class FunctionLoaderTest {
                 .build())
             .build();
 
-        FunctionLoader.loadSignature(function, scope, true);
-
-        Assertions.assertThrows(SA_SemanticError.class, () -> FunctionLoader.loadBody(function, scope), "Function with missing return should fail");
+        FunctionLoader.loadSignature(function, scope, false);
+        FunctionLoader.loadBody(function, scope);
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Function with missing return should fail");
     }
 
     @Test
@@ -176,9 +195,11 @@ class FunctionLoaderTest {
                 ))
                 .build()).build();
 
-        FunctionLoader.loadSignature(function, scope, true);
+        FunctionLoader.loadSignature(function, scope, false);
 
-        Assertions.assertDoesNotThrow(() -> FunctionLoader.loadBody(function, scope), "Void function can have empty return");
+        FunctionLoader.loadBody(function, scope);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(), "Void function can have empty return");
     }
 
     @Test
@@ -196,9 +217,11 @@ class FunctionLoaderTest {
                 .build())
             .build();
 
-        FunctionLoader.loadSignature(function, scope, true);
+        FunctionLoader.loadSignature(function, scope, false);
 
-        Assertions.assertDoesNotThrow(() -> FunctionLoader.loadBody(function, scope), "Void function should not require return");
+        FunctionLoader.loadBody(function, scope);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(), "Void function should not require return");
     }
 
     @Test
@@ -216,9 +239,10 @@ class FunctionLoaderTest {
                 .build())
             .build();
 
-        FunctionLoader.loadSignature(function, scope, true);
+        FunctionLoader.loadSignature(function, scope, false);
+        FunctionLoader.loadBody(function, scope);
 
-        Assertions.assertThrows(SA_SemanticError.class, () -> FunctionLoader.loadBody(function, scope), "Function with missing return should fail");
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Function with missing return should fail");
     }
 
     @Test
@@ -242,8 +266,13 @@ class FunctionLoaderTest {
             ))
             .build();
 
-        Assertions.assertDoesNotThrow(() -> FunctionLoader.loadSignature(function1, scope, true));
-        Assertions.assertDoesNotThrow(() -> FunctionLoader.loadSignature(function2, scope, true),
+        FunctionLoader.loadSignature(function1, scope, false);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors());
+
+        FunctionLoader.loadSignature(function2, scope, false);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(),
             "Overloaded function should be allowed but failed.");
     }
 }

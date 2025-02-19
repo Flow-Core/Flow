@@ -18,6 +18,7 @@ public record Scope (
         if (symbols.bindingContext().containsKey(node)) {
             return symbols.bindingContext().get(node);
         }
+
         if (parent == null) {
             return null;
         }

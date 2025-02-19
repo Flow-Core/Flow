@@ -1,6 +1,7 @@
 package parser.analyzers.classes;
 
 import lexer.token.TokenType;
+import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
@@ -21,6 +22,7 @@ public class ClassAnalyzer extends TopAnalyzer {
     @Override
     public AnalyzerResult parse(final Parser parser) {
         final List<String> modifiers = parseModifiers(parser);
+        final int line = parser.peek().line();
 
         TopAnalyzer.testFor(parser, TokenType.CLASS);
         final String name = parser.consume(TokenType.IDENTIFIER).value();
@@ -34,37 +36,41 @@ public class ClassAnalyzer extends TopAnalyzer {
             parser.advance();
         }
 
-        final Supertypes supertypes = parseInheritance(parser);
+        final Supertypes supertypes = parseInheritance(parser, parser.peek().line());
 
         parser.consume(TokenType.OPEN_BRACES);
         final BlockNode block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getClassScope(), TokenType.CLOSE_BRACES);
         parser.consume(TokenType.CLOSE_BRACES);
 
         final AnalyzerResult analyzerResult = new AnalyzerResult(
-            new ClassDeclarationNode(
-                name,
-                modifiers,
-                classArgs,
-                supertypes.implementedClasses,
-                supertypes.implementedInterfaces,
-                block.children.stream()
-                    .filter(child -> child instanceof FieldNode)
-                    .map(child -> (FieldNode) child)
-                    .collect(Collectors.toList()),
-                block.children.stream()
-                    .filter(child -> child instanceof FunctionDeclarationNode)
-                    .map(child -> (FunctionDeclarationNode) child)
-                    .collect(Collectors.toList()),
-                block.children.stream()
-                    .filter(child -> child instanceof ConstructorNode)
-                    .map(child -> (ConstructorNode) child)
-                    .collect(Collectors.toList()),
-                block.children.stream()
-                    .filter(child -> child instanceof BlockNode)
-                    .map(child -> (BlockNode) child)
-                    .findFirst()
-                    .orElse(null),
-                null
+            ASTMetaDataStore.getInstance().addMetadata(
+                new ClassDeclarationNode(
+                    name,
+                    modifiers,
+                    classArgs,
+                    supertypes.implementedClasses,
+                    supertypes.implementedInterfaces,
+                    block.children.stream()
+                        .filter(child -> child instanceof FieldNode)
+                        .map(child -> (FieldNode) child)
+                        .collect(Collectors.toList()),
+                    block.children.stream()
+                        .filter(child -> child instanceof FunctionDeclarationNode)
+                        .map(child -> (FunctionDeclarationNode) child)
+                        .collect(Collectors.toList()),
+                    block.children.stream()
+                        .filter(child -> child instanceof ConstructorNode)
+                        .map(child -> (ConstructorNode) child)
+                        .collect(Collectors.toList()),
+                    block.children.stream()
+                        .filter(child -> child instanceof BlockNode)
+                        .map(child -> (BlockNode) child)
+                        .findFirst()
+                        .orElse(null),
+                    null
+                ),
+                line,
+                parser.file
             ),
             TerminationStatus.NO_TERMINATION
         );
@@ -78,7 +84,7 @@ public class ClassAnalyzer extends TopAnalyzer {
         return analyzerResult;
     }
 
-    private Supertypes parseInheritance(final Parser parser) {
+    private Supertypes parseInheritance(final Parser parser, final int line) {
         final Supertypes supertypes = new Supertypes();
 
         if (parser.check(TokenType.COLON_OPERATOR)) {
@@ -87,10 +93,10 @@ public class ClassAnalyzer extends TopAnalyzer {
                 final String name = parser.consume(TokenType.IDENTIFIER).value();
                 if (parser.check(TokenType.OPEN_PARENTHESES)) {
                     parser.advance();
-                    supertypes.implementedClasses.add(new BaseClassNode(name, parseArguments(parser)));
+                    supertypes.implementedClasses.add((BaseClassNode) ASTMetaDataStore.getInstance().addMetadata(new BaseClassNode(name, parseArguments(parser)), line, parser.file));
                     parser.consume(TokenType.CLOSE_PARENTHESES);
                 } else {
-                    supertypes.implementedInterfaces.add(new BaseInterfaceNode(name));
+                    supertypes.implementedInterfaces.add((BaseInterfaceNode) ASTMetaDataStore.getInstance().addMetadata(new BaseInterfaceNode(name), line, parser.file));
                 }
             } while (parser.check(TokenType.COMMA));
         }

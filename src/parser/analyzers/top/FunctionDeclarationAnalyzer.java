@@ -2,6 +2,7 @@ package parser.analyzers.top;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
+import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
@@ -18,6 +19,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
     @Override
     public TopAnalyzer.AnalyzerResult parse(final Parser parser) {
         final FunctionDeclarationNode functionDeclaration = parseFunctionSignature(parser);
+        final int line = parser.peek().line();
 
         if (parser.check(TokenType.OPEN_BRACES)) {
             parser.advance();
@@ -29,7 +31,10 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
             functionDeclaration.block = block;
         }
 
-        return new AnalyzerResult(functionDeclaration, TerminationStatus.NO_TERMINATION);
+        return new AnalyzerResult(
+            ASTMetaDataStore.getInstance().addMetadata(functionDeclaration, line, parser.file),
+            TerminationStatus.NO_TERMINATION
+        );
     }
 
     public static List<String> parseModifiers(final Parser parser) {
@@ -87,18 +92,20 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
                 parser.advance();
             }
 
+            int line = parser.peek().line();
+
             ExpressionNode defaultValue = null;
             if (parser.peek().type() == TokenType.EQUAL_OPERATOR) {
                 parser.advance();
                 defaultValue = ExpressionAnalyzer.parseExpression(parser);
             }
 
-            ParameterNode arg = new ParameterNode(
+            ParameterNode arg = (ParameterNode) ASTMetaDataStore.getInstance().addMetadata(new ParameterNode(
                 type,
                 isNullable,
                 name,
-                new ExpressionBaseNode(defaultValue)
-            );
+                new ExpressionBaseNode(defaultValue, line, parser.file)
+            ), line, parser.file);
 
             parameters.add(arg);
 

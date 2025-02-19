@@ -21,7 +21,7 @@ import static compiler.code_generation.generators.FunctionGenerator.getJVMName;
 public class ExpressionGenerator {
     public static void generate(ExpressionNode expression, MethodVisitor mv, VariableManager vm, FileWrapper file) {
         if (expression instanceof VariableReferenceNode referenceNode) {
-            generateVarReference(referenceNode, vm, mv);
+            generateVarReference(referenceNode, vm);
         } else if (expression instanceof FunctionCallNode functionCallNode) {
             generateFuncCall(functionCallNode, file, vm, mv);
         } else if (expression instanceof ObjectNode objectNode) {
@@ -37,8 +37,8 @@ public class ExpressionGenerator {
         }
     }
 
-    private static void generateVarReference(VariableReferenceNode refNode, VariableManager vm, MethodVisitor mv) {
-        mv.visitVarInsn(Opcodes.ALOAD, vm.loadVariable(refNode.variable));
+    private static void generateVarReference(VariableReferenceNode refNode, VariableManager vm) {
+        vm.loadVariable(refNode.variable);
     }
 
     private static void generateFuncCall(FunctionCallNode funcCallNode, FileWrapper file, VariableManager vm, MethodVisitor mv) {
@@ -87,7 +87,7 @@ public class ExpressionGenerator {
 
     private static void generateFieldReference(FieldReferenceNode refNode, Scope scope, MethodVisitor mv) {
         final String holderFQName = FQNameMapper.getFQName(refNode.holderType, scope);
-        final String descriptor = getJVMName(refNode.type.type(), scope);
+        final String descriptor = getJVMName(refNode.type.type(), refNode.type.isNullable(), scope);
 
         if (refNode.isStatic)
             mv.visitFieldInsn(Opcodes.GETSTATIC, holderFQName, refNode.name, descriptor);
@@ -95,7 +95,7 @@ public class ExpressionGenerator {
             mv.visitFieldInsn(Opcodes.GETFIELD, holderFQName, refNode.name, descriptor);
     }
 
-    private static void generateObjectInstantiation(ObjectNode objNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv) {
+    public static void generateConstructorCall(ObjectNode objNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv) {
         if (objNode.className.equals("Void")) {
             return;
         }
@@ -118,10 +118,7 @@ public class ExpressionGenerator {
             throw new RuntimeException("Constructor " + objNode.className + " was not found");
         }
 
-        final String constructorDescriptor = FunctionGenerator.getDescriptor(constructorNode.parameters, "Void", scope);
-
-        mv.visitTypeInsn(Opcodes.NEW, fqObjectName);
-        mv.visitInsn(Opcodes.DUP);
+        final String constructorDescriptor = FunctionGenerator.getDescriptor(constructorNode.parameters, "Void", false, scope);
 
         for (ArgumentNode arg : objNode.arguments) {
             generate(arg.value.expression, mv, vm, file);
@@ -135,11 +132,81 @@ public class ExpressionGenerator {
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, fqObjectName, "<init>", constructorDescriptor, false);
     }
 
+    private static void generateObjectInstantiation(ObjectNode objNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv) {
+        final String fqObjectName = FQNameMapper.getFQName(objNode.className, scope);
+        mv.visitTypeInsn(Opcodes.NEW, fqObjectName);
+        mv.visitInsn(Opcodes.DUP);
+
+        generateConstructorCall(objNode, scope, file, vm, mv);
+    }
+
     public static void generateLiteral(LiteralNode literalNode, MethodVisitor mv) {
         if (literalNode instanceof VoidLiteralNode) {
             return;
         } else if (literalNode instanceof BooleanLiteralNode booleanLiteralNode) {
             mv.visitInsn(booleanLiteralNode.value ? Opcodes.ICONST_1 : Opcodes.ICONST_0);
+            return;
+        } else if (literalNode instanceof IntegerLiteralNode intLiteralNode) {
+            int value = intLiteralNode.value;
+            if (value >= -1 && value <= 5) {
+                mv.visitInsn(Opcodes.ICONST_0 + value);
+            } else if (value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE) {
+                mv.visitIntInsn(Opcodes.BIPUSH, value);
+            } else if (value >= Short.MIN_VALUE && value <= Short.MAX_VALUE) {
+                mv.visitIntInsn(Opcodes.SIPUSH, value);
+            } else {
+                mv.visitLdcInsn(value);
+            }
+            return;
+        } else if (literalNode instanceof FloatLiteralNode floatLiteralNode) {
+            float value = floatLiteralNode.value;
+            if (value == 0.0f) {
+                mv.visitInsn(Opcodes.FCONST_0);
+            } else if (value == 1.0f) {
+                mv.visitInsn(Opcodes.FCONST_1);
+            } else if (value == 2.0f) {
+                mv.visitInsn(Opcodes.FCONST_2);
+            } else {
+                mv.visitLdcInsn(value);
+            }
+            return;
+        } else if (literalNode instanceof DoubleLiteralNode doubleLiteralNode) {
+            double value = doubleLiteralNode.value;
+            if (value == 0.0) {
+                mv.visitInsn(Opcodes.DCONST_0);
+            } else if (value == 1.0) {
+                mv.visitInsn(Opcodes.DCONST_1);
+            } else {
+                mv.visitLdcInsn(value);
+            }
+            return;
+        } else if (literalNode instanceof LongLiteralNode longLiteralNode) {
+            long value = longLiteralNode.value;
+            if (value == 0L) {
+                mv.visitInsn(Opcodes.LCONST_0);
+            } else if (value == 1L) {
+                mv.visitInsn(Opcodes.LCONST_1);
+            } else {
+                mv.visitLdcInsn(value);
+            }
+            return;
+        } else if (literalNode instanceof CharLiteralNode charLiteralNode) {
+            char value = charLiteralNode.value;
+            if (value <= 5) {
+                mv.visitInsn(Opcodes.ICONST_0 + value);
+            } else if (value <= Byte.MAX_VALUE) {
+                mv.visitIntInsn(Opcodes.BIPUSH, value);
+            } else {
+                mv.visitLdcInsn((int) value);
+            }
+            return;
+        } else if (literalNode instanceof StringLiteralNode stringLiteralNode) {
+            mv.visitTypeInsn(Opcodes.NEW, "flow/String");
+            mv.visitInsn(Opcodes.DUP);
+
+            mv.visitLdcInsn(stringLiteralNode.getValue());
+
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "flow/String", "<init>", "(Ljava/lang/String;)V", false);
             return;
         }
 
