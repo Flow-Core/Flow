@@ -80,11 +80,15 @@ public record SymbolTable(
         bindingContext.putAll(other.bindingContext);
     }
 
-    public void addToBindingContext(SymbolTable other, String modulePath) {
-        other.classes().forEach(classDeclarationNode -> bindingContext.put(classDeclarationNode, joinPath(modulePath, classDeclarationNode.name)));
-        other.interfaces().forEach(interfaceNode -> bindingContext.put(interfaceNode, joinPath(modulePath, interfaceNode.name)));
-        other.functions().forEach(functionDeclarationNode -> bindingContext.put(functionDeclarationNode, joinPath(modulePath,functionDeclarationNode.name)));
-        other.fields().forEach(fieldNode -> bindingContext.put(fieldNode, joinPath(modulePath, fieldNode.initialization.declaration.name)));
+    public void addToBindingContext(SymbolTable other) {
+        other.classes().forEach(classDeclarationNode -> bindingContext.put(classDeclarationNode, other.bindingContext.get(classDeclarationNode)));
+        other.interfaces().forEach(interfaceNode -> bindingContext.put(interfaceNode, other.bindingContext.get(interfaceNode)));
+        other.functions().forEach(functionDeclarationNode -> bindingContext.put(functionDeclarationNode, other.bindingContext.get(functionDeclarationNode)));
+        other.fields().forEach(fieldNode -> bindingContext.put(fieldNode, other.bindingContext.get(fieldNode)));
+    }
+
+    public static String getFlowPathName(String path, String fileName) {
+        return joinPath(path, fileName + "Fl");
     }
 
     public static String joinPath(String modulePath, String moduleName) {

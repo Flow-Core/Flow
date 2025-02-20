@@ -48,15 +48,12 @@ public class ExpressionGenerator {
 
     private static void generateFuncCall(FunctionCallNode funcCallNode, FileWrapper file, VariableManager vm, MethodVisitor mv, FlowType expectedType) {
         if (funcCallNode.callerType == null) {
-            final String topLevelClassName = file.name() + "Fl";
-            final String fqTopLevelName = FQNameMapper.getFQName(topLevelClassName, file.scope());
+            final FunctionDeclarationNode declaration = file.scope().getFunction(funcCallNode.name);
+            if (declaration == null) {
+                throw new IllegalArgumentException("Function " + funcCallNode.name + " was not found in the scope");
+            }
 
-            final FunctionDeclarationNode declaration = SignatureLoader.findMethodWithParameters(
-                file.scope(),
-                funcCallNode.name,
-                funcCallNode.arguments.stream()
-                    .map(argument -> argument.type).toList()
-            );
+            final String fqTopLevelName = FQNameMapper.getFQName(declaration, file.scope());
             final String descriptor = FunctionGenerator.getDescriptor(declaration, file.scope());
 
             processFunctionArguments(

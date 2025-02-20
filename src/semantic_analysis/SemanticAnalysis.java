@@ -34,7 +34,7 @@ public class SemanticAnalysis {
     public Map<String, PackageWrapper> analyze() {
         for (final PackageWrapper currentPackageWrapper : packages.values()) {
             for (final FileWrapper file : currentPackageWrapper.files()) {
-                SignatureLoader.load(file.root().children, file.scope().symbols(), currentPackageWrapper);
+                SignatureLoader.load(file, file.scope().symbols(), currentPackageWrapper);
             }
         }
 

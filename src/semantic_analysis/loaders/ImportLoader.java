@@ -72,7 +72,7 @@ public class ImportLoader {
             }
 
             data.recognizeSymbolTable(importedSymbols);
-            data.addToBindingContext(importedSymbols, packagePath);
+            data.addToBindingContext(importedSymbols);
         } else {
             // Add only the needed module
             var optionalClass = importedSymbols.classes().stream()
@@ -123,7 +123,8 @@ public class ImportLoader {
 
             if (optionalFunction.isPresent()) {
                 data.functions().add(optionalFunction.get());
-                data.bindingContext().put(optionalFunction.get(), importNode.module);
+                System.out.println(data.bindingContext().get(optionalFunction.get()));
+                data.bindingContext().put(optionalFunction.get(), data.bindingContext().get(optionalFunction.get()));
                 return;
             }
 
@@ -133,7 +134,7 @@ public class ImportLoader {
 
             if (optionalField.isPresent()) {
                 data.fields().add(optionalField.get());
-                data.bindingContext().put(optionalField.get(), importNode.module);
+                data.bindingContext().put(optionalField.get(), data.bindingContext().get(optionalField.get()));
                 return;
             }
 

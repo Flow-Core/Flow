@@ -16,6 +16,7 @@ import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableReferenceNode;
+import semantic_analysis.files.FileWrapper;
 import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
@@ -23,19 +24,20 @@ import semantic_analysis.scopes.SymbolTable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static semantic_analysis.scopes.SymbolTable.getFlowPathName;
 import static semantic_analysis.scopes.SymbolTable.joinPath;
 
 public class SignatureLoader {
-    public static void load(final List<ASTNode> nodes, final SymbolTable fileLevel, final PackageWrapper packageWrapper) {
-        for (final ASTNode node : nodes) {
+    public static void load(final FileWrapper file, final SymbolTable fileLevel, final PackageWrapper packageWrapper) {
+        for (final ASTNode node : file.root().children) {
             if (node instanceof ClassDeclarationNode classDeclarationNode) {
                 handleClass(classDeclarationNode, fileLevel, packageWrapper);
             } else if (node instanceof InterfaceNode interfaceNode) {
                 handleInterface(interfaceNode, fileLevel, packageWrapper);
             } else if (node instanceof FunctionDeclarationNode functionDeclarationNode) {
-                handleFunction(functionDeclarationNode, fileLevel, packageWrapper);
+                handleFunction(functionDeclarationNode, fileLevel, packageWrapper, file);
             } else if (node instanceof FieldNode fieldNode) {
-                handleField(fieldNode, fileLevel, packageWrapper);
+                handleField(fieldNode, fileLevel, packageWrapper, file);
             }
         }
     }
@@ -127,7 +129,12 @@ public class SignatureLoader {
         }
     }
 
-    private static void handleFunction(final FunctionDeclarationNode functionDeclarationNode, final SymbolTable fileLevel, final PackageWrapper packageWrapper) {
+    private static void handleFunction(
+        final FunctionDeclarationNode functionDeclarationNode,
+        final SymbolTable fileLevel,
+        final PackageWrapper packageWrapper,
+        final FileWrapper file
+    ) {
         boolean isPublic = ModifierLoader.isPublic(functionDeclarationNode.modifiers);
 
         if (packageWrapper.scope().findSymbol(functionDeclarationNode.name)) {
@@ -140,13 +147,18 @@ public class SignatureLoader {
             }
 
             packageWrapper.scope().symbols().functions().add(functionDeclarationNode);
-            packageWrapper.scope().symbols().bindingContext().put(functionDeclarationNode, joinPath(packageWrapper.path(), functionDeclarationNode.name));
+            packageWrapper.scope().symbols().bindingContext().put(functionDeclarationNode, getFlowPathName(packageWrapper.path(), file.name()));
         } else {
             fileLevel.functions().add(functionDeclarationNode);
         }
     }
 
-    private static void handleField(final FieldNode fieldNode, final SymbolTable fileLevel, final PackageWrapper packageWrapper) {
+    private static void handleField(
+        final FieldNode fieldNode,
+        final SymbolTable fileLevel,
+        final PackageWrapper packageWrapper,
+        final FileWrapper file
+    ) {
         boolean isPublic = ModifierLoader.isPublic(fieldNode.modifiers);
 
         if (fieldNode.initialization == null) {
@@ -164,7 +176,7 @@ public class SignatureLoader {
             }
 
             packageWrapper.scope().symbols().fields().add(fieldNode);
-            packageWrapper.scope().symbols().bindingContext().put(fieldNode, joinPath(packageWrapper.path(), fieldNode.initialization.declaration.name));
+            packageWrapper.scope().symbols().bindingContext().put(fieldNode, getFlowPathName(packageWrapper.path(), file.name()));
         } else {
             fileLevel.fields().add(fieldNode);
         }

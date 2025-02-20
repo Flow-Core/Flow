@@ -13,9 +13,11 @@ import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) {
+        final String projectPath = "E:/flow/test";
+
         LibLoader.LibOutput libOutput = null;
         try {
-            libOutput = LibLoader.loadLibraries("./libs");
+            libOutput = LibLoader.loadLibraries(projectPath + "/libs");
         } catch (Exception e) {
             System.err.println("Could not load libraries");
         }
@@ -23,7 +25,7 @@ public class Main {
         final Logger logger = new ConsoleLogger();
         LoggerFacade.initLogger(logger);
 
-        final BuildSystem buildSystem = new BuildSystem("src", libOutput, "./");
+        final BuildSystem buildSystem = new BuildSystem("/src", libOutput, projectPath);
         if (!buildSystem.build()) {
             return;
         }
@@ -33,8 +35,8 @@ public class Main {
 
         try {
             PackerFacade.pack(
-                    "output.jar",
-                    "./build",
+                projectPath + "/output.jar",
+                    projectPath + "/build",
                     libOutput == null ? new ArrayList<>() : Arrays.asList(libOutput.libFiles()
                 )
             );

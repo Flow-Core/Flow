@@ -18,6 +18,7 @@ import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.InterfaceNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import semantic_analysis.files.FileWrapper;
 import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
@@ -47,7 +48,7 @@ class SignatureLoaderTest {
             .modifiers(List.of("public"))
             .build();
 
-        SignatureLoader.load(List.of(classNode), fileSymbolTable, packageWrapper);
+        SignatureLoader.load(new FileWrapper(new BlockNode(List.of(classNode)), null, "Test"), fileSymbolTable, packageWrapper);
 
         Assertions.assertTrue(packageWrapper.scope().findClass("MyClass"), "Class should be added to package scope");
     }
@@ -62,7 +63,7 @@ class SignatureLoaderTest {
             .modifiers(List.of("private"))
             .build();
 
-        SignatureLoader.load(List.of(classNode), fileSymbolTable, packageWrapper);
+        SignatureLoader.load(new FileWrapper(new BlockNode(List.of(classNode)), null, "Test"), fileSymbolTable, packageWrapper);
 
         Assertions.assertFalse(packageWrapper.scope().findClass("MyPrivateClass"), "Private class should not be in package scope");
         Assertions.assertTrue(fileSymbolTable.findClass("MyPrivateClass"), "Private class should be added to file scope");
@@ -76,8 +77,8 @@ class SignatureLoaderTest {
         ClassDeclarationNode class1 = ClassNodeGenerator.builder().name("MyClass").modifiers(List.of("public")).build();
         ClassDeclarationNode class2 = ClassNodeGenerator.builder().name("MyClass").modifiers(List.of("public")).build();
 
-        SignatureLoader.load(List.of(class1), fileSymbolTable, packageWrapper);
-        SignatureLoader.load(List.of(class2), fileSymbolTable, packageWrapper);
+        SignatureLoader.load(new FileWrapper(new BlockNode(List.of(class1)), null, "Test"), fileSymbolTable, packageWrapper);
+        SignatureLoader.load(new FileWrapper(new BlockNode(List.of(class2)), null, "Test"), fileSymbolTable, packageWrapper);
 
         Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Duplicate class should fail");
     }
@@ -89,7 +90,7 @@ class SignatureLoaderTest {
 
         InterfaceNode interfaceNode = new InterfaceNode("MyInterface", List.of("public"), new ArrayList<>(), new ArrayList<>(), new BlockNode(new ArrayList<>()));
 
-        SignatureLoader.load(List.of(interfaceNode), fileSymbolTable, packageWrapper);
+        SignatureLoader.load(new FileWrapper(new BlockNode(List.of(interfaceNode)), null, "Test"), fileSymbolTable, packageWrapper);
 
         Assertions.assertTrue(packageWrapper.scope().findInterface("MyInterface"), "Interface should be added to package scope");
     }
@@ -106,7 +107,7 @@ class SignatureLoaderTest {
             .modifiers(List.of("public"))
             .build();
 
-        SignatureLoader.load(List.of(functionNode), fileSymbolTable, packageWrapper);
+        SignatureLoader.load(new FileWrapper(new BlockNode(List.of(functionNode)), null, "Test"), fileSymbolTable, packageWrapper);
 
         Assertions.assertTrue(packageWrapper.scope().findFunction("sum"), "Function should be added to package scope");
     }
@@ -123,7 +124,7 @@ class SignatureLoaderTest {
             .modifiers(List.of("private"))
             .build();
 
-        SignatureLoader.load(List.of(functionNode), fileSymbolTable, packageWrapper);
+        SignatureLoader.load(new FileWrapper(new BlockNode(List.of(functionNode)), null, "Test"), fileSymbolTable, packageWrapper);
 
         Assertions.assertFalse(packageWrapper.scope().findFunction("privateSum"), "Private function should not be in package scope");
         Assertions.assertTrue(fileSymbolTable.findFunction("privateSum"), "Private function should be added to file scope");
@@ -139,7 +140,7 @@ class SignatureLoaderTest {
             .initialization(InitializedVariableNodeGenerator.builder().declaration(VariableDeclarationNodeGenerator.builder().name("x").type(new FlowType("Int", false, true)).build()).build())
             .build();
 
-        SignatureLoader.load(List.of(fieldNode), fileSymbolTable, packageWrapper);
+        SignatureLoader.load(new FileWrapper(new BlockNode(List.of(fieldNode)), null, "Test"), fileSymbolTable, packageWrapper);
 
         Assertions.assertTrue(packageWrapper.scope().findField("x"), "Field should be added to package scope");
     }
@@ -154,7 +155,7 @@ class SignatureLoaderTest {
             .initialization(InitializedVariableNodeGenerator.builder().declaration(VariableDeclarationNodeGenerator.builder().name("y").type(new FlowType("Int", false, true)).build()).build())
             .build();
 
-        SignatureLoader.load(List.of(fieldNode), fileSymbolTable, packageWrapper);
+        SignatureLoader.load(new FileWrapper(new BlockNode(List.of(fieldNode)), null, "Test"), fileSymbolTable, packageWrapper);
 
         Assertions.assertFalse(packageWrapper.scope().findField("y"), "Private field should not be in package scope");
         Assertions.assertTrue(fileSymbolTable.findField("y"), "Private field should be added to file scope");

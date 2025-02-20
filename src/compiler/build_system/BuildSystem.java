@@ -36,7 +36,7 @@ public class BuildSystem {
     public BuildSystem(final String srcPath, final LibLoader.LibOutput libOutput, final String projectPath) {
         this.dirPath = Path.of(projectPath + srcPath);
         this.libOutput = libOutput;
-        buildPath = projectPath + "build";
+        buildPath = projectPath + "/build";
 
         this.fileNames = new ArrayList<>();
         this.fileRoots = new ArrayList<>();
@@ -58,12 +58,19 @@ public class BuildSystem {
             return false;
         }
 
+        File buildDir = new File(buildPath);
+        if (buildDir.exists()) {
+            if (!deleteDirectory(buildDir)) {
+                System.err.println("Could not clear build directory");
+            }
+        }
+
         for (final var packageWrapper : packages.entrySet()) {
             for (final FileWrapper file : packageWrapper.getValue().files()) {
                 final CodeGeneration codeGeneration = new CodeGeneration(file);
                 final List<CodeGeneration.ClassFile> bytes = codeGeneration.generate();
 
-                File buildDir = new File(buildPath + "/" + packageWrapper.getKey().replace(".", "/"));
+                buildDir = new File(buildPath + "/" + packageWrapper.getKey().replace(".", "/"));
                 if (!buildDir.exists()) {
                     if (!buildDir.mkdirs()) {
                         System.err.println("Couldn't make build dir");
@@ -116,6 +123,39 @@ public class BuildSystem {
 
         fileNames.add(fileName);
         fileRoots.add(root);
+    }
+
+    private static boolean deleteDirectory(File directory) {
+        Path path = directory.toPath();
+        if (Files.isSymbolicLink(path)) {
+            return directory.delete();
+        }
+
+        if (directory.exists()) {
+            File[] files = directory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    Path filePath = file.toPath();
+                    if (Files.isSymbolicLink(filePath)) {
+                        if (!file.delete()) {
+                            System.err.println("Failed to delete symlink: " + file.getAbsolutePath());
+                            return false;
+                        }
+                    } else if (file.isDirectory()) {
+                        if (!deleteDirectory(file)) {
+                            return false;
+                        }
+                    } else {
+                        if (!file.delete()) {
+                            System.err.println("Failed to delete file: " + file.getAbsolutePath());
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        return directory.delete();
     }
 
     private static BlockNode getFileAST(final String file, final String fileName) {
