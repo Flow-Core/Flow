@@ -104,10 +104,9 @@ public class VariableLoader {
         }
 
         final FlowType varType = fieldNode.initialization.declaration.type;
-        ExpressionBaseNode expressionBase = variableAssignment.value;
         if (!Objects.equals(variableAssignment.operator, "=")) {
             final String[] operators = variableAssignment.operator.split("");
-            expressionBase = new ExpressionBaseNode(
+            variableAssignment.value = new ExpressionBaseNode(
                 new BinaryExpressionNode(
                     variableAssignment.variable.expression,
                     variableAssignment.value.expression,
@@ -116,7 +115,7 @@ public class VariableLoader {
             );
             variableAssignment.operator = "=";
         }
-        FlowType actualType = new ExpressionTraverse().traverse(expressionBase, scope);
+        FlowType actualType = new ExpressionTraverse().traverse(variableAssignment.value, scope);
         fieldNode.isInitialized = true;
 
         if (actualType == null || actualType.name.equals("null")) {
