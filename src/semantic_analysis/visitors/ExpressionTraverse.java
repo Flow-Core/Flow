@@ -28,7 +28,6 @@ public class ExpressionTraverse {
 
         TypeWrapper type = determineType(root, root.expression, scope);
         if (type == null || type.isTypeReference) {
-            LoggerFacade.error("Expression expected", root);
             return null;
         }
 
@@ -145,7 +144,7 @@ public class ExpressionTraverse {
             TypeWrapper rightType = determineType(root, binaryExpression.right, scope);
 
             if (rightType == null || rightType.isTypeReference) {
-                LoggerFacade.error("Expression expected", expression);
+                LoggerFacade.error("Expression expected", root);
                 return null;
             }
 
