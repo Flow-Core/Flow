@@ -216,10 +216,6 @@ public class ExpressionTraverse {
                 List.of()
             );
 
-            System.err.println(operatorName);
-            System.err.println(operatorName);
-            System.err.println(operandTypeNode.methods);
-
             if (functionDecl != null) {
                 return new FunctionCallNode(
                     operandType.type.name,
