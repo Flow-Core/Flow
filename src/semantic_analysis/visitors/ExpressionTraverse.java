@@ -216,6 +216,10 @@ public class ExpressionTraverse {
                 List.of()
             );
 
+            System.err.println(operatorName);
+            System.err.println(operatorName);
+            System.err.println(operandTypeNode.methods);
+
             if (functionDecl != null) {
                 return new FunctionCallNode(
                     operandType.type.name,
@@ -226,7 +230,7 @@ public class ExpressionTraverse {
                 );
             }
 
-            LoggerFacade.error("Could not resolve operator '" + unaryExpression.operator + "' for '", root);
+            LoggerFacade.error("Could not resolve operator '" + unaryExpression.operator + "'", root);
         }
 
         return expression;
