@@ -468,7 +468,7 @@ public class ExpressionTraverse {
             case "-":
                 yield "minus";
             case "*":
-                yield "mul";
+                yield "times";
             case "/":
                 yield "div";
             case "%":
