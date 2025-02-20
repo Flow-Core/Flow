@@ -1,5 +1,6 @@
 package generators.ast.statements;
 
+import parser.nodes.components.BodyNode;
 import parser.nodes.statements.IfStatementNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.expressions.ExpressionBaseNode;
@@ -31,6 +32,6 @@ public class IfStatementNodeGenerator {
     }
 
     public IfStatementNode build() {
-        return new IfStatementNode(condition, trueBranch, falseBranch);
+        return new IfStatementNode(condition, new BodyNode(trueBranch), new BodyNode(falseBranch));
     }
 }

@@ -2,8 +2,8 @@ package parser.nodes.classes;
 
 import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
+import parser.nodes.components.BodyNode;
 import parser.nodes.components.ParameterNode;
-import parser.nodes.components.BlockNode;
 
 import java.util.List;
 import java.util.Objects;
@@ -11,9 +11,9 @@ import java.util.Objects;
 public class ConstructorNode implements ASTNode {
     public String accessModifier;
     public List<ParameterNode> parameters;
-    public BlockNode body;
+    public BodyNode body;
 
-    public ConstructorNode(String accessModifier, List<ParameterNode> parameters, BlockNode body) {
+    public ConstructorNode(String accessModifier, List<ParameterNode> parameters, BodyNode body) {
         this.accessModifier = accessModifier;
         this.parameters = parameters;
         this.body = body;

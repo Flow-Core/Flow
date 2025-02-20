@@ -1,26 +1,39 @@
 package semantic_analysis.visitors;
 
 import generators.ast.classes.ClassNodeGenerator;
+import fakes.LoggerFake;
 import generators.ast.components.BlockNodeGenerator;
 import generators.ast.expressions.ExpressionBaseNodeGenerator;
 import generators.ast.functions.FunctionNodeGenerator;
 import generators.ast.statements.*;
 import generators.ast.variables.VariableAssignmentNodeGenerator;
+import logger.LoggerFacade;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import parser.nodes.FlowType;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.literals.BooleanLiteralNode;
 import parser.nodes.literals.IntegerLiteralNode;
 import parser.nodes.statements.*;
 import parser.nodes.variable.VariableReferenceNode;
-import semantic_analysis.exceptions.SA_SemanticError;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
-import semantic_analysis.transformers.LiteralTransformer;
 
 import java.util.List;
 
 class StatementTraverseTest {
+
+    @BeforeEach
+    void setUp() {
+        LoggerFacade.initLogger(new LoggerFake());
+    }
+
+    @AfterEach
+    void tearDown() {
+        LoggerFacade.clearLogger();
+    }
 
     @Test
     void test_valid_if_statement_should_pass() {
@@ -31,13 +44,15 @@ class StatementTraverseTest {
 
         IfStatementNode ifStatement = IfStatementNodeGenerator.builder()
             .condition(ExpressionBaseNodeGenerator.builder()
-                .expression(LiteralTransformer.transform(new BooleanLiteralNode(true)))
+                .expression(new BooleanLiteralNode(true))
                 .build())
             .trueBranch(BlockNodeGenerator.builder().children(List.of()).build())
             .falseBranch(BlockNodeGenerator.builder().children(List.of()).build())
             .build();
 
-        Assertions.assertDoesNotThrow(() -> StatementTraverse.traverse(ifStatement, scope),
+        StatementTraverse.traverse(ifStatement, scope);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(),
             "Valid if statement should pass");
     }
 
@@ -55,8 +70,8 @@ class StatementTraverseTest {
             .trueBranch(BlockNodeGenerator.builder().children(List.of()).build())
             .build();
 
-        Assertions.assertThrows(SA_SemanticError.class, () -> StatementTraverse.traverse(ifStatement, scope),
-            "If statement should fail when condition is not a boolean");
+        StatementTraverse.traverse(ifStatement, scope);
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "If statement should fail when condition is not a boolean");
     }
 
     @Test
@@ -73,7 +88,9 @@ class StatementTraverseTest {
             .loopBlock(BlockNodeGenerator.builder().children(List.of()).build())
             .build();
 
-        Assertions.assertDoesNotThrow(() -> StatementTraverse.traverse(whileStatement, scope),
+        StatementTraverse.traverse(whileStatement, scope);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(),
             "Valid while loop should pass");
     }
 
@@ -91,8 +108,8 @@ class StatementTraverseTest {
             .loopBlock(BlockNodeGenerator.builder().children(List.of()).build())
             .build();
 
-        Assertions.assertThrows(SA_SemanticError.class, () -> StatementTraverse.traverse(whileStatement, scope),
-            "While loop should fail when condition is not a boolean");
+        StatementTraverse.traverse(whileStatement, scope);
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "While loop should fail when condition is not a boolean");
     }
 
     @Test
@@ -117,7 +134,11 @@ class StatementTraverseTest {
             .loopBlock(BlockNodeGenerator.builder().children(List.of()).build())
             .build();
 
-        Assertions.assertDoesNotThrow(() -> StatementTraverse.traverse(forStatement, scope),
+        StatementTraverse.traverse(forStatement, scope);
+
+        LoggerFacade.getLogger().dump();
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(),
             "Valid for loop should pass");
     }
 
@@ -143,8 +164,8 @@ class StatementTraverseTest {
             .loopBlock(BlockNodeGenerator.builder().children(List.of()).build())
             .build();
 
-        Assertions.assertThrows(SA_SemanticError.class, () -> StatementTraverse.traverse(forStatement, scope),
-            "For loop should fail when condition is not a boolean");
+        StatementTraverse.traverse(forStatement, scope);
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "For loop should fail when condition is not a boolean");
     }
 
     @Test
@@ -167,7 +188,9 @@ class StatementTraverseTest {
             .defaultBlock(BlockNodeGenerator.builder().children(List.of()).build())
             .build();
 
-        Assertions.assertDoesNotThrow(() -> StatementTraverse.traverse(switchStatement, scope),
+        StatementTraverse.traverse(switchStatement, scope);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(),
             "Valid switch statement should pass");
     }
 
@@ -179,7 +202,7 @@ class StatementTraverseTest {
 
         FunctionDeclarationNode function = FunctionNodeGenerator.builder()
             .name("sum")
-            .returnType("Int")
+            .returnType(new FlowType("Int", false, true))
             .parameters(List.of())
             .block(BlockNodeGenerator.builder().children(List.of()).build())
             .build();
@@ -192,7 +215,9 @@ class StatementTraverseTest {
                 .build())
             .build();
 
-        Assertions.assertDoesNotThrow(() -> StatementTraverse.traverse(returnStatement, scope),
+        StatementTraverse.traverse(returnStatement, scope);
+
+        Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(),
             "Return type should match function return type");
     }
 
@@ -204,7 +229,7 @@ class StatementTraverseTest {
 
         FunctionDeclarationNode function = FunctionNodeGenerator.builder()
             .name("sum")
-            .returnType("Int")
+            .returnType(new FlowType("Int", false, true))
             .parameters(List.of())
             .block(BlockNodeGenerator.builder().children(List.of()).build())
             .build();
@@ -217,7 +242,7 @@ class StatementTraverseTest {
                 .build())
             .build();
 
-        Assertions.assertThrows(SA_SemanticError.class, () -> StatementTraverse.traverse(returnStatement, scope),
-            "Return type mismatch should fail");
+        StatementTraverse.traverse(returnStatement, scope);
+        Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Return type mismatch should fail");
     }
 }

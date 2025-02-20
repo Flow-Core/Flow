@@ -1,9 +1,8 @@
 package semantic_analysis.visitors;
 
-import parser.nodes.classes.ClassDeclarationNode;
-import parser.nodes.classes.FieldNode;
-import parser.nodes.classes.ObjectNode;
-import parser.nodes.classes.TypeDeclarationNode;
+import logger.LoggerFacade;
+import parser.nodes.FlowType;
+import parser.nodes.classes.*;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.expressions.BinaryExpressionNode;
 import parser.nodes.expressions.ExpressionBaseNode;
@@ -15,51 +14,59 @@ import parser.nodes.literals.LiteralNode;
 import parser.nodes.literals.NullLiteral;
 import parser.nodes.variable.FieldReferenceNode;
 import parser.nodes.variable.VariableReferenceNode;
-import semantic_analysis.exceptions.SA_SemanticError;
-import semantic_analysis.exceptions.SA_UnresolvedSymbolException;
 import semantic_analysis.loaders.ModifierLoader;
 import semantic_analysis.scopes.Scope;
-import semantic_analysis.transformers.LiteralTransformer;
 
 import java.util.List;
 
 import static semantic_analysis.loaders.SignatureLoader.*;
 
 public class ExpressionTraverse {
-    public TypeWrapper traverse(ExpressionBaseNode root, Scope scope) {
-        root.expression = transformValue(root.expression, scope);
+    public FlowType traverse(ExpressionBaseNode root, Scope scope, boolean keepCompileTime) {
+        if (!keepCompileTime)
+            root.expression = transformValue(root, root.expression, scope);
 
-        TypeWrapper type = determineType(root.expression, scope);
-
-        if (type.isTypeReference)
-            throw new SA_SemanticError("Expression expected"); // Log
-
-        return type;
-    }
-
-    private static ExpressionNode transformValue(ExpressionNode expression, Scope scope) {
-        if (expression instanceof LiteralNode literalNode) {
-            return LiteralTransformer.transform(literalNode);
+        TypeWrapper type = determineType(root, root.expression, scope);
+        if (type == null || type.isTypeReference) {
+            return null;
         }
 
-        return transformOperators(expression, scope);
+        return type.type;
     }
 
-    private static ExpressionNode transformOperators(ExpressionNode expression, Scope scope) {
+    public FlowType traverse(ExpressionBaseNode root, Scope scope) {
+        return traverse(root, scope, false);
+    }
+
+    private static ExpressionNode transformValue(ExpressionBaseNode root, ExpressionNode expression, Scope scope) {
+        if (expression instanceof VariableReferenceNode referenceNode) {
+            return transformVariableReference(root, referenceNode, scope);
+        }
+
+        return transformOperators(root, expression, scope);
+    }
+
+    private static ExpressionNode transformOperators(ExpressionBaseNode root, ExpressionNode expression, Scope scope) {
         if (expression instanceof BinaryExpressionNode binaryExpression) {
-            binaryExpression.left = transformValue(binaryExpression.left, scope);
+            binaryExpression.left = transformValue(root, binaryExpression.left, scope);
 
-            TypeWrapper leftType = determineType(binaryExpression.left, scope);
+            TypeWrapper leftType = determineType(root, binaryExpression.left, scope);
+            if (leftType == null || leftType.type == null) {
+                return null;
+            }
 
-            ClassDeclarationNode leftTypeNode = scope.getClass(leftType.type);
+            ClassDeclarationNode leftTypeNode = scope.getClass(leftType.type.name);
 
-            if (leftTypeNode == null)
-                throw new SA_UnresolvedSymbolException(leftType.type); // Log
+            if (leftTypeNode == null) {
+                LoggerFacade.error("Unresolved symbol: '" + leftType.type + "'", root);
+                return null;
+            }
 
             if (binaryExpression.operator.equals(".")) {
                 if (binaryExpression.right instanceof VariableReferenceNode reference) {
                     if (scope.findTypeDeclaration(reference.variable)) {
-                        throw new SA_SemanticError("Cannot access nested types"); // Log
+                        LoggerFacade.error("Cannot access nested types", root);
+                        return null;
                     }
 
                     FieldNode field = leftTypeNode.findField(
@@ -68,16 +75,18 @@ public class ExpressionTraverse {
                     );
 
                     if (field == null) {
-                        throw new SA_UnresolvedSymbolException(leftType.type + "." + reference.variable); // Log
+                        LoggerFacade.error("Unresolved symbol: '" + leftType.type.name + "." + reference.variable + "'", root);
+                        return null;
                     }
 
                     return new FieldReferenceNode(
-                        leftType.type,
+                        leftType.type.name,
                         reference.variable,
-                        binaryExpression.left
+                        binaryExpression.left,
+                        field.initialization.declaration.type,
+                        field.modifiers.contains("static")
                     );
-                } else
-                if (binaryExpression.right instanceof FunctionCallNode call) {
+                } else if (binaryExpression.right instanceof FunctionCallNode call) {
                     List<FunctionDeclarationNode> functions = leftTypeNode.findMethodsWithName(
                         scope,
                         call.name
@@ -104,33 +113,40 @@ public class ExpressionTraverse {
                     );
 
                     if (function == null) {
-                        if (functions.isEmpty())
-                            throw new SA_UnresolvedSymbolException(leftType.type + "." + call.name); // Log
-                        else
-                            throw new SA_SemanticError("None of the overrides for '" +
+                        if (functions.isEmpty()) {
+                            LoggerFacade.error("Unresolved symbol: '" + leftType.type + "." + call.name + "'", root);
+                        } else {
+                            LoggerFacade.error("None of the overrides for '" +
                                 leftType.type + "." + call.name +
-                                "' match the argument list");
+                                "' match the argument list", root);
+                        }
+                        return null;
                     }
 
                     return new FunctionCallNode(
-                        leftType.type,
+                        leftType.type.name,
                         call.name,
                         call.arguments
                     );
                 } else {
-                    throw new SA_SemanticError("Expected field or function"); // Log
+                    LoggerFacade.error("Expected field or function", root);
+                    return null;
                 }
             }
 
-            if (leftType.isTypeReference)
-                throw new SA_SemanticError("Expression expected");
+            if (leftType.isTypeReference) {
+                LoggerFacade.error("Expression expected", root);
+                return null;
+            }
 
-            binaryExpression.right = transformValue(binaryExpression.right, scope);
+            binaryExpression.right = transformValue(root, binaryExpression.right, scope);
 
-            TypeWrapper rightType = determineType(binaryExpression.right, scope);
+            TypeWrapper rightType = determineType(root, binaryExpression.right, scope);
 
-            if (rightType.isTypeReference)
-                throw new SA_SemanticError("Expression expected");
+            if (rightType == null || rightType.isTypeReference) {
+                LoggerFacade.error("Expression expected", root);
+                return null;
+            }
 
             String operatorName = getOperatorName(binaryExpression.operator);
 
@@ -148,20 +164,22 @@ public class ExpressionTraverse {
                             null,
                             new ExpressionBaseNode(
                                 binaryExpression.left
-                            )
+                            ),
+                            leftType.type
                         ),
                         new ArgumentNode(
                             null,
                             new ExpressionBaseNode(
                                 binaryExpression.right
-                            )
+                            ),
+                            rightType.type
                         )
                     )
                 )).findFirst().orElse(null);
 
             if (functionDecl != null) {
                 return new FunctionCallNode(
-                    leftType.type,
+                    leftType.type.name,
                     operatorName,
                     List.of(
                         new ArgumentNode(null, new ExpressionBaseNode(binaryExpression.left)),
@@ -170,19 +188,23 @@ public class ExpressionTraverse {
                 );
             }
 
-
+            LoggerFacade.error("Could not resolve operator '" + binaryExpression.operator + "' for '" + binaryExpression.left + "' and '" + binaryExpression.right + "'", root);
         } else if (expression instanceof UnaryOperatorNode unaryExpression) {
-            unaryExpression.operand = transformValue(unaryExpression.operand, scope);
+            unaryExpression.operand = transformValue(root, unaryExpression.operand, scope);
 
-            TypeWrapper operandType = determineType(unaryExpression.operand, scope);
+            TypeWrapper operandType = determineType(root, unaryExpression.operand, scope);
 
-            if (operandType.isTypeReference)
-                throw new SA_SemanticError("Expression expected");
+            if (operandType == null || operandType.isTypeReference) {
+                LoggerFacade.error("Expression expected", root);
+                return null;
+            }
 
-            ClassDeclarationNode operandTypeNode = scope.getClass(operandType.type);
+            ClassDeclarationNode operandTypeNode = scope.getClass(operandType.type.name);
 
-            if (operandTypeNode == null)
-                throw new SA_UnresolvedSymbolException(operandType.type);
+            if (operandTypeNode == null) {
+                LoggerFacade.error("Unresolved symbol: '" + operandType.type + "'", root);
+                return null;
+            }
 
             String operatorName = getOperatorName(unaryExpression.operator);
 
@@ -195,28 +217,97 @@ public class ExpressionTraverse {
 
             if (functionDecl != null) {
                 return new FunctionCallNode(
-                    operandType.type,
+                    operandType.type.name,
                     operatorName,
                     List.of(
                         new ArgumentNode(null, new ExpressionBaseNode(unaryExpression.operand))
                     )
                 );
             }
+
+            LoggerFacade.error("Could not resolve operator '" + unaryExpression.operator + "'", root);
         }
 
         return expression;
     }
 
-    private static TypeWrapper determineType(ExpressionNode expression, Scope scope) {
-        if (expression instanceof ObjectNode objectNode) {
-            if (!scope.findTypeDeclaration(objectNode.className))
-                throw new SA_UnresolvedSymbolException(objectNode.className); //Log
+    private static ExpressionNode transformVariableReference(ExpressionBaseNode root, VariableReferenceNode referenceNode, Scope scope) {
+        if (
+            scope.type() == Scope.Type.FUNCTION && scope.findLocalVariable(referenceNode.variable) ||
+                scope.findTypeDeclaration(referenceNode.variable)
+        ) {
+            return referenceNode;
+        }
 
-            return new TypeWrapper(objectNode.className, false, false);
+        TypeDeclarationNode containingType = scope.getContainingType();
+        FieldNode field = scope.getField(referenceNode.variable);
+
+        if (field != null) {
+            return new FieldReferenceNode(
+                containingType != null ? containingType.name : null,
+                field.initialization.declaration.name,
+                new VariableReferenceNode("this"),
+                field.initialization.declaration.type,
+                field.modifiers.contains("static")
+            );
+        }
+
+        LoggerFacade.error("Unresolved symbol: '" + referenceNode.variable + "'", root);
+        return null;
+    }
+
+    private static TypeWrapper determineType(ExpressionBaseNode root, ExpressionNode expression, Scope scope) {
+        if (expression == null) {
+            return null;
+        }
+        if (expression instanceof ObjectNode objectNode) {
+            if (!scope.findTypeDeclaration(objectNode.className)) {
+                LoggerFacade.error("Unresolved symbol: '" + objectNode.className + "'", root);
+                return null;
+            }
+
+            for (final ArgumentNode argNode : objectNode.arguments) {
+                argNode.type = new ExpressionTraverse().traverse(argNode.value, scope, true);
+            }
+
+            return new TypeWrapper(
+                new FlowType(
+                    objectNode.className,
+                    false,
+                    false
+                ),
+                false
+            );
+        }
+        if (expression instanceof BaseClassNode baseClassNode) {
+            if (!scope.findTypeDeclaration(baseClassNode.name)) {
+                LoggerFacade.error("Unresolved symbol: '" + baseClassNode.name + "'", root);
+                return null;
+            }
+
+            for (final ArgumentNode argNode : baseClassNode.arguments) {
+                argNode.type = new ExpressionTraverse().traverse(argNode.value, scope, true);
+            }
+
+            return new TypeWrapper(
+                new FlowType(
+                    baseClassNode.name,
+                    false,
+                    false
+                ),
+                false
+            );
         }
         if (expression instanceof VariableReferenceNode variable) {
             if (scope.findTypeDeclaration(variable.variable)) {
-                return new TypeWrapper(variable.variable, true, false);
+                return new TypeWrapper(
+                    new FlowType(
+                        variable.variable,
+                        false,
+                        false
+                    ),
+                    true
+                );
             }
 
             FieldNode field = scope.getField(variable.variable);
@@ -224,20 +315,27 @@ public class ExpressionTraverse {
             if (field != null) {
                 return new TypeWrapper(
                     field.initialization.declaration.type,
-                    false,
-                    field.initialization.declaration.isNullable
+                    false
                 );
             }
 
-            throw new SA_UnresolvedSymbolException(variable.variable); // LOG
+            LoggerFacade.error("Unresolved symbol: '" + variable.variable + "'", root);
+            return null;
         }
         if (expression instanceof FunctionCallNode functionCall) {
             final FunctionDeclarationNode function;
 
+            for (final ArgumentNode argNode : functionCall.arguments) {
+                argNode.type = new ExpressionTraverse().traverse(argNode.value, scope);
+            }
+
             if (functionCall.callerType != null) {
                 final ClassDeclarationNode caller = scope.getClass(functionCall.callerType);
 
-                if (caller == null) throw new SA_UnresolvedSymbolException(functionCall.callerType);
+                if (caller == null) {
+                    LoggerFacade.error("Unresolved symbol: '" + functionCall.callerType + "'", root);
+                    return null;
+                }
 
                 final List<FunctionDeclarationNode> functions = caller.findMethodsWithName(
                     scope,
@@ -258,64 +356,107 @@ public class ExpressionTraverse {
                 );
             }
 
-            if (function == null)
-                throw new SA_UnresolvedSymbolException(functionCall.name); // LOG with parameters for more info
+            if (function == null) {
+                LoggerFacade.error("No overload found for: '" + functionCall.name + "', with the specified arguments", root);
+                return null;
+            }
 
             final TypeDeclarationNode containingType = scope.getContainingType();
             final String modifier = ModifierLoader.getAccessModifier(function.modifiers);
 
             if (modifier.equals("private") && (containingType == null || !containingType.name.equals(functionCall.callerType)) ||
                 modifier.equals("protected") && (containingType == null || !scope.isSameType(
-                    new TypeWrapper(containingType.name, false, false),
-                    new TypeWrapper(functionCall.callerType, false, false)
+                    new FlowType(
+                        containingType.name,
+                        false,
+                        false
+                    ),
+                    new FlowType(
+                        functionCall.callerType,
+                        false,
+                        false
+                    )
                 ))
-            ) throw new SA_SemanticError("Cannot access '" + function.name + "', it is " + modifier + " in '" + functionCall.callerType + "'");
+            ) {
+                LoggerFacade.error("Cannot access '" + function.name + "', it is " + modifier + " in '" + functionCall.callerType + "'", root);
+                return null;
+            }
 
-            return new TypeWrapper(function.returnType, false, function.isReturnTypeNullable);
+            return new TypeWrapper(function.returnType, false);
         }
         if (expression instanceof FieldReferenceNode field) {
-            ClassDeclarationNode holder = scope.getClass(field.holderType);
+            FieldNode actualField;
+            ClassDeclarationNode holder = null;
 
-            if (holder == null)
-                throw new SA_UnresolvedSymbolException(field.holderType); // Log (unknown type)
+            if (field.holderType != null) {
+                holder = scope.getClass(field.holderType);
 
-            FieldNode actualField = holder.findField(scope, field.name);
+                if (holder == null) {
+                    LoggerFacade.error("Unresolved symbol: '" + field.holderType + "'", root);
+                    return null;
+                }
+                actualField = holder.findField(scope, field.name);
+            } else {
+                actualField = scope.getField(field.name);
+            }
 
-            if (actualField == null)
-                throw new SA_UnresolvedSymbolException(field.holderType + "." + field.name); // Log
+            if (actualField == null) {
+                LoggerFacade.error("Unresolved symbol: '" + field.holderType + "." + field.name + "'", root);
+                return null;
+            }
 
             String modifier = ModifierLoader.getAccessModifier(actualField.modifiers);
 
             TypeDeclarationNode containingType = scope.getContainingType();
 
-            if (modifier.equals("private") && (containingType == null || !containingType.name.equals(holder.name)) ||
-                modifier.equals("protected") && (containingType == null || !scope.isSameType(
-                    new TypeWrapper(containingType.name, false, false),
-                    new TypeWrapper(holder.name, false, false)
-                ))
-            ) throw new SA_SemanticError("Cannot access '" + field.name + "', it is " + modifier + " in '" + holder.name + "'");
+            if (holder != null)
+                if (modifier.equals("private") && (containingType == null || !containingType.name.equals(holder.name)) ||
+                    modifier.equals("protected") && (containingType == null || !scope.isSameType(
+                        new FlowType(containingType.name, false, false),
+                        new FlowType(holder.name, false, false)
+                    ))
+                ) {
+                    LoggerFacade.error("Cannot access '" + field.name + "', it is " + modifier + " in '" + holder.name + "'", root);
+                    return null;
+                }
 
             return new TypeWrapper(
                 actualField.initialization.declaration.type,
-                false,
-                actualField.initialization.declaration.isNullable
+                false
+            );
+        }
+        if (expression instanceof LiteralNode literalNode) {
+            return new TypeWrapper(
+                new FlowType(
+                    literalNode.getClassName(),
+                    false,
+                    true
+                ),
+                false
             );
         }
         if (expression instanceof NullLiteral) {
-            return new TypeWrapper("null", false, true);
+            return new TypeWrapper(
+                new FlowType(
+                    "null",
+                    true,
+                    false
+                ),
+                false
+            );
         }
 
-        throw new SA_SemanticError("Could not resolve type: '" + expression + "'"); // Log and return something
+        LoggerFacade.error("Could not resolve type: '" + expression + "'", root);
+        return null;
     }
 
     public record TypeWrapper(
-        String type,
-        boolean isTypeReference,
-        boolean isNullable
+        FlowType type,
+        boolean isTypeReference
     ) {
         @Override
         public String toString() {
-            return type + (isNullable ? "?" : "");
+            return type.toString();
         }
     }
 
@@ -326,7 +467,7 @@ public class ExpressionTraverse {
             case "-":
                 yield "minus";
             case "*":
-                yield "mul";
+                yield "times";
             case "/":
                 yield "div";
             case "%":

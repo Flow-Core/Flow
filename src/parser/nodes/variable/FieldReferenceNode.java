@@ -1,5 +1,6 @@
 package parser.nodes.variable;
 
+import parser.nodes.FlowType;
 import parser.nodes.expressions.ExpressionNode;
 
 import java.util.Objects;
@@ -8,15 +9,21 @@ public class FieldReferenceNode implements ExpressionNode {
     public String holderType;
     public String name;
     public ExpressionNode holder;
+    public FlowType type;
+    public boolean isStatic;
 
     public FieldReferenceNode(
         String holderType,
         String name,
-        ExpressionNode holder
+        ExpressionNode holder,
+        FlowType type,
+        boolean isStatic
     ) {
         this.holderType = holderType;
         this.name = name;
         this.holder = holder;
+        this.type = type;
+        this.isStatic = isStatic;
     }
 
     @Override
@@ -26,9 +33,11 @@ public class FieldReferenceNode implements ExpressionNode {
 
         FieldReferenceNode that = (FieldReferenceNode) o;
 
+        if (isStatic != that.isStatic) return false;
         if (!Objects.equals(holderType, that.holderType)) return false;
         if (!Objects.equals(name, that.name)) return false;
-        return Objects.equals(holder, that.holder);
+        if (!Objects.equals(holder, that.holder)) return false;
+        return Objects.equals(type, that.type);
     }
 
     @Override
@@ -36,6 +45,8 @@ public class FieldReferenceNode implements ExpressionNode {
         int result = holderType != null ? holderType.hashCode() : 0;
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (holder != null ? holder.hashCode() : 0);
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (isStatic ? 1 : 0);
         return result;
     }
 

@@ -1,10 +1,9 @@
 package parser.analyzers.top;
 
 import lexer.token.TokenType;
+import logger.LoggerFacade;
 import parser.Parser;
 import parser.analyzers.TopAnalyzer;
-import parser.exceptions.PARSE_InvalidStatement;
-import parser.exceptions.PARSE_TerminatorNotFound;
 import parser.exceptions.PARSE_WrongAnalyzer;
 import parser.nodes.ASTNode;
 import parser.nodes.components.BlockNode;
@@ -48,14 +47,14 @@ public class BlockAnalyzer {
             }
 
             if (result == null || result.node() == null) {
-                throw new PARSE_InvalidStatement("Invalid statement");
+                throw LoggerFacade.getLogger().panic("Invalid statement", parser.peek().line(), parser.file);
             }
             if (result.terminationStatus() == TopAnalyzer.TerminationStatus.WAS_TERMINATED) {
                 if (!isSingleLine) {
                     parser.advance();
                 }
             } else if (result.terminationStatus() == TopAnalyzer.TerminationStatus.NOT_TERMINATED && !parser.check(blockTerminators)) {
-                throw new PARSE_TerminatorNotFound("Required newline or ';' after statement");
+                throw LoggerFacade.getLogger().panic("Required newline or ';' after statement", parser.peek().line(), parser.file);
             }
             nodes.add(result.node());
         } while (!isSingleLine && !parser.check(blockTerminators));

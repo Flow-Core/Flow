@@ -1,7 +1,7 @@
 package parser.nodes.statements;
 
 import parser.nodes.ASTVisitor;
-import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.expressions.ExpressionNode;
 
 import java.util.Objects;
@@ -9,9 +9,9 @@ import java.util.Objects;
 public class ForeachStatementNode implements StatementNode {
     public String loopVariable;
     public ExpressionNode collection;
-    public BlockNode body;
+    public BodyNode body;
 
-    public ForeachStatementNode(String loopVariable, ExpressionNode collection, BlockNode body) {
+    public ForeachStatementNode(String loopVariable, ExpressionNode collection, BodyNode body) {
         this.loopVariable = loopVariable;
         this.collection = collection;
         this.body = body;

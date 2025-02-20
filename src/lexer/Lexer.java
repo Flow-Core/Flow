@@ -2,6 +2,7 @@ package lexer;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
+import logger.LoggerFacade;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,12 +11,15 @@ import java.util.regex.Pattern;
 
 public class Lexer {
     private final List<Token> tokens;
+    private final String file;
     private final String code;
     private int currentLine;
     private int currentPosition;
 
-    public Lexer(final String code) {
+    public Lexer(final String code, final String file) {
         this.code = code;
+        this.file = file;
+
         tokens = new ArrayList<>();
         currentLine = 1;
         currentPosition = 0;
@@ -33,7 +37,7 @@ public class Lexer {
 
             final Token token = nextToken();
             if (token == null) {
-                throw new RuntimeException("Unexpected token at " + currentLine);
+                throw LoggerFacade.getLogger().panic("Unexpected token", currentLine, file);
             }
 
             if (token.type() != TokenType.COMMENT) {
@@ -64,7 +68,7 @@ public class Lexer {
                 String value = matcher.group();
                 currentPosition += value.length();
 
-                if (type == TokenType.STRING) {
+                if (type == TokenType.STRING || type == TokenType.CHAR) {
                     value = value.substring(1, value.length() - 1);
                 }
 

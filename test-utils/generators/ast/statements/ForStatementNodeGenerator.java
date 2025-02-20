@@ -1,6 +1,7 @@
 package generators.ast.statements;
 
 import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.statements.ForStatementNode;
@@ -36,6 +37,6 @@ public class ForStatementNodeGenerator {
     }
 
     public ForStatementNode build() {
-        return new ForStatementNode(initialization, condition, action, loopBlock);
+        return new ForStatementNode(initialization, condition, new BodyNode(action), new BodyNode(loopBlock));
     }
 }

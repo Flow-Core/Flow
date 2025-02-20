@@ -1,11 +1,11 @@
 package generators.ast.components;
 
+import parser.nodes.FlowType;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 
 public class ParameterNodeGenerator {
-    private String type = "Int";
-    private boolean isNullable = false;
+    private FlowType type = new FlowType("Int", false, true);
     private String name = "param";
     private ExpressionBaseNode defaultValue = null;
 
@@ -13,13 +13,8 @@ public class ParameterNodeGenerator {
         return new ParameterNodeGenerator();
     }
 
-    public ParameterNodeGenerator type(String type) {
+    public ParameterNodeGenerator type(FlowType type) {
         this.type = type;
-        return this;
-    }
-
-    public ParameterNodeGenerator nullable(boolean nullable) {
-        this.isNullable = nullable;
         return this;
     }
 
@@ -34,6 +29,6 @@ public class ParameterNodeGenerator {
     }
 
     public ParameterNode build() {
-        return new ParameterNode(type, isNullable, name, defaultValue);
+        return new ParameterNode(type, name, defaultValue);
     }
 }

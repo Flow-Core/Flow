@@ -5,8 +5,10 @@ import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
 import parser.analyzers.top.BlockAnalyzer;
+import parser.nodes.ASTMetaDataStore;
 import parser.nodes.classes.ConstructorNode;
 import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.components.ParameterNode;
 
 import java.util.List;
@@ -21,6 +23,7 @@ public class ConstructorAnalyzer extends TopAnalyzer {
             accessModifier = TopAnalyzer.testFor(parser, TokenType.MODIFIER).value();
         }
         TopAnalyzer.testFor(parser, TokenType.CONSTRUCTOR);
+        final int line = parser.peek().line();
 
         final List<ParameterNode> parameters = parseParameters(parser);
 
@@ -33,10 +36,14 @@ public class ConstructorAnalyzer extends TopAnalyzer {
         parser.consume(TokenType.CLOSE_BRACES);
 
         return new AnalyzerResult(
-            new ConstructorNode(
-                accessModifier,
-                parameters,
-                block
+            ASTMetaDataStore.getInstance().addMetadata(
+                new ConstructorNode(
+                    accessModifier,
+                    parameters,
+                    new BodyNode(block)
+                ),
+                line,
+                parser.file
             ),
             TerminationStatus.NO_TERMINATION
         );

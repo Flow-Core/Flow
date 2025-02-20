@@ -1,7 +1,8 @@
 package parser.nodes.statements;
 
 import parser.nodes.ASTVisitor;
-import parser.nodes.components.BlockNode;
+import parser.nodes.classes.FieldNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.variable.VariableAssignmentNode;
 
@@ -9,11 +10,12 @@ import java.util.Objects;
 
 public class ForStatementNode implements StatementNode {
     public VariableAssignmentNode initialization;
+    public FieldNode populatedInitialization;
     public ExpressionBaseNode condition;
-    public BlockNode action;
-    public BlockNode loopBlock;
+    public BodyNode action;
+    public BodyNode loopBlock;
 
-    public ForStatementNode(VariableAssignmentNode initialization, ExpressionBaseNode condition, BlockNode action, BlockNode loopBlock) {
+    public ForStatementNode(VariableAssignmentNode initialization, ExpressionBaseNode condition, BodyNode action, BodyNode loopBlock) {
         this.initialization = initialization;
         this.condition = condition;
         this.action = action;

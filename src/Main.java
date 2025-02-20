@@ -1,64 +1,47 @@
-import lexer.Lexer;
-import lexer.token.Token;
-import parser.Parser;
-import parser.nodes.components.BlockNode;
-import semantic_analysis.loaders.PackageMapper;
-import semantic_analysis.files.PackageWrapper;
-import semantic_analysis.SemanticAnalysis;
+import compiler.build_system.BuildSystem;
+import compiler.library_loader.LibLoader;
+import compiler.packer.JarPacker;
+import compiler.packer.Packer;
+import compiler.packer.PackerFacade;
+import logger.Logger;
+import logger.LoggerFacade;
+import logger.impl.ConsoleLogger;
 
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) {
-        final String file1 = """
-        func main(): A? {
-            val x: A = new A()
-            
-            
-        
-            return null
+        final String projectPath = "E:/flow/test";
+
+        LibLoader.LibOutput libOutput = null;
+        try {
+            libOutput = LibLoader.loadLibraries(projectPath + "/libs");
+        } catch (Exception e) {
+            System.err.println("Could not load libraries");
         }
-        
-        func foo(a: A): A {
-            return new A()
+
+        final Logger logger = new ConsoleLogger();
+        LoggerFacade.initLogger(logger);
+
+        final BuildSystem buildSystem = new BuildSystem("/src", libOutput, projectPath);
+        if (!buildSystem.build()) {
+            return;
         }
-        
-        open class A {
-            static func foo(a: A): A {
-                return new A()
-            }
+
+        final Packer packer = new JarPacker();
+        PackerFacade.initPacker(packer);
+
+        try {
+            PackerFacade.pack(
+                projectPath + "/output.jar",
+                    projectPath + "/build",
+                    libOutput == null ? new ArrayList<>() : Arrays.asList(libOutput.libFiles()
+                )
+            );
+        } catch (IOException e) {
+            System.err.println("Couldn't pack jar file");
         }
-        
-        class B : A() {}
-        \s""";
-
-        final String file2 = """
-        """;
-
-        final String file3 = """
-        """;
-
-        final BlockNode file1Root = getFileAST(file1);
-        final BlockNode file2Root = getFileAST(file2);
-        final BlockNode file3Root = getFileAST(file3);
-        final Map<String, PackageWrapper> files = PackageMapper.map(
-            List.of(file1Root, file2Root, file3Root),
-            List.of("file1.fl", "file2.fl", "file3.fl")
-        );
-
-        final SemanticAnalysis semanticAnalysis = new SemanticAnalysis(files);
-        semanticAnalysis.analyze();
-
-        Parser.printTree(file1Root);
-    }
-
-    private static BlockNode getFileAST(final String file) {
-        final Lexer lexer = new Lexer(file);
-        final List<Token> tokens = lexer.tokenize();
-
-        final Parser parser = new Parser(tokens);
-
-        return parser.parse();
     }
 }

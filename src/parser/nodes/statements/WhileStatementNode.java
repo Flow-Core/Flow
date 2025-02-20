@@ -1,16 +1,16 @@
 package parser.nodes.statements;
 
 import parser.nodes.ASTVisitor;
-import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 
 import java.util.Objects;
 
 public class WhileStatementNode implements StatementNode {
     public ExpressionBaseNode condition;
-    public BlockNode loopBlock;
+    public BodyNode loopBlock;
 
-    public WhileStatementNode(ExpressionBaseNode condition, BlockNode loopBlock) {
+    public WhileStatementNode(ExpressionBaseNode condition, BodyNode loopBlock) {
         this.condition = condition;
         this.loopBlock = loopBlock;
     }

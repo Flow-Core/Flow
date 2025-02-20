@@ -2,9 +2,12 @@ package parser.analyzers.top;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
+import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
+import parser.nodes.FlowType;
+import parser.nodes.components.BodyNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.functions.FunctionDeclarationNode;
@@ -18,6 +21,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
     @Override
     public TopAnalyzer.AnalyzerResult parse(final Parser parser) {
         final FunctionDeclarationNode functionDeclaration = parseFunctionSignature(parser);
+        final int line = parser.peek().line();
 
         if (parser.check(TokenType.OPEN_BRACES)) {
             parser.advance();
@@ -26,10 +30,13 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
 
             parser.consume(TokenType.CLOSE_BRACES);
 
-            functionDeclaration.block = block;
+            functionDeclaration.block = new BodyNode(block);
         }
 
-        return new AnalyzerResult(functionDeclaration, TerminationStatus.NO_TERMINATION);
+        return new AnalyzerResult(
+            ASTMetaDataStore.getInstance().addMetadata(functionDeclaration, line, parser.file),
+            TerminationStatus.NO_TERMINATION
+        );
     }
 
     public static List<String> parseModifiers(final Parser parser) {
@@ -50,23 +57,21 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
 
         List<ParameterNode> parameters = parseParameters(parser);
 
-        String returnType = "Void";
-        boolean isReturnTypeNullable = false;
+        FlowType returnType = new FlowType("Void", false, true);
 
         if (parser.check(TokenType.COLON_OPERATOR)) {
             parser.advance();
-            returnType = parser.consume(TokenType.IDENTIFIER).value();
+            returnType = new FlowType(parser.consume(TokenType.IDENTIFIER).value(), false, false);
 
             if (parser.check(TokenType.NULLABLE)) {
                 parser.advance();
-                isReturnTypeNullable = true;
+                returnType.isNullable = true;
             }
         }
 
         return new FunctionDeclarationNode(
             funcName.value(),
             returnType,
-            isReturnTypeNullable,
             modifiers,
             parameters,
             null
@@ -87,18 +92,19 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
                 parser.advance();
             }
 
+            int line = parser.peek().line();
+
             ExpressionNode defaultValue = null;
             if (parser.peek().type() == TokenType.EQUAL_OPERATOR) {
                 parser.advance();
-                defaultValue = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                defaultValue = ExpressionAnalyzer.parseExpression(parser);
             }
 
-            ParameterNode arg = new ParameterNode(
-                type,
-                isNullable,
+            ParameterNode arg = (ParameterNode) ASTMetaDataStore.getInstance().addMetadata(new ParameterNode(
+                new FlowType(type, isNullable, false),
                 name,
-                new ExpressionBaseNode(defaultValue)
-            );
+                new ExpressionBaseNode(defaultValue, line, parser.file)
+            ), line, parser.file);
 
             parameters.add(arg);
 

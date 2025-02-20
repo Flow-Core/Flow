@@ -1,10 +1,14 @@
 package parser.analyzers.top;
 
+import lexer.token.Token;
 import lexer.token.TokenType;
+import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
+import parser.nodes.FlowType;
 import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
@@ -18,10 +22,12 @@ import java.util.List;
 public class StatementAnalyzer extends TopAnalyzer {
     @Override
     public TopAnalyzer.AnalyzerResult parse(final Parser parser) {
-        switch (parser.advance().type()) {
+        final Token currentToken = parser.advance();
+        final int line = currentToken.line();
+        switch (currentToken.type()) {
             case IF:
                 parser.consume(TokenType.OPEN_PARENTHESES);
-                final ExpressionNode ifCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                final ExpressionNode ifCondition = ExpressionAnalyzer.parseExpression(parser);
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
                 final BlockNode trueBranch = getBlock(parser);
@@ -37,10 +43,14 @@ public class StatementAnalyzer extends TopAnalyzer {
                 }
 
                 return new AnalyzerResult(
-                    new IfStatementNode(
-                        new ExpressionBaseNode(ifCondition),
-                        trueBranch,
-                        falseBranch
+                    ASTMetaDataStore.getInstance().addMetadata(
+                        new IfStatementNode(
+                            new ExpressionBaseNode(ifCondition, line, parser.file),
+                            new BodyNode(trueBranch),
+                            new BodyNode(falseBranch)
+                        ),
+                        line,
+                        parser.file
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
@@ -51,7 +61,7 @@ public class StatementAnalyzer extends TopAnalyzer {
 
                 parser.consume(TokenType.COMMA);
 
-                final ExpressionNode forCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                final ExpressionNode forCondition = ExpressionAnalyzer.parseExpression(parser);
 
                 parser.consume(TokenType.COMMA);
 
@@ -62,11 +72,15 @@ public class StatementAnalyzer extends TopAnalyzer {
                 final BlockNode forBlock = getBlock(parser);
 
                 return new AnalyzerResult(
-                    new ForStatementNode(
-                        loopVariable,
-                        new ExpressionBaseNode(forCondition),
-                        loopActionBlock,
-                        forBlock
+                    ASTMetaDataStore.getInstance().addMetadata(
+                        new ForStatementNode(
+                            loopVariable,
+                            new ExpressionBaseNode(forCondition, line, parser.file),
+                            new BodyNode(loopActionBlock),
+                            new BodyNode(forBlock)
+                        ),
+                        line,
+                        parser.file
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
@@ -75,37 +89,45 @@ public class StatementAnalyzer extends TopAnalyzer {
 
                 final String foreachVariable = parser.consume(TokenType.IDENTIFIER).value();
                 parser.consume(TokenType.IN);
-                final ExpressionNode foreachCollection = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                final ExpressionNode foreachCollection = ExpressionAnalyzer.parseExpression(parser);
 
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
                 final BlockNode foreachBlock = getBlock(parser);
 
                 return new AnalyzerResult(
-                    new ForeachStatementNode(
-                        foreachVariable,
-                        foreachCollection,
-                        foreachBlock
+                    ASTMetaDataStore.getInstance().addMetadata(
+                        new ForeachStatementNode(
+                            foreachVariable,
+                            foreachCollection,
+                            new BodyNode(foreachBlock)
+                        ),
+                        line,
+                        parser.file
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
             case WHILE:
                 parser.consume(TokenType.OPEN_PARENTHESES);
-                final ExpressionNode whileCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                final ExpressionNode whileCondition = ExpressionAnalyzer.parseExpression(parser);
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
                 final BlockNode whileBlock = getBlock(parser);
 
                 return new AnalyzerResult(
-                    new WhileStatementNode(
-                        new ExpressionBaseNode(whileCondition),
-                        whileBlock
+                    ASTMetaDataStore.getInstance().addMetadata(
+                        new WhileStatementNode(
+                            new ExpressionBaseNode(whileCondition, line, parser.file),
+                            new BodyNode(whileBlock)
+                        ),
+                        line,
+                        parser.file
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
             case SWITCH:
                 parser.consume(TokenType.OPEN_PARENTHESES);
-                final ExpressionNode switchCondition = (ExpressionNode) new ExpressionAnalyzer().parse(parser).node();
+                final ExpressionNode switchCondition = ExpressionAnalyzer.parseExpression(parser);
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
                 parser.consume(TokenType.OPEN_BRACES);
@@ -113,19 +135,23 @@ public class StatementAnalyzer extends TopAnalyzer {
                 parser.consume(TokenType.CLOSE_BRACES);
 
                 return new AnalyzerResult(
-                    new SwitchStatementNode(
-                        new ExpressionBaseNode(switchCondition),
-                        switchBlock.children
-                            .stream()
-                            .filter(node -> node instanceof CaseNode)
-                            .map(node -> (CaseNode) node)
-                            .toList(),
-                        switchBlock.children
-                            .stream()
-                            .filter(node -> node instanceof BlockNode)
-                            .map(node -> (BlockNode) node)
-                            .findFirst()
-                            .orElse(null)
+                    ASTMetaDataStore.getInstance().addMetadata(
+                        new SwitchStatementNode(
+                            new ExpressionBaseNode(switchCondition, line, parser.file),
+                            switchBlock.children
+                                .stream()
+                                .filter(node -> node instanceof CaseNode)
+                                .map(node -> (CaseNode) node)
+                                .toList(),
+                            switchBlock.children
+                                .stream()
+                                .filter(node -> node instanceof BodyNode)
+                                .map(node -> (BodyNode) node)
+                                .findFirst()
+                                .orElse(null)
+                        ),
+                        line,
+                        parser.file
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
@@ -144,21 +170,31 @@ public class StatementAnalyzer extends TopAnalyzer {
 
                     parser.consume(TokenType.CLOSE_PARENTHESES);
 
-
                     final BlockNode catchBlock = getBlock(parser);
 
                     catchNodes.add(
                         new CatchNode(
-                            new ParameterNode(type, false, parameterName, null),
-                            catchBlock
+                            new ParameterNode(
+                                new FlowType(type, false, false),
+                                parameterName, null
+                            ),
+                            new BodyNode(catchBlock)
                         )
                     );
                 } while (parser.check(TokenType.CATCH));
 
+                BlockNode finallyBlock = null;
+                if (parser.check(TokenType.FINALLY)) {
+                    parser.advance();
+
+                    finallyBlock = getBlock(parser);
+                }
+
                 return new AnalyzerResult(
                     new TryStatementNode(
-                        tryBlock,
-                        catchNodes
+                        new BodyNode(tryBlock),
+                        catchNodes,
+                        new BodyNode(finallyBlock)
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
@@ -166,7 +202,9 @@ public class StatementAnalyzer extends TopAnalyzer {
                 return new AnalyzerResult(
                     new ThrowNode(
                         new ExpressionBaseNode(
-                            (ExpressionNode) new ExpressionAnalyzer().parse(parser).node()
+                            ExpressionAnalyzer.parseExpression(parser),
+                            line,
+                            parser.file
                         )
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
@@ -174,20 +212,38 @@ public class StatementAnalyzer extends TopAnalyzer {
             case RETURN:
                 if (parser.peek().isLineTerminator()) {
                     return new AnalyzerResult(
-                        new ReturnStatementNode(
-                            new ExpressionBaseNode(
-                                new VoidLiteralNode()
-                            )
+                        ASTMetaDataStore.getInstance().addMetadata(
+                            new ReturnStatementNode(
+                                (ExpressionBaseNode) ASTMetaDataStore.getInstance().addMetadata(
+                                    new ExpressionBaseNode(
+                                        new VoidLiteralNode(),
+                                        line,
+                                        parser.file
+                                    ),
+                                    line,
+                                    parser.file
+                                ),
+                                null
+                            ),
+                            line,
+                            parser.file
                         ),
                         parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                     );
                 }
 
                 return new AnalyzerResult(
-                    new ReturnStatementNode(
-                        new ExpressionBaseNode(
-                            (ExpressionNode) new ExpressionAnalyzer().parse(parser).node()
-                        )
+                    ASTMetaDataStore.getInstance().addMetadata(
+                        new ReturnStatementNode(
+                            new ExpressionBaseNode(
+                                ExpressionAnalyzer.parseExpression(parser),
+                                line,
+                                parser.file
+                            ),
+                            null
+                        ),
+                        line,
+                        parser.file
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );

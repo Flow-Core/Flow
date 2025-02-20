@@ -5,4 +5,9 @@ public class VoidLiteralNode implements LiteralNode {
     public String getClassName() {
         return "Void";
     }
+
+    @Override
+    public Object getValue() {
+        return null;
+    }
 }

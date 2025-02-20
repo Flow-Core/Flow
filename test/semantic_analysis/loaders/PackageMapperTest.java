@@ -4,6 +4,7 @@ import generators.ast.components.BlockNodeGenerator;
 import generators.ast.functions.FunctionNodeGenerator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import parser.nodes.FlowType;
 import parser.nodes.components.BlockNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.packages.PackageNode;
@@ -26,7 +27,7 @@ class PackageMapperTest {
     void test_single_file_with_no_package_should_go_to_empty_path() {
         FunctionDeclarationNode mainFunction = FunctionNodeGenerator.builder()
             .name("main")
-            .returnType("Void")
+            .returnType(new FlowType("Void", false, false))
             .parameters(List.of())
             .block(BlockNodeGenerator.builder().children(List.of()).build())
             .build();

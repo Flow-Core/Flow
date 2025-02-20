@@ -8,6 +8,7 @@ import generators.ast.variables.VariableDeclarationNodeGenerator;
 import generators.scopes.ScopeGenerator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import parser.nodes.FlowType;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.components.BlockNode;
@@ -23,20 +24,20 @@ class TopLevelTransformerTest {
     void test_transform_with_top_level_functions() {
         FunctionDeclarationNode function1 = FunctionNodeGenerator.builder()
             .name("sum")
-            .returnType("Int")
+            .returnType(new FlowType("Int", false, true))
             .parameters(new ArrayList<>())
             .block(BlockNodeGenerator.builder().children(new ArrayList<>()).build())
             .build();
 
         FunctionDeclarationNode function2 = FunctionNodeGenerator.builder()
             .name("multiply")
-            .returnType("Int")
+            .returnType(new FlowType("Int", false, true))
             .parameters(new ArrayList<>())
             .block(BlockNodeGenerator.builder().children(new ArrayList<>()).build())
             .build();
 
-        FileWrapper file = new FileWrapper(new BlockNode(List.of(function1, function2)), ScopeGenerator.builder().build(), "Sum");
-        TopLevelTransformer.transform(file);
+        FileWrapper file = new FileWrapper(new BlockNode(new ArrayList<>(List.of(function1, function2))), ScopeGenerator.builder().build(), "Sum");
+        TopLevelTransformer.transform(file, "");
 
         final ClassDeclarationNode generatedClass = file.scope().getClass("SumFl");
         Assertions.assertNotNull(generatedClass);
@@ -50,19 +51,19 @@ class TopLevelTransformerTest {
         FieldNode field1 = FieldNodeGenerator.builder()
             .modifiers(List.of("public"))
             .initialization(InitializedVariableNodeGenerator.builder()
-                .declaration(VariableDeclarationNodeGenerator.builder().name("counter").type("Int").build())
+                .declaration(VariableDeclarationNodeGenerator.builder().name("counter").type(new FlowType("Int", false, true)).build())
                 .build())
             .build();
 
         FieldNode field2 = FieldNodeGenerator.builder()
             .modifiers(List.of("public"))
             .initialization(InitializedVariableNodeGenerator.builder()
-                .declaration(VariableDeclarationNodeGenerator.builder().name("message").type("String").build())
+                .declaration(VariableDeclarationNodeGenerator.builder().name("message").type(new FlowType("String", false, true)).build())
                 .build())
             .build();
 
-        FileWrapper file = new FileWrapper(new BlockNode(List.of(field1, field2)), ScopeGenerator.builder().build(), "Counter");
-        TopLevelTransformer.transform(file);
+        FileWrapper file = new FileWrapper(new BlockNode(new ArrayList<>(List.of(field1, field2))), ScopeGenerator.builder().build(), "Counter");
+        TopLevelTransformer.transform(file, "");
 
         final ClassDeclarationNode generatedClass = file.scope().getClass("CounterFl");
         Assertions.assertNotNull(generatedClass);
@@ -75,7 +76,7 @@ class TopLevelTransformerTest {
     void test_transform_with_mixed_top_level_elements() {
         FunctionDeclarationNode function = FunctionNodeGenerator.builder()
             .name("printHello")
-            .returnType("Void")
+            .returnType(new FlowType("Void", false, false))
             .parameters(new ArrayList<>())
             .block(BlockNodeGenerator.builder().children(new ArrayList<>()).build())
             .build();
@@ -83,12 +84,12 @@ class TopLevelTransformerTest {
         FieldNode field = FieldNodeGenerator.builder()
             .modifiers(List.of("public"))
             .initialization(InitializedVariableNodeGenerator.builder()
-                .declaration(VariableDeclarationNodeGenerator.builder().name("count").type("Int").build())
+                .declaration(VariableDeclarationNodeGenerator.builder().name("count").type(new FlowType("Int", false, true)).build())
                 .build())
             .build();
 
-        FileWrapper file = new FileWrapper(new BlockNode(List.of(field, function)), ScopeGenerator.builder().build(), "Counter");
-        TopLevelTransformer.transform(file);
+        FileWrapper file = new FileWrapper(new BlockNode(new ArrayList<>(List.of(field, function))), ScopeGenerator.builder().build(), "Counter");
+        TopLevelTransformer.transform(file, "");
 
         final ClassDeclarationNode generatedClass = file.scope().getClass("CounterFl");
         Assertions.assertNotNull(generatedClass);
@@ -99,7 +100,7 @@ class TopLevelTransformerTest {
     @Test
     void test_transform_with_empty_file_should_return_empty_class() {
         FileWrapper file = new FileWrapper(new BlockNode(new ArrayList<>()), ScopeGenerator.builder().build(), "Empty");
-        TopLevelTransformer.transform(file);
+        TopLevelTransformer.transform(file, "");
 
         final ClassDeclarationNode generatedClass = file.scope().getClass("Empty");
         Assertions.assertNull(generatedClass);

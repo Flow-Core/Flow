@@ -1,27 +1,50 @@
 package semantic_analysis.loaders;
 
+import logger.LoggerFacade;
+import parser.nodes.ASTMetaDataStore;
 import parser.nodes.ASTNode;
+import parser.nodes.classes.BaseClassNode;
 import parser.nodes.classes.BaseInterfaceNode;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.InterfaceNode;
-import parser.nodes.components.BlockNode;
 import parser.nodes.packages.ImportNode;
 import parser.nodes.packages.PackageNode;
+import semantic_analysis.files.FileWrapper;
 import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.scopes.SymbolTable;
-import semantic_analysis.exceptions.SA_SemanticError;
-import semantic_analysis.exceptions.SA_UnresolvedPackageException;
 
 import java.util.Map;
 
 public class ImportLoader {
-    public void load(final BlockNode root, final SymbolTable data, final Map<String, PackageWrapper> globalPackages) {
-        for (int i = 0; i < root.children.size(); i++) {
-            final ASTNode node = root.children.get(i);
+    public void load(final FileWrapper file, final SymbolTable data, final Map<String, PackageWrapper> globalPackages) {
+        boolean finishedImports = false;
+
+        validateImport(
+            (ImportNode) ASTMetaDataStore.getInstance().addMetadata(
+                new ImportNode(
+                    "flow.*",
+                    "*",
+                    true
+                ),
+                0,
+                file.name()
+            ),
+            data,
+            globalPackages
+        );
+
+        for (int i = 0; i < file.root().children.size(); i++) {
+            final ASTNode node = file.root().children.get(i);
             if (node instanceof ImportNode importNode) {
+                if (finishedImports) {
+                    LoggerFacade.error("Import cannot be here", node);
+                }
+
                 validateImport(importNode, data, globalPackages);
             } else if (i != 0 && node instanceof PackageNode) {
-                throw new SA_SemanticError("Package must be on top of the file");
+                LoggerFacade.error("Package must be on top of the file", node);
+            } else {
+                finishedImports = true;
             }
         }
     }
@@ -31,24 +54,25 @@ public class ImportLoader {
 
         final int lastDotIndex = modulePath.lastIndexOf(".");
         if (lastDotIndex == -1) {
-            throw new SA_SemanticError("No module included in import (use wildcard: '*' to import all)");
+            LoggerFacade.error("No module included in import (use wildcard: '*' to import all)", importNode);
         }
 
         final String packagePath = modulePath.substring(0, lastDotIndex);
         final String module = modulePath.substring(lastDotIndex + 1);
 
         if (!globalPackages.containsKey(packagePath)) {
-            throw new SA_UnresolvedPackageException(packagePath);
+            LoggerFacade.error("Package not found: '" + packagePath + "'", importNode);
+            return;
         }
 
         final SymbolTable importedSymbols = globalPackages.get(packagePath).scope().symbols();
         if (importNode.isWildcard) {
             if (!importNode.alias.equals("*")) {
-                throw new SA_SemanticError("Cannot rename all imported items to one identifier");
+                LoggerFacade.error("Cannot rename all imported items to one identifier" + packagePath + "'", importNode);
             }
 
             data.recognizeSymbolTable(importedSymbols);
-            data.addToBindingContext(importedSymbols, packagePath);
+            data.addToBindingContext(importedSymbols);
         } else {
             // Add only the needed module
             var optionalClass = importedSymbols.classes().stream()
@@ -60,13 +84,18 @@ public class ImportLoader {
                 data.bindingContext().put(optionalClass.get(), importNode.module);
 
                 if (!optionalClass.get().baseClasses.isEmpty()) {
-                    final ClassDeclarationNode baseClass = importedSymbols.getClass(optionalClass.get().baseClasses.get(0).name);
-                    data.classes().add(baseClass);
+                    final BaseClassNode baseClassNode = optionalClass.get().baseClasses.get(0);
+                    final ClassDeclarationNode classDeclarationNode = importedSymbols.getClass(baseClassNode.name);
+
+                    data.classes().add(classDeclarationNode);
+                    data.bindingContext().put(baseClassNode, importedSymbols.bindingContext().get(classDeclarationNode));
                 }
 
                 for (final BaseInterfaceNode baseInterfaceNode : optionalClass.get().implementedInterfaces) {
                     final InterfaceNode interfaceNode = importedSymbols.getInterface(baseInterfaceNode.name);
+
                     data.interfaces().add(interfaceNode);
+                    data.bindingContext().put(baseInterfaceNode, importedSymbols.bindingContext().get(interfaceNode));
                 }
 
                 return;
@@ -94,7 +123,7 @@ public class ImportLoader {
 
             if (optionalFunction.isPresent()) {
                 data.functions().add(optionalFunction.get());
-                data.bindingContext().put(optionalFunction.get(), importNode.module);
+                data.bindingContext().put(optionalFunction.get(), data.bindingContext().get(optionalFunction.get()));
                 return;
             }
 
@@ -104,11 +133,11 @@ public class ImportLoader {
 
             if (optionalField.isPresent()) {
                 data.fields().add(optionalField.get());
-                data.bindingContext().put(optionalField.get(), importNode.module);
+                data.bindingContext().put(optionalField.get(), data.bindingContext().get(optionalField.get()));
                 return;
             }
 
-            throw new SA_SemanticError("Symbol not found in package: " + module);
+            LoggerFacade.error("Symbol not found in package: " + module, importNode);
         }
     }
 }

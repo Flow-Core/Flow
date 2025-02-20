@@ -1,5 +1,6 @@
 package generators.ast.variables;
 
+import parser.nodes.FlowType;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.variable.FieldReferenceNode;
 
@@ -7,6 +8,8 @@ public class FieldReferenceNodeGenerator {
     private String holderType;
     private String name;
     private ExpressionNode holder;
+    private FlowType type;
+    private boolean isStatic;
 
     public static FieldReferenceNodeGenerator builder() {
         return new FieldReferenceNodeGenerator();
@@ -27,7 +30,17 @@ public class FieldReferenceNodeGenerator {
         return this;
     }
 
+    public FieldReferenceNodeGenerator type(FlowType type) {
+        this.type = type;
+        return this;
+    }
+
+    public FieldReferenceNodeGenerator isStatic(boolean isStatic) {
+        this.isStatic = isStatic;
+        return this;
+    }
+
     public FieldReferenceNode build() {
-        return new FieldReferenceNode(holderType, name, holder);
+        return new FieldReferenceNode(holderType, name, holder, type, isStatic);
     }
 }

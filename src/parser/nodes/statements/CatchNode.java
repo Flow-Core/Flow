@@ -1,16 +1,16 @@
 package parser.nodes.statements;
 
 import parser.nodes.ASTVisitor;
-import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 import parser.nodes.components.ParameterNode;
 
 import java.util.Objects;
 
 public class CatchNode implements StatementNode {
     public ParameterNode parameter;
-    public BlockNode body;
+    public BodyNode body;
 
-    public CatchNode(ParameterNode parameter, BlockNode body) {
+    public CatchNode(ParameterNode parameter, BodyNode body) {
         this.parameter = parameter;
         this.body = body;
     }
