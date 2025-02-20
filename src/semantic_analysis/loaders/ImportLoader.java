@@ -123,7 +123,6 @@ public class ImportLoader {
 
             if (optionalFunction.isPresent()) {
                 data.functions().add(optionalFunction.get());
-                System.out.println(data.bindingContext().get(optionalFunction.get()));
                 data.bindingContext().put(optionalFunction.get(), data.bindingContext().get(optionalFunction.get()));
                 return;
             }

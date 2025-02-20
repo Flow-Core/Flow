@@ -24,29 +24,30 @@ import java.util.List;
 import static compiler.code_generation.generators.FunctionGenerator.getJVMName;
 
 public class ExpressionGenerator {
-    public static void generate(ExpressionNode expression, MethodVisitor mv, VariableManager vm, FileWrapper file, FlowType expectedType) {
+    public static FlowType generate(ExpressionNode expression, MethodVisitor mv, VariableManager vm, FileWrapper file, FlowType expectedType) {
         if (expression instanceof VariableReferenceNode referenceNode) {
-            generateVarReference(referenceNode, vm, expectedType);
+            return generateVarReference(referenceNode, vm, expectedType);
         } else if (expression instanceof FunctionCallNode functionCallNode) {
-            generateFuncCall(functionCallNode, file, vm, mv, expectedType);
+            return generateFuncCall(functionCallNode, file, vm, mv, expectedType);
         } else if (expression instanceof ObjectNode objectNode) {
-            generateObjectInstantiation(objectNode, file.scope(), file, vm, mv);
+            return generateObjectInstantiation(objectNode, file.scope(), file, vm, mv);
         } else if (expression instanceof FieldReferenceNode fieldReferenceNode) {
-            generateFieldReference(fieldReferenceNode, file.scope(), mv, expectedType);
+            return generateFieldReference(fieldReferenceNode, file.scope(), mv, expectedType);
         } else if (expression instanceof LiteralNode literalNode) {
-            generateLiteral(literalNode, mv, expectedType);
+            return generateLiteral(literalNode, mv, expectedType);
         } else if (expression instanceof NullLiteral) {
             mv.visitInsn(Opcodes.ACONST_NULL);
+            return null;
         } else {
             throw new UnsupportedOperationException("Unknown expression type: " + expression.getClass().getSimpleName());
         }
     }
 
-    private static void generateVarReference(VariableReferenceNode refNode, VariableManager vm, FlowType expectedType) {
-        vm.loadVariable(refNode.variable, expectedType);
+    private static FlowType generateVarReference(VariableReferenceNode refNode, VariableManager vm, FlowType expectedType) {
+        return vm.loadVariable(refNode.variable, expectedType);
     }
 
-    private static void generateFuncCall(FunctionCallNode funcCallNode, FileWrapper file, VariableManager vm, MethodVisitor mv, FlowType expectedType) {
+    private static FlowType generateFuncCall(FunctionCallNode funcCallNode, FileWrapper file, VariableManager vm, MethodVisitor mv, FlowType expectedType) {
         if (funcCallNode.callerType == null) {
             final FunctionDeclarationNode declaration = file.scope().getFunction(funcCallNode.name);
             if (declaration == null) {
@@ -65,10 +66,9 @@ public class ExpressionGenerator {
             );
 
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, fqTopLevelName, funcCallNode.name, descriptor, false);
+            BoxMapper.boxIfNeeded(declaration.returnType, expectedType, mv);
 
-            if (expectedType != null && BoxMapper.needBoxing(declaration.returnType, expectedType)) {
-                BoxMapper.box(declaration.returnType, mv);
-            }
+            return declaration.returnType;
         } else {
             final TypeDeclarationNode caller = file.scope().getTypeDeclaration(funcCallNode.callerType);
             if (caller == null) {
@@ -101,13 +101,13 @@ public class ExpressionGenerator {
 
             mv.visitMethodInsn(callType, fqCallerName, funcCallNode.name, descriptor, isInterface);
 
-            if (expectedType != null && BoxMapper.needBoxing(declaration.returnType, expectedType)) {
-                BoxMapper.box(declaration.returnType, mv);
-            }
+            BoxMapper.boxIfNeeded(declaration.returnType, expectedType, mv);
+
+            return declaration.returnType;
         }
     }
 
-    private static void generateFieldReference(FieldReferenceNode refNode, Scope scope, MethodVisitor mv, FlowType expectedType) {
+    private static FlowType generateFieldReference(FieldReferenceNode refNode, Scope scope, MethodVisitor mv, FlowType expectedType) {
         final String holderFQName = FQNameMapper.getFQName(refNode.holderType, scope);
         final String descriptor = getJVMName(refNode.type, scope);
 
@@ -116,14 +116,14 @@ public class ExpressionGenerator {
         else
             mv.visitFieldInsn(Opcodes.GETFIELD, holderFQName, refNode.name, descriptor);
 
-        if (expectedType != null && BoxMapper.needBoxing(refNode.type, expectedType)) {
-            BoxMapper.box(refNode.type, mv);
-        }
+        BoxMapper.boxIfNeeded(refNode.type, expectedType, mv);
+
+        return refNode.type;
     }
 
-    public static void generateConstructorCall(ObjectNode objNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv) {
+    public static FlowType generateConstructorCall(ObjectNode objNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv) {
         if (objNode.className.equals("Void")) {
-            return;
+            return new FlowType("Void", false, true);
         }
 
         final String fqObjectName = FQNameMapper.getFQName(objNode.className, scope);
@@ -155,25 +155,25 @@ public class ExpressionGenerator {
         }
 
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, fqObjectName, "<init>", constructorDescriptor, false);
+
+        return new FlowType(objNode.className, false, false);
     }
 
-    private static void generateObjectInstantiation(ObjectNode objNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv) {
+    private static FlowType generateObjectInstantiation(ObjectNode objNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv) {
         final String fqObjectName = FQNameMapper.getFQName(objNode.className, scope);
         mv.visitTypeInsn(Opcodes.NEW, fqObjectName);
         mv.visitInsn(Opcodes.DUP);
 
-        generateConstructorCall(objNode, scope, file, vm, mv);
+        return generateConstructorCall(objNode, scope, file, vm, mv);
     }
 
-    public static void generateLiteral(LiteralNode literalNode, MethodVisitor mv, FlowType expectedType) {
+    public static FlowType generateLiteral(LiteralNode literalNode, MethodVisitor mv, FlowType expectedType) {
         if (literalNode instanceof VoidLiteralNode) {
-            return;
+            return new FlowType("Void", false, true);
         } else if (literalNode instanceof BooleanLiteralNode booleanLiteralNode) {
             mv.visitInsn(booleanLiteralNode.value ? Opcodes.ICONST_1 : Opcodes.ICONST_0);
 
-            boxLiteralIfNeeded("Bool", expectedType, mv);
-
-            return;
+            return boxLiteralIfNeeded("Bool", expectedType, mv);
         } else if (literalNode instanceof IntegerLiteralNode intLiteralNode) {
             int value = intLiteralNode.value;
             if (value >= -1 && value <= 5) {
@@ -186,9 +186,7 @@ public class ExpressionGenerator {
                 mv.visitLdcInsn(value);
             }
 
-            boxLiteralIfNeeded("Int", expectedType, mv);
-
-            return;
+            return boxLiteralIfNeeded("Int", expectedType, mv);
         } else if (literalNode instanceof FloatLiteralNode floatLiteralNode) {
             float value = floatLiteralNode.value;
             if (value == 0.0f) {
@@ -201,9 +199,7 @@ public class ExpressionGenerator {
                 mv.visitLdcInsn(value);
             }
 
-            boxLiteralIfNeeded("Float", expectedType, mv);
-
-            return;
+            return boxLiteralIfNeeded("Float", expectedType, mv);
         } else if (literalNode instanceof DoubleLiteralNode doubleLiteralNode) {
             double value = doubleLiteralNode.value;
             if (value == 0.0) {
@@ -214,9 +210,7 @@ public class ExpressionGenerator {
                 mv.visitLdcInsn(value);
             }
 
-            boxLiteralIfNeeded("Double", expectedType, mv);
-
-            return;
+            return boxLiteralIfNeeded("Double", expectedType, mv);
         } else if (literalNode instanceof LongLiteralNode longLiteralNode) {
             long value = longLiteralNode.value;
             if (value == 0L) {
@@ -227,9 +221,7 @@ public class ExpressionGenerator {
                 mv.visitLdcInsn(value);
             }
 
-            boxLiteralIfNeeded("Long", expectedType, mv);
-
-            return;
+            return boxLiteralIfNeeded("Long", expectedType, mv);
         } else if (literalNode instanceof CharLiteralNode charLiteralNode) {
             char value = charLiteralNode.value;
             if (value <= 5) {
@@ -240,9 +232,7 @@ public class ExpressionGenerator {
                 mv.visitLdcInsn((int) value);
             }
 
-            boxLiteralIfNeeded("Char", expectedType, mv);
-
-            return;
+            return boxLiteralIfNeeded("Char", expectedType, mv);
         } else if (literalNode instanceof StringLiteralNode stringLiteralNode) {
             mv.visitTypeInsn(Opcodes.NEW, "flow/String");
             mv.visitInsn(Opcodes.DUP);
@@ -250,17 +240,21 @@ public class ExpressionGenerator {
             mv.visitLdcInsn(stringLiteralNode.getValue());
 
             mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "flow/String", "<init>", "(Ljava/lang/String;)V", false);
-            return;
+
+            return new FlowType("String", false, false);
         }
 
         mv.visitLdcInsn(literalNode.getValue());
+        return null;
     }
 
-    private static void boxLiteralIfNeeded(String name, FlowType expectedType, MethodVisitor mv) {
+    private static FlowType boxLiteralIfNeeded(String name, FlowType expectedType, MethodVisitor mv) {
         final FlowType type = new FlowType(name, false, true);
         if (BoxMapper.needBoxing(type, expectedType)) {
             BoxMapper.box(type, mv);
         }
+
+        return type;
     }
 
     private static void processFunctionArguments(

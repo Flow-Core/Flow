@@ -5,16 +5,27 @@ import org.objectweb.asm.Opcodes;
 import parser.nodes.FlowType;
 
 public class BoxMapper {
+    public static void boxIfNeeded(FlowType type, FlowType expectedType, MethodVisitor mv) {
+        if (expectedType != null) {
+            if (expectedType.shouldBePrimitive()) {
+                unbox(expectedType, mv);
+                return;
+            }
+
+            if (needUnboxing(type, expectedType)) {
+                unbox(type, mv);
+            } else if (needBoxing(type, expectedType)) {
+                box(type, mv);
+            }
+        }
+    }
+
     public static boolean needBoxing(FlowType type, FlowType expectedType) {
-        return (type.isPrimitive && (expectedType.isNullable || !expectedType.isPrimitive)) && isPrimitiveType(type.name);
+        return (type.isPrimitive && (expectedType.isNullable || !expectedType.isPrimitive)) && type.isPrimitiveType();
     }
 
     public static boolean needUnboxing(FlowType type, FlowType expectedType) {
-        return expectedType.isPrimitive && needUnboxing(type) && isPrimitiveType(type.name);
-    }
-
-    public static boolean needUnboxing(FlowType type) {
-        return !type.isPrimitive && !type.isNullable && isPrimitiveType(type.name);
+        return expectedType.isPrimitive && type.shouldBePrimitive();
     }
 
     public static void box(FlowType type, MethodVisitor mv) {
@@ -29,8 +40,6 @@ public class BoxMapper {
             case "Short" -> mv.visitMethodInsn(Opcodes.INVOKESTATIC, "flow/Short", "fromPrimitive", "(S)Lflow/Short;", false);
             default -> throw new IllegalArgumentException("Cannot box unknown type: " + type);
         }
-
-        type.isPrimitive = false;
     }
 
     public static void unbox(FlowType type, MethodVisitor mv) {
@@ -44,14 +53,5 @@ public class BoxMapper {
             case "Char" -> mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Char", "value", "C");
             case "Short" -> mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Short", "value", "S");
         }
-
-        type.isPrimitive = false;
-    }
-
-    private static boolean isPrimitiveType(String type) {
-        return switch (type) {
-            case "Int", "Bool", "Float", "Double", "Long", "Byte", "Char", "Short" -> true;
-            default -> false;
-        };
     }
 }

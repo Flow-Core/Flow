@@ -28,7 +28,7 @@ public class VariableDeclarationGenerator {
             mv.visitInsn(Opcodes.ACONST_NULL);
         }
 
-        vm.declareVariable(fieldName, fieldNode.initialization.declaration.type);
+        vm.declareVariable(fieldName, fieldNode.initialization.declaration.type, null);
     }
 
     public static void generateField(

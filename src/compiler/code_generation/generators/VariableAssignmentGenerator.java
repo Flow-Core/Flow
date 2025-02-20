@@ -1,7 +1,6 @@
 package compiler.code_generation.generators;
 
 import compiler.code_generation.manager.VariableManager;
-import compiler.code_generation.mappers.BoxMapper;
 import compiler.code_generation.mappers.FQNameMapper;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -21,7 +20,7 @@ public class VariableAssignmentGenerator {
         VariableManager vm,
         FileWrapper file,
         Scope scope
-        ) {
+    ) {
         final ExpressionNode variable = variableAssignmentNode.variable.expression;
         if (variable instanceof VariableReferenceNode variableReferenceNode) {
             final FieldNode fieldNode = scope.getField(variableReferenceNode.variable);
@@ -29,12 +28,9 @@ public class VariableAssignmentGenerator {
                 throw new IllegalArgumentException("Variable is not loaded in the current scope");
             }
 
-            if (BoxMapper.needUnboxing(fieldNode.initialization.declaration.type)) {
-                fieldNode.initialization.declaration.type.isPrimitive = true;
-            }
-
             ExpressionGenerator.generate(variableAssignmentNode.value.expression, mv, vm, file, fieldNode.initialization.declaration.type);
-            vm.storeVariable(variableReferenceNode.variable);
+
+            vm.storeVariable(variableReferenceNode.variable, null);
         } else if (variable instanceof FieldReferenceNode fieldReferenceNode) {
             final ClassDeclarationNode holder = scope.getClass(fieldReferenceNode.holderType);
             if (holder == null) {

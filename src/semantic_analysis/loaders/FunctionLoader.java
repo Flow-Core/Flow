@@ -54,6 +54,10 @@ public class FunctionLoader {
             functionDeclarationNode.modifiers.add("public");
         }
 
+        if (functionDeclarationNode.returnType.shouldBePrimitive()) {
+            functionDeclarationNode.returnType.isPrimitive = true;
+        }
+
         scope.symbols().functions().add(functionDeclarationNode);
     }
 

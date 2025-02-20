@@ -18,15 +18,15 @@ public class VariableManager {
     }
 
     public void recognizeVariable(String name, FlowType type) {
-        variables.put(name, new VariableInfo(availableCell, type));
+        variables.put(name, new VariableInfo(availableCell++, type));
     }
 
-    public void declareVariable(String name, FlowType type) {
+    public void declareVariable(String name, FlowType type, FlowType expectedType) {
         recognizeVariable(name, type);
-        storeVariable(name);
+        storeVariable(name, expectedType);
     }
 
-    public void loadVariable(String name, FlowType expectedType) {
+    public FlowType loadVariable(String name, FlowType expectedType) {
         if (!variables.containsKey(name)) {
             throw new IllegalArgumentException("Variable '" + name + "' does not exist");
         }
@@ -37,28 +37,20 @@ public class VariableManager {
             varInfo.index
         );
 
-        if (expectedType != null) {
-            if (BoxMapper.needBoxing(varInfo.type, expectedType)) {
-                BoxMapper.box(varInfo.type, mv);
-            } else if (BoxMapper.needUnboxing(varInfo.type, expectedType)) {
-                BoxMapper.unbox(varInfo.type, mv);
-            }
-        }
+        BoxMapper.boxIfNeeded(varInfo.type, expectedType, mv);
+        return varInfo.type;
     }
 
-    public void storeVariable(String name) {
+    public void storeVariable(String name, FlowType expectedType) {
         VariableInfo varInfo = variables.get(name);
         if (varInfo == null) {
             throw new IllegalArgumentException("Variable '" + name + "' does not exist");
         }
 
-        if (BoxMapper.needUnboxing(varInfo.type)) {
-            BoxMapper.unbox(varInfo.type, mv);
-        }
+        BoxMapper.boxIfNeeded(varInfo.type, expectedType, mv);
 
         int opcode = getStoreOpcode(varInfo.type);
         mv.visitVarInsn(opcode, varInfo.index);
-        availableCell++;
     }
 
     private int getStoreOpcode(FlowType type) {

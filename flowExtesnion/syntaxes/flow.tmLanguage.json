@@ -6,6 +6,9 @@
 			"include": "#keywords"
 		},
 		{
+			"include": "#imports"
+		},
+		{
 			"include": "#comments"
 		},
 		{
@@ -46,6 +49,18 @@
 				{
 					"name": "keyword.access.flow",
 					"match": "\\b(private|protected|public|static|abstract|final|open|data|sealed|override)\\b"
+				}
+			]
+		},
+		"imports": {
+			"patterns": [
+				{
+					"name": "keyword.package.flow",
+					"match": "\\b(package)\\b"
+				},
+				{
+					"name": "keyword.import.flow",
+					"match": "\\b(import)\\b"
 				}
 			]
 		},
@@ -125,7 +140,7 @@
 			"patterns": [
 				{
 					"name": "support.type.flow",
-					"match": "\\b(Int|Double|Float|Bool|String|Ip|Port|Address)\\b"
+					"match": "\\b(Int|Double|Float|Bool|String|Ip|Port|Address|FlowIO)\\b"
 				}
 			]
 		},

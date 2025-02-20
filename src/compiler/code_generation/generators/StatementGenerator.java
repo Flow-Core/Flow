@@ -77,12 +77,9 @@ public class StatementGenerator {
 
         FunctionDeclarationNode functionDeclarationNode = (FunctionDeclarationNode) currentScope.currentParent();
         FlowType expectedReturnType = functionDeclarationNode.returnType;
+        FlowType actualReturnType = ExpressionGenerator.generate(returnStatementNode.returnValue.expression, mv, vm, file, expectedReturnType);
 
-        if (BoxMapper.needUnboxing(expectedReturnType)) {
-            expectedReturnType.isPrimitive = true;
-        }
-
-        ExpressionGenerator.generate(returnStatementNode.returnValue.expression, mv, vm, file, expectedReturnType);
+        BoxMapper.boxIfNeeded(actualReturnType, expectedReturnType, mv);
 
         mv.visitInsn(getReturnOpcode(expectedReturnType));
     }
@@ -144,7 +141,7 @@ public class StatementGenerator {
 
             mv.visitLabel(catchLabel);
 
-            vm.declareVariable(catchNode.parameter.name, catchNode.parameter.type);
+            vm.declareVariable(catchNode.parameter.name, catchNode.parameter.type, new FlowType("Throwable", false, false));
 
             BlockGenerator.generateFunctionBlock(catchNode.body.scope, catchNode.body.blockNode, file, mv, vm);
 

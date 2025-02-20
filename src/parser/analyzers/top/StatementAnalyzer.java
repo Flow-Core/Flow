@@ -222,7 +222,8 @@ public class StatementAnalyzer extends TopAnalyzer {
                                     ),
                                     line,
                                     parser.file
-                                )
+                                ),
+                                null
                             ),
                             line,
                             parser.file
@@ -238,7 +239,8 @@ public class StatementAnalyzer extends TopAnalyzer {
                                 ExpressionAnalyzer.parseExpression(parser),
                                 line,
                                 parser.file
-                            )
+                            ),
+                            null
                         ),
                         line,
                         parser.file

@@ -1,7 +1,6 @@
 package compiler.code_generation.generators;
 
 import compiler.code_generation.manager.VariableManager;
-import compiler.code_generation.mappers.BoxMapper;
 import compiler.code_generation.mappers.FQNameMapper;
 import compiler.code_generation.mappers.ModifierMapper;
 import org.objectweb.asm.ClassWriter;
@@ -146,7 +145,7 @@ public class FunctionGenerator {
     }
 
     public static String getJVMName(FlowType type, Scope scope) {
-        if (!BoxMapper.needUnboxing(type) && !type.name.equals("Void")) {
+        if (!type.isPrimitive && !type.shouldBePrimitive() && !type.name.equals("Void")) {
             return "L" + FQNameMapper.getFQName(type.name, scope) + ";";
         }
 

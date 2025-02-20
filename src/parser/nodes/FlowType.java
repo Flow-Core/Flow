@@ -11,6 +11,17 @@ public class FlowType {
         this.isPrimitive = isPrimitive;
     }
 
+    public boolean shouldBePrimitive() {
+        return !isPrimitive && !isNullable && isPrimitiveType();
+    }
+
+    public boolean isPrimitiveType() {
+        return switch (name) {
+            case "Int", "Bool", "Float", "Double", "Long", "Byte", "Char", "Short" -> true;
+            default -> false;
+        };
+    }
+
     @Override
     public String toString() {
         return (isPrimitive ? name.toLowerCase() : name) + (isNullable ? "?" : "");
