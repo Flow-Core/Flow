@@ -1,5 +1,7 @@
 package compiler.packer;
 
+import logger.LoggerFacade;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -23,7 +25,7 @@ public class JarPacker implements Packer {
         try (JarOutputStream jarOutputStream = new JarOutputStream(new FileOutputStream(outputFileName), manifest)) {
             File buildDir = new File(buildPath);
             if (!buildDir.exists() || !buildDir.isDirectory()) {
-                throw new IllegalArgumentException("Build directory not found: " + buildPath);
+                throw LoggerFacade.getLogger().panic("Build directory not found: " + buildPath);
             }
 
             addFilesToJar(jarOutputStream, buildDir, buildDir.getAbsolutePath().length() + 1);

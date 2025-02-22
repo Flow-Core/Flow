@@ -17,6 +17,13 @@ public final class LoggerFacade {
         );
     }
 
+    public static void error(String message) {
+        LoggerFacade.getLogger().log(
+            Logger.Severity.ERROR,
+            message
+        );
+    }
+
     public static Logger getLogger() {
         if (logger == null) {
             throw new LoggerException("Logger was not initialized");

@@ -9,6 +9,15 @@ public class LoggerFake implements Logger {
     private final List<String> logs = new ArrayList<>();
 
     @Override
+    public void log(Severity severity, String message) {
+        if (severity == Severity.ERROR) {
+            System.err.println(message);
+        } else {
+            System.out.println(message);
+        }
+    }
+
+    @Override
     public void log(Severity severity, String message, int line, String file) {
         logs.add(String.format("%s: %s at line: %d", file, message, line));
     }
@@ -16,6 +25,11 @@ public class LoggerFake implements Logger {
     @Override
     public RuntimeException panic(String message, int line, String file) {
         return new RuntimeException(String.format("%s: %s at line: %d", file, message, line));
+    }
+
+    @Override
+    public RuntimeException panic(String message) {
+        return new RuntimeException(message);
     }
 
     @Override
