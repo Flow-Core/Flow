@@ -25,7 +25,7 @@ public class ColoredLogger implements Logger {
             case ERROR -> RED;
         };
 
-        String logMessage = String.format(color + BOLD + message);
+        String logMessage = String.format(color + BOLD + message + RESET);
         System.out.println(logMessage);
     }
 
@@ -38,7 +38,7 @@ public class ColoredLogger implements Logger {
             case ERROR -> RED;
         };
 
-        String logMessage = String.format(color + BOLD + "%s: %s at line: %d", file, message, line);
+        String logMessage = String.format(color + BOLD + "%s: %s at line: %d" + RESET, file, message, line);
         System.out.println(logMessage);
 
         errorLog.add(logMessage);
@@ -50,14 +50,14 @@ public class ColoredLogger implements Logger {
 
     @Override
     public RuntimeException panic(String message, int line, String file) {
-        String log = String.format(RED + BOLD + "%s: %s at line: %d", file, message, line);
+        String log = String.format(RED + BOLD + "%s: %s at line: %d" + RESET, file, message, line);
         System.out.println(log);
         return new RuntimeException(log);
     }
 
     @Override
     public RuntimeException panic(String message) {
-        String log = RED + BOLD + message;
+        String log = RED + BOLD + message + RESET;
         System.out.println(log);
         return new RuntimeException(log);
     }
@@ -68,7 +68,7 @@ public class ColoredLogger implements Logger {
             System.out.println(RED + BOLD + "=== Error Summary ===" + RESET);
             errorLog.forEach(System.out::println);
         } else {
-            System.out.println(CYAN + "No errors logged." + RESET);
+            System.out.println(CYAN + "No errors logged" + RESET);
         }
     }
 
