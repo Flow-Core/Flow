@@ -183,9 +183,10 @@ public class FlowCLI {
             
             Options:
               -p, --project PATH  Set project directory
-              -v, --verbose      Show detailed output
-              --help             Show full help
-              --version          Show compiler version
+              -v, --verbose       Show detailed output
+              -c                  Clean build before running
+              --help              Show full help
+              --version           Show compiler version
             """);
     }
 
