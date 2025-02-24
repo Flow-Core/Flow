@@ -91,6 +91,10 @@ public class VariableLoader {
             fieldNode.modifiers.add("static");
         }
 
+        if (fieldNode.initialization.declaration.type.shouldBePrimitive()) {
+            fieldNode.initialization.declaration.type.isPrimitive = true;
+        }
+
         scope.symbols().fields().add(fieldNode);
     }
 

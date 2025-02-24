@@ -5,6 +5,7 @@ import compiler.code_generation.mappers.ModifierMapper;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import parser.nodes.FlowType;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.literals.LiteralNode;
 import parser.nodes.variable.VariableAssignmentNode;
@@ -21,14 +22,15 @@ public class VariableDeclarationGenerator {
         ) {
         final String fieldName = fieldNode.initialization.declaration.name;
         final VariableAssignmentNode assignment = fieldNode.initialization.assignment;
+        final FlowType expectedType = fieldNode.initialization.declaration.type;
 
         if (assignment != null) {
-            ExpressionGenerator.generate(assignment.value.expression, mv, vm, file, fieldNode.initialization.declaration.type);
+            ExpressionGenerator.generate(assignment.value.expression, mv, vm, file, expectedType);
         } else {
             mv.visitInsn(Opcodes.ACONST_NULL);
         }
 
-        vm.declareVariable(fieldName, fieldNode.initialization.declaration.type, null);
+        vm.declareVariable(fieldName, expectedType, null);
     }
 
     public static void generateField(

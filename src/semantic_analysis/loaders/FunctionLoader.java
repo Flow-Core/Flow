@@ -57,6 +57,11 @@ public class FunctionLoader {
         if (functionDeclarationNode.returnType.shouldBePrimitive()) {
             functionDeclarationNode.returnType.isPrimitive = true;
         }
+        for (ParameterNode parameterNode : functionDeclarationNode.parameters) {
+            if (parameterNode.type.shouldBePrimitive()) {
+                parameterNode.type.isPrimitive = true;
+            }
+        }
 
         scope.symbols().functions().add(functionDeclarationNode);
     }
