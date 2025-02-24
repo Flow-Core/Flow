@@ -85,10 +85,10 @@ public class ExpressionAnalyzer extends TopAnalyzer {
             postfix = parser.advance();
 
         if (postfix != null)
-            value = new UnaryOperatorNode(value, postfix.value());
+            value = new UnaryOperatorNode(value, postfix.value(), true);
 
         if (prefix != null)
-            value = new UnaryOperatorNode(value, prefix.value());
+            value = new UnaryOperatorNode(value, prefix.value(), false);
 
         return value;
     }

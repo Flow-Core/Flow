@@ -7,10 +7,12 @@ import java.util.Objects;
 public class UnaryOperatorNode implements ExpressionNode {
     public ExpressionNode operand;
     public String operator;
+    public boolean isPostfix;
 
-    public UnaryOperatorNode(ExpressionNode operand, String operator) {
+    public UnaryOperatorNode(ExpressionNode operand, String operator, boolean isPostfix) {
         this.operand = operand;
         this.operator = operator;
+        this.isPostfix = isPostfix;
     }
 
     @Override

@@ -206,14 +206,27 @@ public class ExpressionTraverse {
                 return null;
             }
 
-            String operatorName = getOperatorName(unaryExpression.operator);
+            String operatorName = getUnaryOperatorName(unaryExpression.operator, unaryExpression.isPostfix);
 
-            FunctionDeclarationNode functionDecl = findMethodWithParameters(
+            final List<FunctionDeclarationNode> functions = operandTypeNode.findMethodsWithName(
                 scope,
-                operandTypeNode.methods,
-                operatorName,
-                List.of()
+                operatorName
             );
+
+            FunctionDeclarationNode functionDecl = functions.stream()
+                .filter(method -> compareParameterTypes(
+                    scope,
+                    method.parameters,
+                    List.of(
+                        new ArgumentNode(
+                            null,
+                            new ExpressionBaseNode(
+                                unaryExpression.operand
+                            ),
+                            operandType.type
+                        )
+                    )
+                )).findFirst().orElse(null);
 
             if (functionDecl != null) {
                 return new FunctionCallNode(
@@ -476,8 +489,6 @@ public class ExpressionTraverse {
                 yield "and";
             case "||":
                 yield "or";
-            case "!":
-                yield "not";
             case "==":
                 yield "equals";
             case "<=":
@@ -490,10 +501,29 @@ public class ExpressionTraverse {
                 yield "lessThan";
             case "!=":
                 yield "notEquals";
+            default:
+                yield null;
+        };
+    }
+
+    private static String getUnaryOperatorName(String operator, boolean isPostfix) {
+        return switch (operator) {
+            case "+":
+                yield "pos";
+            case "-":
+                yield "neg";
             case "++":
-                yield "inc";
+                if (isPostfix)
+                    yield "postInc";
+                else
+                    yield "preInc";
             case "--":
-                yield "dec";
+                if (isPostfix)
+                    yield "postDec";
+                else
+                    yield "preDec";
+            case "!":
+                yield "not";
             default:
                 yield null;
         };
