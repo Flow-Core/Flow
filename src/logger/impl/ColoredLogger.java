@@ -27,6 +27,10 @@ public class ColoredLogger implements Logger {
 
         String logMessage = String.format(color + BOLD + message + RESET);
         System.out.println(logMessage);
+
+        if (severity == Severity.ERROR) {
+            hasErrors = true;
+        }
     }
 
     @Override
@@ -39,8 +43,6 @@ public class ColoredLogger implements Logger {
         };
 
         String logMessage = String.format(color + BOLD + "%s: %s at line: %d" + RESET, file, message, line);
-        System.out.println(logMessage);
-
         errorLog.add(logMessage);
 
         if (severity == Severity.ERROR) {

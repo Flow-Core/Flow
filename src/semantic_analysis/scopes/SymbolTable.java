@@ -19,6 +19,10 @@ public record SymbolTable(
     }
 
     public boolean isSameType(FlowType type, FlowType superType) {
+        if (type == null || superType == null) {
+            return false;
+        }
+
         if (!superType.isNullable && type.isNullable)
             return false;
 

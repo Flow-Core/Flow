@@ -7,8 +7,6 @@ import logger.Logger;
 import logger.LoggerFacade;
 import logger.impl.ColoredLogger;
 
-import java.io.IOException;
-
 public class Main {
     public static void main(String[] args) {
         final Logger logger = new ColoredLogger();
@@ -19,9 +17,8 @@ public class Main {
 
         try {
             FlowCLI.parseArguments(args);
-        } catch (CLIException | IOException e) {
+        } catch (CLIException e) {
             logger.log(Logger.Severity.ERROR, e.getMessage());
-            FlowCLI.printUsage();
             System.exit(1);
         } catch (Exception e) {
             System.exit(1);

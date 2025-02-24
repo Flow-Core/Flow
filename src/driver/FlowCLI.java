@@ -33,7 +33,13 @@ public class FlowCLI {
             String arg = argQueue.poll();
             switch (arg) {
                 case "-v", "--verbose" -> verbose = true;
-                case "-p", "--project" -> projectPath = requireValue("project (-p)", argQueue);
+                case "-p", "--project" -> {
+                    StringBuilder path = new StringBuilder(requireValue("project (-p)", argQueue));
+                    if (!path.toString().endsWith("/")) {
+                        path.append("/");
+                    }
+                    projectPath = path.toString();
+                }
                 case "-o" -> {
                     if (!command.equals("pack")) {
                         throw new CLIException("Can't use the flag: '-o' here");
@@ -65,7 +71,7 @@ public class FlowCLI {
         long start = System.currentTimeMillis();
 
         BuildSystem buildSystem = new BuildSystem(
-            Path.of(projectPath, "src").toString(),
+            "src",
             loadLibraries(),
             projectPath
         );

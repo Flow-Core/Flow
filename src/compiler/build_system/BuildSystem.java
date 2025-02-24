@@ -57,8 +57,8 @@ public class BuildSystem {
         );
         final Map<String, PackageWrapper> packages = semanticAnalysis.analyze();
 
+        LoggerFacade.getLogger().dump();
         if (LoggerFacade.getLogger().hasErrors()) {
-            LoggerFacade.getLogger().dump();
             return false;
         }
 
