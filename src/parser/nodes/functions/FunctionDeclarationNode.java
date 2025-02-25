@@ -59,12 +59,24 @@ public class FunctionDeclarationNode implements ASTNode {
 
     @Override
     public String toString() {
-        return "FunctionDeclarationNode{" +
-            "name='" + name + '\'' +
-            ", returnType=" + returnType +
-            ", modifiers=" + modifiers +
-            ", parameters=" + parameters +
-            ", block=" + block +
-            '}';
+        StringBuilder sb = new StringBuilder();
+
+        for (String modifier : modifiers) {
+            sb.append(modifier).append(" ");
+        }
+
+        sb.append(name);
+        sb.append("(");
+
+        for (ParameterNode parameterNode : parameters) {
+            sb.append(parameterNode).append(", ");
+        }
+
+        sb.delete(sb.length() - 2, sb.length());
+        sb.append(")");
+
+        sb.append(": ").append(returnType);
+
+        return sb.toString();
     }
 }

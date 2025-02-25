@@ -45,9 +45,15 @@ public class ObjectNode implements ExpressionNode {
 
     @Override
     public String toString() {
-        return "ObjectNode{" +
-            "name='" + className + '\'' +
-            ", arguments=" + arguments +
-            '}';
+        StringBuilder sb = new StringBuilder(className + "(");
+
+        for (ArgumentNode argumentNode : arguments) {
+            sb.append(argumentNode).append(", ");
+        }
+
+        sb.delete(sb.length() - 2, sb.length());
+        sb.append(")");
+
+        return sb.toString();
     }
 }

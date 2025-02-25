@@ -34,8 +34,6 @@ public class BooleanLiteralNode implements LiteralNode {
 
     @Override
     public String toString() {
-        return "BooleanLiteralNode{" +
-            "value=" + value +
-            '}';
+        return value ? "true" : "false";
     }
 }

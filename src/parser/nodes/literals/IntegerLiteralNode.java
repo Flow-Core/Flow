@@ -34,8 +34,6 @@ public class IntegerLiteralNode implements LiteralNode {
 
     @Override
     public String toString() {
-        return "IntegerLiteralNode{" +
-            "value=" + value +
-            '}';
+        return Integer.toString(value);
     }
 }

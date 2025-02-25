@@ -42,9 +42,6 @@ public class UnaryOperatorNode implements ExpressionNode {
 
     @Override
     public String toString() {
-        return "UnaryOperatorNode{" +
-                "operand=" + operand +
-                ", operator='" + operator + '\'' +
-                '}';
+        return isPostfix ? operand + operator : operator + operand;
     }
 }

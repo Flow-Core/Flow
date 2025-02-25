@@ -47,9 +47,10 @@ public class InitializedVariableNode implements ASTNode {
 
     @Override
     public String toString() {
-        return "InitializedVariableNode{" +
-            "declaration=" + declaration +
-            ", assignment=" + assignment +
-            '}';
+        if (assignment != null) {
+            return declaration + " = " + assignment.value;
+        } else {
+            return declaration.toString();
+        }
     }
 }

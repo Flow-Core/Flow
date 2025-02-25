@@ -46,10 +46,6 @@ public class VariableAssignmentNode implements ASTNode {
 
     @Override
     public String toString() {
-        return "VariableAssignmentNode{" +
-            "variable='" + variable + '\'' +
-            ", operator='" + operator + '\'' +
-            ", value=" + value +
-            '}';
+        return variable + " " + operator + " " + value;
     }
 }

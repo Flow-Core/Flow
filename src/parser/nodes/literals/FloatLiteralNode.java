@@ -34,8 +34,6 @@ public class FloatLiteralNode implements LiteralNode {
 
     @Override
     public String toString() {
-        return "FloatLiteralNode{" +
-            "value=" + value +
-            '}';
+        return value + "f";
     }
 }

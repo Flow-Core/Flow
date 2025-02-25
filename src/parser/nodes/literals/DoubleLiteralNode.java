@@ -34,8 +34,6 @@ public class DoubleLiteralNode implements LiteralNode {
 
     @Override
     public String toString() {
-        return "DoubleLiteralNode{" +
-            "value=" + value +
-            '}';
+        return Double.toString(value);
     }
 }

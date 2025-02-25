@@ -52,10 +52,6 @@ public class FieldReferenceNode implements ExpressionNode {
 
     @Override
     public String toString() {
-        return "FieldReferenceNode{" +
-            "holderType='" + holderType + '\'' +
-            ", name='" + name + '\'' +
-            ", holder=" + holder +
-            '}';
+        return holderType + (isStatic ? "()" : "") + "." + name + ": " + type;
     }
 }

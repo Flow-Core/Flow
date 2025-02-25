@@ -56,9 +56,15 @@ public class FunctionCallNode implements ExpressionNode {
 
     @Override
     public String toString() {
-        return "FunctionCallNode{" +
-            "name='" + name + '\'' +
-            ", arguments=" + arguments +
-            '}';
+        StringBuilder sb = new StringBuilder(name + "(");
+
+        for (ArgumentNode argumentNode : arguments) {
+            sb.append(argumentNode).append(", ");
+        }
+
+        sb.delete(sb.length() - 2, sb.length());
+        sb.append(")");
+
+        return sb.toString();
     }
 }

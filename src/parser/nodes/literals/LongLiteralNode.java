@@ -29,13 +29,11 @@ public class LongLiteralNode implements LiteralNode {
 
     @Override
     public int hashCode() {
-        return (int) (value ^ (value >>> 32));
+        return Long.hashCode(value);
     }
 
     @Override
     public String toString() {
-        return "LongLiteralNode{" +
-            "value=" + value +
-            '}';
+        return value + "L";
     }
 }

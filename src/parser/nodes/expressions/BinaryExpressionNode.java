@@ -45,10 +45,6 @@ public class BinaryExpressionNode implements ExpressionNode {
 
     @Override
     public String toString() {
-        return "BinaryExpressionNode{" +
-            "left=" + left +
-            ", right=" + right +
-            ", operator='" + operator + '\'' +
-            '}';
+        return left + operator + right;
     }
 }

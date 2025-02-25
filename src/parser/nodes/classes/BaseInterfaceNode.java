@@ -28,8 +28,6 @@ public class BaseInterfaceNode implements ASTNode {
 
     @Override
     public String toString() {
-        return "BaseInterfaceNode{" +
-            "name='" + name + '\'' +
-            '}';
+        return name;
     }
 }

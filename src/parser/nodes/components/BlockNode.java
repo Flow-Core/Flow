@@ -40,11 +40,13 @@ public class BlockNode implements ASTNode {
 
     @Override
     public String toString() {
-        StringBuilder output = new StringBuilder();
+        StringBuilder output = new StringBuilder("{\n");
 
         for (ASTNode node : children) {
             output.append(node.toString()).append("\n");
         }
+
+        output.append("}");
 
         return output.toString();
     }

@@ -28,8 +28,6 @@ public class VariableReferenceNode implements ExpressionNode {
 
     @Override
     public String toString() {
-        return "VariableReferenceNode{" +
-            "variable='" + variable + '\'' +
-            '}';
+        return variable;
     }
 }
