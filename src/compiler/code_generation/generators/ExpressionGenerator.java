@@ -10,6 +10,7 @@ import parser.nodes.classes.*;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.ExpressionNode;
+import parser.nodes.expressions.UnaryOperatorNode;
 import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.literals.*;
@@ -33,6 +34,8 @@ public class ExpressionGenerator {
             return generateObjectInstantiation(objectNode, file.scope(), file, vm, mv);
         } else if (expression instanceof FieldReferenceNode fieldReferenceNode) {
             return generateFieldReference(fieldReferenceNode, file.scope(), mv, expectedType);
+        } else if (expression instanceof UnaryOperatorNode unaryExpression) {
+            return generateUnary(unaryExpression, file.scope(), file, mv, vm, expectedType);
         } else if (expression instanceof LiteralNode literalNode) {
             return generateLiteral(literalNode, mv, expectedType);
         } else if (expression instanceof NullLiteral) {
@@ -165,6 +168,52 @@ public class ExpressionGenerator {
         mv.visitInsn(Opcodes.DUP);
 
         return generateConstructorCall(objNode, scope, file, vm, mv);
+    }
+
+    private static FlowType generateUnary(UnaryOperatorNode unaryExpression, Scope scope, FileWrapper file, MethodVisitor mv, VariableManager vm, FlowType expectedType) {
+        final FlowType actualType = generate(unaryExpression.operand, mv, vm, file, expectedType);
+        if (actualType == null) {
+            throw new IllegalArgumentException("Could not determine type");
+        }
+
+        String name = null;
+        if (unaryExpression.operand instanceof FieldReferenceNode fieldReferenceNode) {
+            name = fieldReferenceNode.name;
+        } else if (unaryExpression.operand instanceof VariableReferenceNode variableReferenceNode) {
+            name = variableReferenceNode.variable;
+        }
+        if (name == null) {
+            throw new IllegalArgumentException("Variable name not found");
+        }
+
+        switch (unaryExpression.operator) {
+            case "++" -> {
+                if (unaryExpression.isPostfix) {
+                    // TODO: postfix
+                } else {
+                    // TODO: check for every type
+                    if (actualType.toString().equals("int")) {
+                        mv.visitIincInsn(
+                            vm.getVariableIndex(name),
+                            1
+                        );
+                    }
+                }
+            } case "--" -> {
+                if (unaryExpression.isPostfix) {
+                    // TODO: postfix
+                } else {
+                    if (actualType.toString().equals("int")) {
+                        mv.visitIincInsn(
+                            vm.getVariableIndex(name),
+                            -1
+                        );
+                    }
+                }
+            }
+        }
+
+        return actualType;
     }
 
     public static FlowType generateLiteral(LiteralNode literalNode, MethodVisitor mv, FlowType expectedType) {
