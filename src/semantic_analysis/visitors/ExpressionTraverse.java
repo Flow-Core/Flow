@@ -64,7 +64,11 @@ public class ExpressionTraverse {
                 return null;
             }
 
-            if (binaryExpression.operator.equals(".")) {
+            if (binaryExpression.operator.equals(".") || binaryExpression.operator.equals("?.")) {
+                if (binaryExpression.operator.equals(".") && leftType.type.isNullable) {
+                    LoggerFacade.error("Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type '" + leftType.type + "'", root);
+                }
+
                 if (binaryExpression.right instanceof VariableReferenceNode reference) {
                     if (scope.findTypeDeclaration(reference.variable)) {
                         LoggerFacade.error("Cannot access nested types", root);
@@ -208,18 +212,20 @@ public class ExpressionTraverse {
             );
 
             if (getUnaryOperatorType(unaryExpression.operator) != UnaryOperatorType.FUNCTION) {
-                if (unaryExpression.operator.equals("!!")) {
-                    if (!unaryExpression.operandType.isNullable) {
-                        LoggerFacade.getLogger().log(
-                            Logger.Severity.WARNING,
-                            "'!!' operator used on a non-nullable type",
-                            ASTMetaDataStore.getInstance().getLine(root),
-                            ASTMetaDataStore.getInstance().getFile(root)
-                        );
-                    }
+                return unaryExpression;
+            }
 
-                    unaryExpression.operandType.isNullable = false;
+            if (unaryExpression.operator.equals("!!")) {
+                if (!unaryExpression.operandType.isNullable) {
+                    LoggerFacade.getLogger().log(
+                        Logger.Severity.WARNING,
+                        "'!!' operator used on a non-nullable type",
+                        ASTMetaDataStore.getInstance().getLine(root),
+                        ASTMetaDataStore.getInstance().getFile(root)
+                    );
                 }
+
+                unaryExpression.operandType.isNullable = false;
 
                 return unaryExpression;
             }
