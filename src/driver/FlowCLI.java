@@ -122,7 +122,7 @@ public class FlowCLI {
         }
 
         try {
-            PackerFacade.pack(outputJar, projectPath + "build", List.of(loadLibraries().libFiles()));
+            PackerFacade.pack(projectPath + "/" + outputJar, projectPath + "build", List.of(loadLibraries().libFiles()));
             logger.log(Logger.Severity.INFO, "Project packed into: " + outputJar);
         } catch (IOException e) {
             throw new CLIException("Packaging failed: " + e.getMessage());

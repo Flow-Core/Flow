@@ -201,7 +201,26 @@ public class ExpressionTraverse {
                 return null;
             }
 
+            unaryExpression.operandType = new FlowType(
+                operandType.type.name,
+                operandType.type.isNullable,
+                operandType.type.isPrimitive
+            );
+
             if (getUnaryOperatorType(unaryExpression.operator) != UnaryOperatorType.FUNCTION) {
+                if (unaryExpression.operator.equals("!!")) {
+                    if (!unaryExpression.operandType.isNullable) {
+                        LoggerFacade.getLogger().log(
+                            Logger.Severity.WARNING,
+                            "'!!' operator used on a non-nullable type",
+                            ASTMetaDataStore.getInstance().getLine(root),
+                            ASTMetaDataStore.getInstance().getFile(root)
+                        );
+                    }
+
+                    unaryExpression.operandType.isNullable = false;
+                }
+
                 return unaryExpression;
             }
 
@@ -212,7 +231,7 @@ public class ExpressionTraverse {
                 return null;
             }
 
-            String operatorName = getUnaryOperatorName(unaryExpression.operator);
+            String operatorName = getUnaryOperatorName(unaryExpression.operator, unaryExpression.isPostfix);
 
             final List<FunctionDeclarationNode> functions = operandTypeNode.findMethodsWithName(
                 scope,
@@ -445,8 +464,6 @@ public class ExpressionTraverse {
             );
         }
         if (expression instanceof UnaryOperatorNode unaryExpression) {
-            TypeWrapper type = determineType(root, unaryExpression.operand, scope);
-
             if (getUnaryOperatorType(unaryExpression.operator) == UnaryOperatorType.MUTATING) {
                 String name = null;
                 if (unaryExpression.operand instanceof VariableReferenceNode variableReferenceNode) {
@@ -468,31 +485,12 @@ public class ExpressionTraverse {
                 if (!field.initialization.declaration.modifier.equals("var")) {
                     LoggerFacade.error(field.initialization.declaration.modifier + " cannot be reassigned", root);
                 }
-
-                return type;
             }
 
-            if (unaryExpression.operator.equals("!!")) {
-                if (!type.type.isNullable) {
-                    LoggerFacade.getLogger().log(
-                        Logger.Severity.WARNING,
-                        "'!!' operator used on a non-nullable type",
-                        ASTMetaDataStore.getInstance().getLine(root),
-                        ASTMetaDataStore.getInstance().getFile(root)
-                    );
-                }
-
-                return new TypeWrapper(
-                    new FlowType(
-                        type.type.name,
-                        false,
-                        type.type.isPrimitive
-                    ),
-                    false
-                );
-            }
-
-            return type;
+            return new TypeWrapper(
+                unaryExpression.operandType,
+                false
+            );
         }
         if (expression instanceof LiteralNode literalNode) {
             return new TypeWrapper(
@@ -562,7 +560,7 @@ public class ExpressionTraverse {
         };
     }
 
-    private static String getUnaryOperatorName(String operator) {
+    private static String getUnaryOperatorName(String operator, boolean isPostfix) {
         return switch (operator) {
             case "+":
                 yield "pos";
@@ -570,6 +568,16 @@ public class ExpressionTraverse {
                 yield "neg";
             case "!":
                 yield "not";
+            case "++":
+                if (isPostfix)
+                    yield "postInc";
+                else
+                    yield "preInc";
+            case "--":
+                if (isPostfix)
+                    yield "postDec";
+                else
+                    yield "preDec";
             default:
                 yield null;
         };
@@ -579,8 +587,6 @@ public class ExpressionTraverse {
         return switch (operator) {
             case "++", "--":
                 yield UnaryOperatorType.MUTATING;
-            case "!!":
-                yield UnaryOperatorType.COMPILE_TIME;
             default:
                 yield UnaryOperatorType.FUNCTION;
         };
@@ -588,7 +594,6 @@ public class ExpressionTraverse {
 
     public enum UnaryOperatorType {
         MUTATING,
-        COMPILE_TIME,
         FUNCTION
     }
 }

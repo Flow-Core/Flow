@@ -1,11 +1,13 @@
 package parser.nodes.expressions;
 
 import parser.nodes.ASTVisitor;
+import parser.nodes.FlowType;
 
 import java.util.Objects;
 
 public class UnaryOperatorNode implements ExpressionNode {
     public ExpressionNode operand;
+    public FlowType operandType;
     public String operator;
     public boolean isPostfix;
 
@@ -13,6 +15,7 @@ public class UnaryOperatorNode implements ExpressionNode {
         this.operand = operand;
         this.operator = operator;
         this.isPostfix = isPostfix;
+        this.operandType = null;
     }
 
     @Override

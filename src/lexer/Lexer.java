@@ -71,7 +71,7 @@ public class Lexer {
                 if (type == TokenType.STRING || type == TokenType.CHAR) {
                     value = value.substring(1, value.length() - 1);
                 }
-                if (!Character.isDigit(value.charAt(value.length() - 1))) {
+                if ((type == TokenType.FLOAT || type == TokenType.DOUBLE || type == TokenType.LONG) && !Character.isDigit(value.charAt(value.length() - 1))) {
                     value = value.substring(0, value.length() - 1);
                 }
 

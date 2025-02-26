@@ -171,47 +171,135 @@ public class ExpressionGenerator {
     }
 
     private static FlowType generateUnary(UnaryOperatorNode unaryExpression, Scope scope, FileWrapper file, MethodVisitor mv, VariableManager vm, FlowType expectedType) {
-        final FlowType actualType = generate(unaryExpression.operand, mv, vm, file, expectedType);
+        final FlowType actualType = generate(unaryExpression.operand, mv, vm, file, null);
         if (actualType == null) {
             throw new IllegalArgumentException("Could not determine type");
         }
 
-        String name = null;
-        if (unaryExpression.operand instanceof FieldReferenceNode fieldReferenceNode) {
-            name = fieldReferenceNode.name;
-        } else if (unaryExpression.operand instanceof VariableReferenceNode variableReferenceNode) {
-            name = variableReferenceNode.variable;
-        }
-        if (name == null) {
-            throw new IllegalArgumentException("Variable name not found");
-        }
+        boolean isPostfix = unaryExpression.isPostfix;
+        boolean isIncrement = unaryExpression.operator.equals("++");
 
-        switch (unaryExpression.operator) {
-            case "++" -> {
-                if (unaryExpression.isPostfix) {
-                    // TODO: postfix
-                } else {
-                    // TODO: check for every type
-                    if (actualType.toString().equals("int")) {
-                        mv.visitIincInsn(
-                            vm.getVariableIndex(name),
-                            1
-                        );
+        if (unaryExpression.operand instanceof VariableReferenceNode variableReferenceNode) {
+            int varIndex = vm.getVariableIndex(variableReferenceNode.variable);
+
+            switch (actualType.toString()) {
+                case "int", "short", "byte" -> {
+                    int delta = isIncrement ? 1 : -1;
+
+                    if (isPostfix) {
+                        mv.visitVarInsn(Opcodes.ILOAD, varIndex);
+                        mv.visitInsn(Opcodes.DUP);
+                        mv.visitIincInsn(varIndex, delta);
+                    } else {
+                        mv.visitIincInsn(varIndex, delta);
+                        mv.visitVarInsn(Opcodes.ILOAD, varIndex);
                     }
                 }
-            } case "--" -> {
-                if (unaryExpression.isPostfix) {
-                    // TODO: postfix
-                } else {
-                    if (actualType.toString().equals("int")) {
-                        mv.visitIincInsn(
-                            vm.getVariableIndex(name),
-                            -1
-                        );
+                case "long" -> {
+                    if (isPostfix) {
+                        mv.visitInsn(Opcodes.DUP2);
+                        mv.visitInsn(Opcodes.LCONST_1);
+                        mv.visitInsn(isIncrement ? Opcodes.LADD : Opcodes.LSUB);
+                        mv.visitVarInsn(Opcodes.LSTORE, varIndex);
+                    } else {
+                        mv.visitInsn(Opcodes.LCONST_1);
+                        mv.visitInsn(isIncrement ? Opcodes.LADD : Opcodes.LSUB);
+                        mv.visitInsn(Opcodes.DUP2);
+                        mv.visitVarInsn(Opcodes.LSTORE, varIndex);
+                    }
+                }
+                case "float" -> {
+                    if (isPostfix) {
+                        mv.visitInsn(Opcodes.DUP);
+                        mv.visitLdcInsn(1.0f);
+                        mv.visitInsn(isIncrement ? Opcodes.FADD : Opcodes.FSUB);
+                        mv.visitVarInsn(Opcodes.FSTORE, varIndex);
+                    } else {
+                        mv.visitLdcInsn(1.0f);
+                        mv.visitInsn(isIncrement ? Opcodes.FADD : Opcodes.FSUB);
+                        mv.visitInsn(Opcodes.DUP);
+                        mv.visitVarInsn(Opcodes.FSTORE, varIndex);
+                    }
+                }
+                case "double" -> {
+                    if (isPostfix) {
+                        mv.visitInsn(Opcodes.DUP2);
+                        mv.visitLdcInsn(1.0);
+                        mv.visitInsn(isIncrement ? Opcodes.DADD : Opcodes.DSUB);
+                        mv.visitVarInsn(Opcodes.DSTORE, varIndex);
+                    } else {
+                        mv.visitLdcInsn(1.0);
+                        mv.visitInsn(isIncrement ? Opcodes.DADD : Opcodes.DSUB);
+                        mv.visitInsn(Opcodes.DUP2);
+                        mv.visitVarInsn(Opcodes.DSTORE, varIndex);
                     }
                 }
             }
+        } else if (unaryExpression.operand instanceof FieldReferenceNode fieldReferenceNode) {
+            boolean isStatic = fieldReferenceNode.holder == null;
+            final String fieldDescriptor = FQNameMapper.getFQName(fieldReferenceNode.type.name, file.scope());
+
+            if (!isStatic) {
+                generate(fieldReferenceNode.holder, mv, vm, file, expectedType);
+            }
+
+            mv.visitFieldInsn(isStatic ? Opcodes.GETSTATIC : Opcodes.GETFIELD, fieldReferenceNode.holderType, fieldReferenceNode.name, fieldDescriptor);
+
+            switch (actualType.toString()) {
+                case "int" -> {
+                    if (isPostfix) {
+                        mv.visitInsn(Opcodes.DUP);
+                    }
+                    mv.visitInsn(Opcodes.ICONST_1);
+                    mv.visitInsn(isIncrement ? Opcodes.IADD : Opcodes.ISUB);
+
+                    if (!isPostfix) {
+                        mv.visitInsn(Opcodes.DUP);
+                    }
+                }
+                case "long" -> {
+                    if (isPostfix) {
+                        mv.visitInsn(Opcodes.DUP2);
+                    }
+                    mv.visitInsn(Opcodes.LCONST_1);
+                    mv.visitInsn(isIncrement ? Opcodes.LADD : Opcodes.LSUB);
+
+                    if (!isPostfix) {
+                        mv.visitInsn(Opcodes.DUP2);
+                    }
+                }
+                case "float" -> {
+                    if (isPostfix) {
+                        mv.visitInsn(Opcodes.DUP);
+                    }
+                    mv.visitLdcInsn(1.0f);
+                    mv.visitInsn(isIncrement ? Opcodes.FADD : Opcodes.FSUB);
+
+                    if (!isPostfix) {
+                        mv.visitInsn(Opcodes.DUP);
+                    }
+                }
+                case "double" -> {
+                    if (isPostfix) {
+                        mv.visitInsn(Opcodes.DUP2);
+                    }
+                    mv.visitLdcInsn(1.0);
+                    mv.visitInsn(isIncrement ? Opcodes.DADD : Opcodes.DSUB);
+
+                    if (!isPostfix) {
+                        mv.visitInsn(Opcodes.DUP2);
+                    }
+                }
+            }
+
+            if (!isStatic) {
+                mv.visitInsn(Opcodes.SWAP);
+            }
+
+            mv.visitFieldInsn(isStatic ? Opcodes.PUTSTATIC : Opcodes.PUTFIELD, fieldReferenceNode.holderType, fieldReferenceNode.name, fieldDescriptor);
         }
+
+        BoxMapper.boxIfNeeded(actualType, expectedType, mv);
 
         return actualType;
     }
