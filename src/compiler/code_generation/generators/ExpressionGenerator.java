@@ -39,7 +39,7 @@ public class ExpressionGenerator {
             mv.visitInsn(Opcodes.ACONST_NULL);
             return null;
         } else {
-            throw new UnsupportedOperationException("Unknown expression type: " + expression.getClass().getSimpleName());
+            throw new UnsupportedOperationException("Unknown expression type: " + (expression != null ? expression.getClass().getSimpleName() : "null"));
         }
     }
 

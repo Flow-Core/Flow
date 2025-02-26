@@ -1,7 +1,6 @@
 import compiler.packer.JarPacker;
 import compiler.packer.Packer;
 import compiler.packer.PackerFacade;
-import driver.CLIException;
 import driver.FlowCLI;
 import logger.Logger;
 import logger.LoggerFacade;
@@ -17,10 +16,8 @@ public class Main {
 
         try {
             FlowCLI.parseArguments(args);
-        } catch (CLIException e) {
-            logger.log(Logger.Severity.ERROR, e.getMessage());
-            System.exit(1);
         } catch (Exception e) {
+            logger.log(Logger.Severity.ERROR, e.getMessage());
             System.exit(1);
         }
     }
