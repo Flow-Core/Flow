@@ -1,6 +1,8 @@
 package semantic_analysis.visitors;
 
+import logger.Logger;
 import logger.LoggerFacade;
+import parser.nodes.ASTMetaDataStore;
 import parser.nodes.FlowType;
 import parser.nodes.classes.*;
 import parser.nodes.components.ArgumentNode;
@@ -199,6 +201,10 @@ public class ExpressionTraverse {
                 return null;
             }
 
+            if (getUnaryOperatorType(unaryExpression.operator) != UnaryOperatorType.FUNCTION) {
+                return unaryExpression;
+            }
+
             ClassDeclarationNode operandTypeNode = scope.getClass(operandType.type.name);
 
             if (operandTypeNode == null) {
@@ -206,7 +212,7 @@ public class ExpressionTraverse {
                 return null;
             }
 
-            String operatorName = getUnaryOperatorName(unaryExpression.operator, unaryExpression.isPostfix);
+            String operatorName = getUnaryOperatorName(unaryExpression.operator);
 
             final List<FunctionDeclarationNode> functions = operandTypeNode.findMethodsWithName(
                 scope,
@@ -438,6 +444,56 @@ public class ExpressionTraverse {
                 false
             );
         }
+        if (expression instanceof UnaryOperatorNode unaryExpression) {
+            TypeWrapper type = determineType(root, unaryExpression.operand, scope);
+
+            if (getUnaryOperatorType(unaryExpression.operator) == UnaryOperatorType.MUTATING) {
+                String name = null;
+                if (unaryExpression.operand instanceof VariableReferenceNode variableReferenceNode) {
+                    name = variableReferenceNode.variable;
+                } else if (unaryExpression.operand instanceof FieldReferenceNode fieldReferenceNode) {
+                    name = fieldReferenceNode.name;
+                }
+
+                if (name == null) {
+                    LoggerFacade.error("Variable expected with '" + unaryExpression.operator + "'", root);
+                    return null;
+                }
+
+                FieldNode field = scope.getField(name);
+                if (field == null) {
+                    return null;
+                }
+
+                if (!field.initialization.declaration.modifier.equals("var")) {
+                    LoggerFacade.error(field.initialization.declaration.modifier + " cannot be reassigned", root);
+                }
+
+                return type;
+            }
+
+            if (unaryExpression.operator.equals("!!")) {
+                if (!type.type.isNullable) {
+                    LoggerFacade.getLogger().log(
+                        Logger.Severity.WARNING,
+                        "'!!' operator used on a non-nullable type",
+                        ASTMetaDataStore.getInstance().getLine(root),
+                        ASTMetaDataStore.getInstance().getFile(root)
+                    );
+                }
+
+                return new TypeWrapper(
+                    new FlowType(
+                        type.type.name,
+                        false,
+                        type.type.isPrimitive
+                    ),
+                    false
+                );
+            }
+
+            return type;
+        }
         if (expression instanceof LiteralNode literalNode) {
             return new TypeWrapper(
                 new FlowType(
@@ -506,26 +562,33 @@ public class ExpressionTraverse {
         };
     }
 
-    private static String getUnaryOperatorName(String operator, boolean isPostfix) {
+    private static String getUnaryOperatorName(String operator) {
         return switch (operator) {
             case "+":
                 yield "pos";
             case "-":
                 yield "neg";
-            case "++":
-                if (isPostfix)
-                    yield "postInc";
-                else
-                    yield "preInc";
-            case "--":
-                if (isPostfix)
-                    yield "postDec";
-                else
-                    yield "preDec";
             case "!":
                 yield "not";
             default:
                 yield null;
         };
+    }
+
+    private static UnaryOperatorType getUnaryOperatorType(String operator) {
+        return switch (operator) {
+            case "++", "--":
+                yield UnaryOperatorType.MUTATING;
+            case "!!":
+                yield UnaryOperatorType.COMPILE_TIME;
+            default:
+                yield UnaryOperatorType.FUNCTION;
+        };
+    }
+
+    public enum UnaryOperatorType {
+        MUTATING,
+        COMPILE_TIME,
+        FUNCTION
     }
 }

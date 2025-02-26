@@ -184,7 +184,7 @@ public record SymbolTable(
 
     public FieldNode getField(String symbol) {
         return fields().stream().filter(
-            interfaceNode -> interfaceNode.initialization.declaration.name.equals(symbol)
+            field -> field.initialization.declaration.name.equals(symbol)
         ).findFirst().orElse(null);
     }
 
