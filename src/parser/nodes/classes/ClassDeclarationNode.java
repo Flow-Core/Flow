@@ -72,13 +72,8 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
         String name,
         List<FlowType> parameterTypes
     ) {
+        FunctionDeclarationNode function = super.findMethod(scope, name, parameterTypes);
         ClassDeclarationNode caller = this;
-        FunctionDeclarationNode function = findMethodWithParameters(
-            scope,
-            methods,
-            name,
-            parameterTypes
-        );
 
         while (function == null && caller != null && !caller.baseClasses.isEmpty()) {
             function = findMethodWithParameters(
@@ -90,7 +85,6 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
 
             caller = scope.getClass(caller.baseClasses.get(0).name);
         }
-
         return function;
     }
 

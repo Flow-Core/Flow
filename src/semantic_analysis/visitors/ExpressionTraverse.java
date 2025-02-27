@@ -57,7 +57,7 @@ public class ExpressionTraverse {
                 return null;
             }
 
-            ClassDeclarationNode leftTypeNode = scope.getClass(leftType.type.name);
+            TypeDeclarationNode leftTypeNode = scope.getTypeDeclaration(leftType.type.name);
 
             if (leftTypeNode == null) {
                 LoggerFacade.error("Unresolved symbol: '" + leftType.type + "'", root);
@@ -70,28 +70,32 @@ public class ExpressionTraverse {
                 }
 
                 if (binaryExpression.right instanceof VariableReferenceNode reference) {
-                    if (scope.findTypeDeclaration(reference.variable)) {
-                        LoggerFacade.error("Cannot access nested types", root);
-                        return null;
+                    if (leftTypeNode instanceof ClassDeclarationNode leftTypeClass) {
+                        if (scope.findTypeDeclaration(reference.variable)) {
+                            LoggerFacade.error("Cannot access nested types", root);
+                            return null;
+                        }
+
+                        FieldNode field = leftTypeClass.findField(
+                            scope,
+                            reference.variable
+                        );
+
+                        if (field == null) {
+                            LoggerFacade.error("Unresolved symbol: '" + leftType.type.name + "." + reference.variable + "'", root);
+                            return null;
+                        }
+
+                        return new FieldReferenceNode(
+                            leftType.type.name,
+                            reference.variable,
+                            binaryExpression.left,
+                            field.initialization.declaration.type,
+                            field.modifiers.contains("static")
+                        );
                     }
 
-                    FieldNode field = leftTypeNode.findField(
-                        scope,
-                        reference.variable
-                    );
-
-                    if (field == null) {
-                        LoggerFacade.error("Unresolved symbol: '" + leftType.type.name + "." + reference.variable + "'", root);
-                        return null;
-                    }
-
-                    return new FieldReferenceNode(
-                        leftType.type.name,
-                        reference.variable,
-                        binaryExpression.left,
-                        field.initialization.declaration.type,
-                        field.modifiers.contains("static")
-                    );
+                    LoggerFacade.error("Unresolved reference '" + binaryExpression.right + "'", root);
                 } else if (binaryExpression.right instanceof FunctionCallNode call) {
                     List<FunctionDeclarationNode> functions = leftTypeNode.findMethodsWithName(
                         scope,
