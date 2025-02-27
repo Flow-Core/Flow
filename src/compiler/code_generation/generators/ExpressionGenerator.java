@@ -29,7 +29,7 @@ public class ExpressionGenerator {
         if (expression instanceof VariableReferenceNode referenceNode) {
             return generateVarReference(referenceNode, vm, expectedType);
         } else if (expression instanceof FunctionCallNode functionCallNode) {
-            return generateFuncCall(functionCallNode, file, vm, mv, expectedType);
+            return generateFuncCall(functionCallNode, file.scope(), file, vm, mv, expectedType);
         } else if (expression instanceof ObjectNode objectNode) {
             return generateObjectInstantiation(objectNode, file.scope(), file, vm, mv);
         } else if (expression instanceof FieldReferenceNode fieldReferenceNode) {
@@ -50,15 +50,15 @@ public class ExpressionGenerator {
         return vm.loadVariable(refNode.variable, expectedType);
     }
 
-    private static FlowType generateFuncCall(FunctionCallNode funcCallNode, FileWrapper file, VariableManager vm, MethodVisitor mv, FlowType expectedType) {
+    private static FlowType generateFuncCall(FunctionCallNode funcCallNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv, FlowType expectedType) {
         if (funcCallNode.callerType == null) {
-            final FunctionDeclarationNode declaration = file.scope().getFunction(funcCallNode.name);
+            final FunctionDeclarationNode declaration = scope.getFunction(funcCallNode.name);
             if (declaration == null) {
                 throw new IllegalArgumentException("Function " + funcCallNode.name + " was not found in the scope");
             }
 
-            final String fqTopLevelName = FQNameMapper.getFQName(declaration, file.scope());
-            final String descriptor = FunctionGenerator.getDescriptor(declaration, file.scope());
+            final String fqTopLevelName = FQNameMapper.getFQName(declaration, scope);
+            final String descriptor = FunctionGenerator.getDescriptor(declaration, scope);
 
             processFunctionArguments(
                 declaration.parameters,
@@ -73,21 +73,23 @@ public class ExpressionGenerator {
 
             return declaration.returnType;
         } else {
-            final TypeDeclarationNode caller = file.scope().getTypeDeclaration(funcCallNode.callerType);
+            final TypeDeclarationNode caller = scope.getTypeDeclaration(funcCallNode.callerType);
             if (caller == null) {
                 throw new RuntimeException("Caller not found in scope: " + funcCallNode.callerType);
             }
 
-            boolean isInterface = caller instanceof InterfaceNode;
+            final List<FunctionDeclarationNode> methods = caller.getAllMethods(scope);
+
+            final boolean isInterface = caller instanceof InterfaceNode;
 
             final FunctionDeclarationNode declaration = SignatureLoader.findMethodWithParameters(
-                file.scope(),
-                caller.methods,
+                scope,
+                methods,
                 funcCallNode.name,
                 funcCallNode.arguments.stream()
                     .map(argument -> argument.type).toList()
             );
-            final String descriptor = FunctionGenerator.getDescriptor(declaration, file.scope());
+            final String descriptor = FunctionGenerator.getDescriptor(declaration, scope);
             final boolean isStatic = declaration.modifiers.contains("static");
 
             processFunctionArguments(
@@ -100,7 +102,7 @@ public class ExpressionGenerator {
 
             final int callType = isInterface ? Opcodes.INVOKEINTERFACE
                 : isStatic ? Opcodes.INVOKESTATIC : Opcodes.INVOKEVIRTUAL;
-            final String fqCallerName = FQNameMapper.getFQName(funcCallNode.callerType, file.scope());
+            final String fqCallerName = FQNameMapper.getFQName(funcCallNode.callerType, scope);
 
             mv.visitMethodInsn(callType, fqCallerName, funcCallNode.name, descriptor, isInterface);
 

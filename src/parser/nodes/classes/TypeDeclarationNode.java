@@ -16,6 +16,31 @@ public abstract class TypeDeclarationNode implements ASTNode {
     public List<FunctionDeclarationNode> methods;
     public List<BaseInterfaceNode> implementedInterfaces;
 
+    public List<FunctionDeclarationNode> getAllMethods(Scope scope) {
+        final List<FunctionDeclarationNode> methods = new ArrayList<>(this.methods);
+
+        if (this instanceof ClassDeclarationNode classDeclarationNode && !classDeclarationNode.baseClasses.isEmpty()) {
+            final String baseClassName = classDeclarationNode.baseClasses.get(0).name;
+            final ClassDeclarationNode baseClass = scope.getClass(baseClassName);
+            if (baseClass == null) {
+                throw new IllegalArgumentException("Base class '" + baseClassName + "' not found in scope");
+            }
+
+            methods.addAll(baseClass.getAllMethods(scope));
+        }
+
+        for (final BaseInterfaceNode baseInterfaceNode : implementedInterfaces) {
+            final InterfaceNode interfaceNode = scope.getInterface(baseInterfaceNode.name);
+            if (interfaceNode == null) {
+                throw new IllegalArgumentException("Interface '" + baseInterfaceNode.name + "' not found in scope");
+            }
+
+            methods.addAll(interfaceNode.getAllMethods(scope));
+        }
+
+        return methods;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

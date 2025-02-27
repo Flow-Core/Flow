@@ -53,14 +53,12 @@ public class ColoredLogger implements Logger {
     @Override
     public RuntimeException panic(String message, int line, String file) {
         String log = String.format(RED + BOLD + "%s: %s at line: %d" + RESET, file, message, line);
-        System.out.println(log);
         return new RuntimeException(log);
     }
 
     @Override
     public RuntimeException panic(String message) {
         String log = RED + BOLD + message + RESET;
-        System.out.println(log);
         return new RuntimeException(log);
     }
 

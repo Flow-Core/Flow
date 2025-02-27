@@ -98,7 +98,7 @@ public class BuildSystem {
                 }
             });
         } catch (IOException e) {
-            throw LoggerFacade.getLogger().panic(e.getMessage());
+            throw LoggerFacade.getLogger().panic("src dir not found: " + dirPath);
         }
     }
 
