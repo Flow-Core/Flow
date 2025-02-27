@@ -161,7 +161,7 @@ public class LibLoader {
         );
 
         symbolTable.classes().add(flowClass);
-        symbolTable.bindingContext().put(flowClass, className);
+        symbolTable.bindingContext().put(flowClass, classNode.name.replace("/", "."));
     }
 
     private static void convertToFlowInterface(SymbolTable symbolTable, ClassNode classNode) {
@@ -185,7 +185,7 @@ public class LibLoader {
         );
 
         symbolTable.interfaces().add(flowInterface);
-        symbolTable.bindingContext().put(flowInterface, interfaceName);
+        symbolTable.bindingContext().put(flowInterface, classNode.name.replace("/", "."));
     }
 
     private static void convertToFlowType(SymbolTable symbolTable, ClassNode classNode) {

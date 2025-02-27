@@ -33,6 +33,20 @@ public class ImportLoader {
             globalPackages
         );
 
+        validateImport(
+            (ImportNode) ASTMetaDataStore.getInstance().addMetadata(
+                new ImportNode(
+                    "java.lang.Object",
+                    "Object",
+                    false
+                ),
+                0,
+                file.name()
+            ),
+            data,
+            globalPackages
+        );
+
         for (int i = 0; i < file.root().children.size(); i++) {
             final ASTNode node = file.root().children.get(i);
             if (node instanceof ImportNode importNode) {

@@ -30,12 +30,16 @@ class ImportLoaderTest {
     void setupFlowStdLib() {
         importLoader = new ImportLoader();
         SymbolTable flowSymbols = SymbolTable.getEmptySymbolTable();
+        SymbolTable javaSymbols = SymbolTable.getEmptySymbolTable();
 
         flowSymbols.classes().add(ClassNodeGenerator.builder().name("String").build());
         flowSymbols.classes().add(ClassNodeGenerator.builder().name("Int").build());
         flowSymbols.classes().add(ClassNodeGenerator.builder().name("Bool").build());
 
+        javaSymbols.classes().add(ClassNodeGenerator.builder().name("Object").build());
+
         globalPackages.put("flow", new PackageWrapper("flow", List.of(), new Scope(null, flowSymbols, null, Scope.Type.TOP)));
+        globalPackages.put("java.lang", new PackageWrapper("java.lang", List.of(), new Scope(null, javaSymbols, null, Scope.Type.TOP)));
     }
 
     @BeforeEach
