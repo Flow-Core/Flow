@@ -1,6 +1,7 @@
 package semantic_analysis.loaders;
 
 import logger.LoggerFacade;
+import parser.nodes.ASTMetaDataStore;
 import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
 import parser.nodes.FlowType;
@@ -149,7 +150,11 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
             );
 
             new ExpressionTraverse().traverse(
-                new ExpressionBaseNode(baseClassNode),
+                new ExpressionBaseNode(
+                    baseClassNode,
+                    ASTMetaDataStore.getInstance().getLine(baseClassNode),
+                    ASTMetaDataStore.getInstance().getFile(baseClassNode)
+                ),
                 currentScope
             );
 
