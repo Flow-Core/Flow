@@ -134,7 +134,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
             final ClassDeclarationNode fileLevelBaseClass = data.getClass(baseClassNode.name);
             final ClassDeclarationNode baseClass = getClassDeclarationNode(classDeclaration, baseClassNode.name, fileLevelBaseClass);
 
-            if (baseClass == null || !baseClass.modifiers.contains("open")) {
+            if (baseClass == null || !baseClass.modifiers.contains("open") && !baseClass.modifiers.contains("abstract")) {
                 LoggerFacade.error("'" + baseClassNode.name + "' is final, so it cannot be extended", classDeclaration);
                 return;
             }
@@ -199,11 +199,21 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     }
 
     private void validateInterfaces(List<BaseInterfaceNode> interfaces, SymbolTable data) {
+        final Scope currentScope = new Scope(
+            new Scope(null, packageLevel, null, Scope.Type.TOP),
+            data,
+            null,
+            Scope.Type.TOP
+        );
+
         for (final BaseInterfaceNode interfaceNode : interfaces) {
-            if (data.getInterface(interfaceNode.name) == null && packageLevel.getInterface(interfaceNode.name) == null) {
+            final InterfaceNode baseInterface = currentScope.getInterface(interfaceNode.name);
+            if (baseInterface == null) {
                 LoggerFacade.error("Interface '" + interfaceNode.name + "' was not found", interfaceNode);
                 return;
             }
+
+            data.bindingContext().put(interfaceNode, currentScope.getFQName(baseInterface));
         }
     }
 
@@ -234,8 +244,16 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     }
 
     private void validateInterfaces(InterfaceNode interfaceNode, SymbolTable data) {
+        final Scope currentScope = new Scope(
+            new Scope(null, packageLevel, null, Scope.Type.TOP),
+            data,
+            null,
+            Scope.Type.TOP
+        );
+
         for (final BaseInterfaceNode currentInterface : interfaceNode.implementedInterfaces) {
-            if (data.getInterface(currentInterface.name) == null && packageLevel.getInterface(currentInterface.name) == null) {
+            final InterfaceNode baseInterface = currentScope.getInterface(currentInterface.name);
+            if (baseInterface == null) {
                 LoggerFacade.error("Interface '" + currentInterface.name + "' was not found", currentInterface);
                 return;
             }
@@ -246,6 +264,8 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
             }
 
             checkCircularInterfaceInheritance(interfaceNode.name, interfaceNode, new HashSet<>(), data);
+
+            data.bindingContext().put(currentInterface, currentScope.getFQName(baseInterface));
         }
     }
 
