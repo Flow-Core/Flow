@@ -3,7 +3,6 @@ package parser.nodes.classes;
 import parser.nodes.ASTNode;
 import parser.nodes.FlowType;
 import parser.nodes.functions.FunctionDeclarationNode;
-import parser.nodes.generics.TypeParameterNode;
 import semantic_analysis.scopes.Scope;
 
 import java.util.ArrayList;
@@ -14,7 +13,6 @@ import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters
 
 public abstract class TypeDeclarationNode implements ASTNode {
     public String name;
-    public List<TypeParameterNode> typeParameters;
     public List<FunctionDeclarationNode> methods;
     public List<BaseInterfaceNode> implementedInterfaces;
 
