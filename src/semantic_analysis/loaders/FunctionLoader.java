@@ -32,16 +32,21 @@ public class FunctionLoader {
             LoggerFacade.error("Unresolved symbol: '" + functionDeclarationNode.returnType + "'", functionDeclarationNode);
         }
 
+        final TypeDeclarationNode containingType = scope.getContainingType();
         if (
             findMethodWithParameters(
                 scope,
-                scope.symbols().functions(),
+                containingType == null ? scope.symbols().functions() : containingType.getAllSuperFunctions(scope),
                 functionDeclarationNode.name,
                 functionDeclarationNode.parameters.stream()
                     .map(parameterNode -> parameterNode.type).toList()
             ) != null
         ) {
-            LoggerFacade.error("Conflicting overloads for: " + functionDeclarationNode.name, functionDeclarationNode);
+            if (containingType == null) {
+                LoggerFacade.error("Conflicting overloads for: " + functionDeclarationNode.name, functionDeclarationNode);
+            } else {
+                LoggerFacade.error("'" + functionDeclarationNode.name + "' hides member of its supertype and needs an 'override' modifier", functionDeclarationNode);
+            }
         }
 
         checkParameters(functionDeclarationNode.parameters, scope);

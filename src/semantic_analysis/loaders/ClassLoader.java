@@ -77,6 +77,13 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
     }
 
     private void checkIfAllOverridden(final ClassDeclarationNode classDeclaration, final SymbolTable data) {
+        final Scope scope = new Scope(
+            new Scope(null, packageLevel, null, Scope.Type.TOP),
+            data,
+            null,
+            Scope.Type.TOP
+        );
+
         final List<FunctionDeclarationNode> abstractFunctions = getFunctionsByModifier("abstract", classDeclaration, data);
         final List<FunctionDeclarationNode> overriddenFunctions = getFunctionsByModifier("override", classDeclaration, data);
 
@@ -111,7 +118,7 @@ public class ClassLoader implements ASTVisitor<SymbolTable> {
             if (
                 findMethodWithParameters(
                     data,
-                    abstractFunctions,
+                    classDeclaration.getAllSuperFunctions(scope),
                     overriddenFunction.name,
                     overriddenFunction.parameters.stream()
                         .map(parameter -> parameter.type).toList(),

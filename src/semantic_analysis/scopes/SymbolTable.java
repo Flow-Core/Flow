@@ -163,6 +163,10 @@ public record SymbolTable(
     }
 
     public TypeDeclarationNode getTypeDeclaration(String symbol) {
+        if (symbol.contains(".")) {
+            return getTypeFromFQName(symbol);
+        }
+
         TypeDeclarationNode type = getClass(symbol);
 
         if (type == null) {
@@ -189,12 +193,20 @@ public record SymbolTable(
     }
 
     public boolean findClass(String symbol) {
+        if (symbol.contains(".")) {
+            return getTypeFromFQName(symbol) instanceof ClassDeclarationNode;
+        }
+
         return classes().stream().anyMatch(
             existingClass -> existingClass.name.equals(symbol)
         );
     }
 
     public boolean findInterface(String symbol) {
+        if (symbol.contains(".")) {
+            return getTypeFromFQName(symbol) instanceof InterfaceNode;
+        }
+
         return interfaces().stream().anyMatch(
             existingInterface -> existingInterface.name.equals(symbol)
         );
@@ -215,6 +227,4 @@ public record SymbolTable(
             existingField -> existingField.initialization.declaration.name.equals(symbol)
         );
     }
-
-
 }

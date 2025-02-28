@@ -5,6 +5,8 @@ import logger.LoggerFacade;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.signature.SignatureReader;
+import org.objectweb.asm.signature.SignatureVisitor;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -14,6 +16,7 @@ import parser.nodes.components.BlockNode;
 import parser.nodes.components.BodyNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeParameterNode;
 import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
@@ -150,6 +153,7 @@ public class LibLoader {
         final ClassDeclarationNode flowClass = new ClassDeclarationNode(
             className,
             extractModifiers(classNode.access),
+            extractTypeParameters(classNode.signature),
             new ArrayList<>(),
             baseClasses,
             interfaces,
@@ -168,7 +172,11 @@ public class LibLoader {
         String interfaceName = trimPackageName(classNode.name.replace("/", "."));
 
         List<BaseInterfaceNode> implementedInterfaces = classNode.interfaces.stream()
-            .map(baseInterface -> new BaseInterfaceNode(trimPackageName(baseInterface.replace("/", "."))))
+            .map(baseInterface -> {
+                final BaseInterfaceNode baseInterfaceNode = new BaseInterfaceNode(trimPackageName(baseInterface.replace("/", ".")));
+                symbolTable.bindingContext().put(baseInterfaceNode, extractPackageName(baseInterface.replace("/", ".")));
+                return baseInterfaceNode;
+            })
             .toList();
 
         List<FunctionDeclarationNode> methods = new ArrayList<>();
@@ -179,6 +187,7 @@ public class LibLoader {
         InterfaceNode flowInterface = new InterfaceNode(
             interfaceName,
             extractModifiers(classNode.access),
+            extractTypeParameters(classNode.signature),
             implementedInterfaces,
             methods,
             new BlockNode(new ArrayList<>())
@@ -239,7 +248,7 @@ public class LibLoader {
         if (!isConstructor && (methodNode.access & Opcodes.ACC_STATIC) == 0) {
             parameters.add(
                 0,
-                new ParameterNode(new FlowType(trimPackageName(classNode.name.replace("/", ".")), true, false),
+                new ParameterNode(mapType(trimPackageName(classNode.name.replace("/", "."))),
                     "this",
                     null
                 )
@@ -252,6 +261,11 @@ public class LibLoader {
     private static String extractPackageName(ClassNode classNode) {
         int lastSlashIndex = classNode.name.lastIndexOf('/');
         return (lastSlashIndex != -1) ? classNode.name.substring(0, lastSlashIndex).replace("/", ".") : "";
+    }
+
+    private static String extractPackageName(String name) {
+        int lastSlashIndex = name.lastIndexOf('/');
+        return (lastSlashIndex != -1) ? name.substring(0, lastSlashIndex).replace("/", ".") : "";
     }
 
     private static List<String> extractModifiers(int flags) {
@@ -301,6 +315,34 @@ public class LibLoader {
 
             convertToFlowType(symbolTable, classNode);
         }
+    }
+
+    private static List<TypeParameterNode> extractTypeParameters(String signature) {
+        if (signature == null) return List.of();
+
+        List<TypeParameterNode> typeParameters = new ArrayList<>();
+
+        new SignatureReader(signature).accept(new SignatureVisitor(Opcodes.ASM9) {
+            @Override
+            public void visitFormalTypeParameter(String name) {
+                typeParameters.add(new TypeParameterNode(name));
+            }
+
+            @Override
+            public SignatureVisitor visitClassBound() {
+                return new SignatureVisitor(Opcodes.ASM9) {
+                    @Override
+                    public void visitClassType(String name) {
+                        if (!typeParameters.isEmpty()) {
+                            TypeParameterNode last = typeParameters.get(typeParameters.size() - 1);
+                            last.bound = new FlowType(trimPackageName(name.replace("/", ".")), false, false);
+                        }
+                    }
+                };
+            }
+        });
+
+        return typeParameters;
     }
 
     private static String trimPackageName(String fullName) {

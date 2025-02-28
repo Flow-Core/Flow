@@ -3,6 +3,7 @@ package parser.nodes.classes;
 import parser.nodes.ASTNode;
 import parser.nodes.FlowType;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeParameterNode;
 import semantic_analysis.scopes.Scope;
 
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters
 
 public abstract class TypeDeclarationNode implements ASTNode {
     public String name;
+    public List<TypeParameterNode> typeParameters;
     public List<FunctionDeclarationNode> methods;
     public List<BaseInterfaceNode> implementedInterfaces;
 
@@ -39,6 +41,32 @@ public abstract class TypeDeclarationNode implements ASTNode {
         }
 
         return methods;
+    }
+
+    public List<FunctionDeclarationNode> getAllSuperFunctions(Scope scope) {
+        final List<FunctionDeclarationNode> allFunctions = new ArrayList<>();
+
+        if (this instanceof ClassDeclarationNode classDeclaration) {
+            if (!classDeclaration.baseClasses.isEmpty()) {
+                final ClassDeclarationNode baseClass = scope.getClass(classDeclaration.baseClasses.get(0).name);
+                if (baseClass == null) {
+                    throw new IllegalArgumentException("Base class not found");
+                }
+
+                allFunctions.addAll(baseClass.getAllMethods(scope));
+            }
+        }
+
+        for (final BaseInterfaceNode baseInterfaceNode : implementedInterfaces) {
+            final InterfaceNode baseInterface = scope.getInterface(baseInterfaceNode.name);
+            if (baseInterface == null) {
+                throw new IllegalArgumentException("Base interface not found");
+            }
+
+            allFunctions.addAll(baseInterface.getAllMethods(scope));
+        }
+
+        return allFunctions;
     }
 
     @Override
@@ -69,14 +97,12 @@ public abstract class TypeDeclarationNode implements ASTNode {
         String name,
         List<FlowType> parameterTypes
     ) {
-        FunctionDeclarationNode function = findMethodWithParameters(
+        return findMethodWithParameters(
             scope,
             methods,
             name,
             parameterTypes
         );
-
-        return function;
     }
 
     @Override
