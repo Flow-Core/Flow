@@ -26,31 +26,38 @@ import static compiler.code_generation.generators.FunctionGenerator.getJVMName;
 
 public class ExpressionGenerator {
     public static FlowType generate(ExpressionNode expression, MethodVisitor mv, VariableManager vm, FileWrapper file, FlowType expectedType) {
+        final StackTracker tracker = new StackTracker(mv);
+        FlowType result = null;
+
         if (expression instanceof VariableReferenceNode referenceNode) {
-            return generateVarReference(referenceNode, vm, expectedType);
+            result = generateVarReference(referenceNode, vm, tracker, expectedType);
         } else if (expression instanceof FunctionCallNode functionCallNode) {
-            return generateFuncCall(functionCallNode, file.scope(), file, vm, mv, expectedType);
+            result = generateFuncCall(functionCallNode, file.scope(), file, vm, mv, tracker, expectedType);
         } else if (expression instanceof ObjectNode objectNode) {
-            return generateObjectInstantiation(objectNode, file.scope(), file, vm, mv);
+            result = generateObjectInstantiation(objectNode, file.scope(), file, vm, mv, tracker);
         } else if (expression instanceof FieldReferenceNode fieldReferenceNode) {
-            return generateFieldReference(fieldReferenceNode, file.scope(), mv, expectedType);
+            result = generateFieldReference(fieldReferenceNode, file.scope(), mv, tracker, expectedType);
         } else if (expression instanceof UnaryOperatorNode unaryExpression) {
-            return generateUnary(unaryExpression, file.scope(), file, mv, vm, expectedType);
+            result = generateUnary(unaryExpression, file.scope(), file, mv, vm, tracker, expectedType);
         } else if (expression instanceof LiteralNode literalNode) {
-            return generateLiteral(literalNode, mv, expectedType);
+            result = generateLiteral(literalNode, mv, tracker, expectedType);
         } else if (expression instanceof NullLiteral) {
             mv.visitInsn(Opcodes.ACONST_NULL);
-            return null;
+            tracker.hang(1);
         } else {
             throw new UnsupportedOperationException("Unknown expression type: " + (expression != null ? expression.getClass().getSimpleName() : "null"));
         }
+
+        if (expectedType == null) tracker.cleanStack();
+
+        return result;
     }
 
-    private static FlowType generateVarReference(VariableReferenceNode refNode, VariableManager vm, FlowType expectedType) {
-        return vm.loadVariable(refNode.variable, expectedType);
+    private static FlowType generateVarReference(VariableReferenceNode refNode, VariableManager vm, StackTracker tracker, FlowType expectedType) {
+        return tracker.hang(vm.loadVariable(refNode.variable, expectedType));
     }
 
-    private static FlowType generateFuncCall(FunctionCallNode funcCallNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv, FlowType expectedType) {
+    private static FlowType generateFuncCall(FunctionCallNode funcCallNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv, StackTracker tracker, FlowType expectedType) {
         if (funcCallNode.callerType == null) {
             final FunctionDeclarationNode declaration = scope.getFunction(funcCallNode.name);
             if (declaration == null) {
@@ -71,7 +78,7 @@ public class ExpressionGenerator {
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, fqTopLevelName, funcCallNode.name, descriptor, false);
             BoxMapper.boxIfNeeded(declaration.returnType, expectedType, mv);
 
-            return declaration.returnType;
+            return tracker.hang(declaration.returnType);
         } else {
             final TypeDeclarationNode caller = scope.getTypeDeclaration(funcCallNode.callerType);
             if (caller == null) {
@@ -108,11 +115,11 @@ public class ExpressionGenerator {
 
             BoxMapper.boxIfNeeded(declaration.returnType, expectedType, mv);
 
-            return declaration.returnType;
+            return tracker.hang(declaration.returnType);
         }
     }
 
-    private static FlowType generateFieldReference(FieldReferenceNode refNode, Scope scope, MethodVisitor mv, FlowType expectedType) {
+    private static FlowType generateFieldReference(FieldReferenceNode refNode, Scope scope, MethodVisitor mv, StackTracker tracker, FlowType expectedType) {
         final String holderFQName = FQNameMapper.getFQName(refNode.holderType, scope);
         final String descriptor = getJVMName(refNode.type, scope);
 
@@ -123,7 +130,7 @@ public class ExpressionGenerator {
 
         BoxMapper.boxIfNeeded(refNode.type, expectedType, mv);
 
-        return refNode.type;
+        return tracker.hang(refNode.type);
     }
 
     public static FlowType generateConstructorCall(ObjectNode objNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv) {
@@ -164,15 +171,15 @@ public class ExpressionGenerator {
         return new FlowType(objNode.className, false, false);
     }
 
-    private static FlowType generateObjectInstantiation(ObjectNode objNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv) {
+    private static FlowType generateObjectInstantiation(ObjectNode objNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv, StackTracker tracker) {
         final String fqObjectName = FQNameMapper.getFQName(objNode.className, scope);
         mv.visitTypeInsn(Opcodes.NEW, fqObjectName);
         mv.visitInsn(Opcodes.DUP);
 
-        return generateConstructorCall(objNode, scope, file, vm, mv);
+        return tracker.hang(generateConstructorCall(objNode, scope, file, vm, mv));
     }
 
-    private static FlowType generateUnary(UnaryOperatorNode unaryExpression, Scope scope, FileWrapper file, MethodVisitor mv, VariableManager vm, FlowType expectedType) {
+    private static FlowType generateUnary(UnaryOperatorNode unaryExpression, Scope scope, FileWrapper file, MethodVisitor mv, VariableManager vm, StackTracker tracker, FlowType expectedType) {
         final FlowType actualType = generate(unaryExpression.operand, mv, vm, file, null);
         if (actualType == null) {
             throw new IllegalArgumentException("Could not determine type");
@@ -303,7 +310,11 @@ public class ExpressionGenerator {
 
         BoxMapper.boxIfNeeded(actualType, expectedType, mv);
 
-        return actualType;
+        return tracker.hang(actualType);
+    }
+
+    private static FlowType generateLiteral(LiteralNode literalNode, MethodVisitor mv, StackTracker tracker, FlowType expectedType) {
+        return tracker.hang(generateLiteral(literalNode, mv, expectedType));
     }
 
     public static FlowType generateLiteral(LiteralNode literalNode, MethodVisitor mv, FlowType expectedType) {
@@ -413,6 +424,43 @@ public class ExpressionGenerator {
             } else if (param.defaultValue != null) {
                 ExpressionGenerator.generate(param.defaultValue.expression, mv, vm, file, expectedArgType);
             }
+        }
+    }
+
+    private static class StackTracker {
+        private int hangingValues;
+        private final MethodVisitor mv;
+
+        public StackTracker(MethodVisitor mv) {
+            hangingValues = 0;
+
+            this.mv = mv;
+        }
+
+        public FlowType hang(FlowType type) {
+            hang(getTypeSize(type));
+            return type;
+        }
+
+        public void hang(int amount) {
+            hangingValues += amount;
+        }
+
+        public void cleanStack() {
+            for (int i = 0; i < hangingValues; i++) {
+                mv.visitInsn(Opcodes.POP);
+            }
+        }
+
+        private static int getTypeSize(FlowType type) {
+            if (type == null) return 0;
+            if (!type.isPrimitive) return 1;
+
+            return switch (type.toString()) {
+                case "long", "double" -> 2;
+                case "void" -> 0;
+                default -> 1;
+            };
         }
     }
 }
