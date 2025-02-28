@@ -565,6 +565,8 @@ public class ExpressionTraverse {
                 yield "lessThan";
             case "!=":
                 yield "notEquals";
+            case "[]":
+                yield "get";
             default:
                 yield null;
         };
