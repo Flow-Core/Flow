@@ -42,7 +42,7 @@ public class ClassGenerator {
         final List<CodeGeneration.ClassFile> classes = BlockGenerator.generateClassBlock(classDeclarationNode.classBlock, file);
 
         for (final FunctionDeclarationNode functionDeclarationNode : classDeclarationNode.methods) {
-            FunctionGenerator.generate(functionDeclarationNode, file, cw, false);
+            FunctionGenerator.generate(functionDeclarationNode, file, cw, functionDeclarationNode.modifiers.contains("abstract"));
         }
 
         for (final FieldNode fieldNode : classDeclarationNode.fields) {

@@ -33,6 +33,20 @@ public class ImportLoader {
             globalPackages
         );
 
+        validateImport(
+            (ImportNode) ASTMetaDataStore.getInstance().addMetadata(
+                new ImportNode(
+                    "java.lang.Object",
+                    "Object",
+                    false
+                ),
+                0,
+                file.name()
+            ),
+            data,
+            globalPackages
+        );
+
         for (int i = 0; i < file.root().children.size(); i++) {
             final ASTNode node = file.root().children.get(i);
             if (node instanceof ImportNode importNode) {
@@ -85,14 +99,20 @@ public class ImportLoader {
 
                 if (!optionalClass.get().baseClasses.isEmpty()) {
                     final BaseClassNode baseClassNode = optionalClass.get().baseClasses.get(0);
-                    final ClassDeclarationNode classDeclarationNode = importedSymbols.getClass(baseClassNode.name);
+                    ClassDeclarationNode classDeclarationNode = importedSymbols.getClass(baseClassNode.name);
+                    if (classDeclarationNode == null) {
+                        classDeclarationNode = data.getClass(baseClassNode.name);
+                    }
 
                     data.classes().add(classDeclarationNode);
                     data.bindingContext().put(baseClassNode, importedSymbols.bindingContext().get(classDeclarationNode));
                 }
 
                 for (final BaseInterfaceNode baseInterfaceNode : optionalClass.get().implementedInterfaces) {
-                    final InterfaceNode interfaceNode = importedSymbols.getInterface(baseInterfaceNode.name);
+                    InterfaceNode interfaceNode = importedSymbols.getInterface(baseInterfaceNode.name);
+                    if (interfaceNode == null) {
+                        interfaceNode = data.getInterface(baseInterfaceNode.name);
+                    }
 
                     data.interfaces().add(interfaceNode);
                     data.bindingContext().put(baseInterfaceNode, importedSymbols.bindingContext().get(interfaceNode));

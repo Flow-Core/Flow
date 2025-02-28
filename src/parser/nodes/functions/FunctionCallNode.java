@@ -62,7 +62,9 @@ public class FunctionCallNode implements ExpressionNode {
             sb.append(argumentNode).append(", ");
         }
 
-        sb.delete(sb.length() - 2, sb.length());
+        if (!arguments.isEmpty()) {
+            sb.delete(sb.length() - 2, sb.length());
+        }
         sb.append(")");
 
         return sb.toString();

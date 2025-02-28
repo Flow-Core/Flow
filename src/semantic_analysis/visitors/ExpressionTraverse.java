@@ -378,7 +378,7 @@ public class ExpressionTraverse {
             }
 
             if (functionCall.callerType != null) {
-                final ClassDeclarationNode caller = scope.getClass(functionCall.callerType);
+                final TypeDeclarationNode caller = scope.getTypeDeclaration(functionCall.callerType);
 
                 if (caller == null) {
                     LoggerFacade.error("Unresolved symbol: '" + functionCall.callerType + "'", root);
