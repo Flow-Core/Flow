@@ -8,13 +8,13 @@ import org.objectweb.asm.Opcodes;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.files.FileWrapper;
-import semantic_analysis.loaders.SignatureLoader;
+import semantic_analysis.visitors.ParameterTraverse;
 
 import java.util.List;
 
 public class MainGenerator {
     public static void generate(ClassWriter cw, ClassDeclarationNode topLevelClass, FileWrapper file) {
-        FunctionDeclarationNode main = SignatureLoader.findMethodWithParameters(file.scope(), topLevelClass.methods, "main", List.of());
+        FunctionDeclarationNode main = ParameterTraverse.findMethodWithParameters(file.scope(), topLevelClass.methods, "main", List.of());
         if (
             main == null
                 || !main.modifiers.contains("static")

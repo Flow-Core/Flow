@@ -21,8 +21,6 @@ import semantic_analysis.scopes.Scope;
 
 import java.util.List;
 
-import static semantic_analysis.loaders.SignatureLoader.*;
-
 public class ExpressionTraverse {
     public FlowType traverse(ExpressionBaseNode root, Scope scope, boolean keepCompileTime) {
         if (!keepCompileTime)
@@ -113,7 +111,7 @@ public class ExpressionTraverse {
                             )
                         );
 
-                    FunctionDeclarationNode function = findMethodWithParameters(
+                    FunctionDeclarationNode function = ParameterTraverse.findMethodWithParameters(
                         scope,
                         functions,
                         call.name,
@@ -166,7 +164,7 @@ public class ExpressionTraverse {
             );
 
             FunctionDeclarationNode functionDecl = functions.stream()
-                .filter(method -> compareParameterTypes(
+                .filter(method -> ParameterTraverse.compareParametersWithArguments(
                     scope,
                     method.parameters,
                     List.of(
@@ -249,7 +247,7 @@ public class ExpressionTraverse {
             );
 
             FunctionDeclarationNode functionDecl = functions.stream()
-                .filter(method -> compareParameterTypes(
+                .filter(method -> ParameterTraverse.compareParametersWithArguments(
                     scope,
                     method.parameters,
                     List.of(
@@ -391,13 +389,13 @@ public class ExpressionTraverse {
                 );
 
                 function = functions.stream()
-                    .filter(method -> compareParameterTypes(
+                    .filter(method -> ParameterTraverse.compareParametersWithArguments(
                         scope,
                         method.parameters,
                         functionCall.arguments
                     )).findFirst().orElse(null);
             } else {
-                function = findMethodByArguments(
+                function = ParameterTraverse.findMethodByArguments(
                     scope,
                     functionCall.name,
                     functionCall.arguments

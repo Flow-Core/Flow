@@ -18,7 +18,7 @@ import java.util.List;
 
 public class FunctionGenerator {
     public static void generate(FunctionDeclarationNode functionDeclarationNode, FileWrapper file, ClassWriter cw, boolean isSignature) {
-        boolean isAbstract = functionDeclarationNode.block == null && isSignature;
+        boolean isAbstract = functionDeclarationNode.body == null && isSignature;
 
         final MethodVisitor mv = cw.visitMethod(
             ModifierMapper.map(functionDeclarationNode.modifiers) | (isAbstract ? (Opcodes.ACC_ABSTRACT | Opcodes.ACC_PUBLIC) : 0),
@@ -37,7 +37,7 @@ public class FunctionGenerator {
                 vm.recognizeVariable(parameterNode.name, parameterNode.type);
             }
 
-            BlockGenerator.generateFunctionBlock(functionDeclarationNode.block.scope, functionDeclarationNode.block.blockNode, file, mv, vm);
+            BlockGenerator.generateFunctionBlock(functionDeclarationNode.body.scope, functionDeclarationNode.body.blockNode, file, mv, vm);
 
             if (functionDeclarationNode.returnType.name.equals("Void")) {
                 mv.visitInsn(Opcodes.RETURN);
@@ -96,7 +96,7 @@ public class FunctionGenerator {
             );
         }
 
-        BlockGenerator.generateFunctionBlock(functionDeclarationNode.block.scope, functionDeclarationNode.block.blockNode, file, mv, vm);
+        BlockGenerator.generateFunctionBlock(functionDeclarationNode.body.scope, functionDeclarationNode.body.blockNode, file, mv, vm);
 
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(0, 0);

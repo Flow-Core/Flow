@@ -50,7 +50,7 @@ public class SemanticAnalysis {
 
         for (final PackageWrapper currentPackageWrapper : packages.values()) {
             for (final FileWrapper file : currentPackageWrapper.files()) {
-                file.root().accept(new ClassLoader(currentPackageWrapper.scope().symbols()), file.scope().symbols());
+                file.root().accept(new ClassLoader(), file.scope());
             }
         }
 

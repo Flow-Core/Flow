@@ -4,12 +4,11 @@ import parser.nodes.ASTNode;
 import parser.nodes.FlowType;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.scopes.Scope;
+import semantic_analysis.visitors.ParameterTraverse;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
 
 public abstract class TypeDeclarationNode implements ASTNode {
     public String name;
@@ -95,7 +94,7 @@ public abstract class TypeDeclarationNode implements ASTNode {
         String name,
         List<FlowType> parameterTypes
     ) {
-        return findMethodWithParameters(
+        return ParameterTraverse.findMethodWithParameters(
             scope,
             methods,
             name,

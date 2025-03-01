@@ -12,11 +12,11 @@ import parser.nodes.variable.VariableDeclarationNode;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.visitors.BlockTraverse;
+import semantic_analysis.visitors.ParameterTraverse;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
 import static semantic_analysis.visitors.ClassTraverse.addThisToSymbolTable;
 
 public class FunctionLoader {
@@ -34,7 +34,8 @@ public class FunctionLoader {
 
         final TypeDeclarationNode containingType = scope.getContainingType();
         if (
-            findMethodWithParameters(
+            !functionDeclarationNode.modifiers.contains("override") &&
+            ParameterTraverse.findMethodWithParameters(
                 scope,
                 containingType == null ? scope.symbols().functions() : containingType.getAllSuperFunctions(scope),
                 functionDeclarationNode.name,
@@ -83,7 +84,7 @@ public class FunctionLoader {
         final SymbolTable symbolTable = loadParameters(functionDeclarationNode.parameters);
         final TypeDeclarationNode containingType = scope.getContainingType();
 
-        if (functionDeclarationNode.block == null) {
+        if (functionDeclarationNode.body == null) {
             return;
         }
 
@@ -92,12 +93,12 @@ public class FunctionLoader {
         }
 
         final Scope functionScope = new Scope(scope, symbolTable, functionDeclarationNode, Scope.Type.FUNCTION);
-        BlockTraverse.traverse(functionDeclarationNode.block.blockNode, functionScope);
-        functionDeclarationNode.block.scope = functionScope;
+        BlockTraverse.traverse(functionDeclarationNode.body.blockNode, functionScope);
+        functionDeclarationNode.body.scope = functionScope;
 
         if (!functionDeclarationNode.returnType.name.equals("Void")) {
             boolean haveReturn = false;
-            for (final ASTNode node : functionDeclarationNode.block.blockNode.children) {
+            for (final ASTNode node : functionDeclarationNode.body.blockNode.children) {
                 if (node instanceof ReturnStatementNode) {
                     haveReturn = true;
                     break;

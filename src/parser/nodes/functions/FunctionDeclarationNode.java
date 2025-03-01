@@ -14,22 +14,22 @@ public class FunctionDeclarationNode implements ASTNode {
     public FlowType returnType;
     public List<String> modifiers;
     public List<ParameterNode> parameters;
-    public BodyNode block;
+    public BodyNode body;
 
-    public FunctionDeclarationNode(String name, FlowType returnType, List<String> modifiers, List<ParameterNode> parameters, BodyNode block) {
+    public FunctionDeclarationNode(String name, FlowType returnType, List<String> modifiers, List<ParameterNode> parameters, BodyNode body) {
         this.name = name;
         this.returnType = returnType;
         this.modifiers = modifiers;
         this.parameters = parameters;
-        this.block = block;
+        this.body = body;
     }
 
     @Override
     public <D> void accept(final ASTVisitor<D> visitor, final D data) {
         ASTNode.super.accept(visitor, data);
 
-        if (block != null) {
-            block.accept(visitor, data);
+        if (body != null) {
+            body.accept(visitor, data);
         }
     }
 
@@ -44,7 +44,7 @@ public class FunctionDeclarationNode implements ASTNode {
         if (!Objects.equals(returnType, that.returnType)) return false;
         if (!Objects.equals(modifiers, that.modifiers)) return false;
         if (!Objects.equals(parameters, that.parameters)) return false;
-        return Objects.equals(block, that.block);
+        return Objects.equals(body, that.body);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class FunctionDeclarationNode implements ASTNode {
         result = 31 * result + (returnType != null ? returnType.hashCode() : 0);
         result = 31 * result + (modifiers != null ? modifiers.hashCode() : 0);
         result = 31 * result + (parameters != null ? parameters.hashCode() : 0);
-        result = 31 * result + (block != null ? block.hashCode() : 0);
+        result = 31 * result + (body != null ? body.hashCode() : 0);
         return result;
     }
 

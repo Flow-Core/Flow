@@ -5,12 +5,11 @@ import parser.nodes.FlowType;
 import parser.nodes.components.BlockNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.scopes.Scope;
+import semantic_analysis.visitors.ParameterTraverse;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import static semantic_analysis.loaders.SignatureLoader.findMethodWithParameters;
 
 public class ClassDeclarationNode extends TypeDeclarationNode {
     public List<String> modifiers;
@@ -76,7 +75,7 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
         ClassDeclarationNode caller = this;
 
         while (function == null && caller != null && !caller.baseClasses.isEmpty()) {
-            function = findMethodWithParameters(
+            function = ParameterTraverse.findMethodWithParameters(
                 scope,
                 caller.methods,
                 name,
@@ -93,7 +92,13 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
         String name
     ) {
         return fields.stream().filter(
-            interfaceNode -> interfaceNode.initialization.declaration.name.equals(name)
+            fieldNode -> {
+                if (fieldNode.initialization != null) {
+                    return fieldNode.initialization.declaration.name.equals(name);
+                }
+
+                return false;
+            }
         ).findFirst().orElse(null);
     }
 

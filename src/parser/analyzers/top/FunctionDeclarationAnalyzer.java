@@ -30,7 +30,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
 
             parser.consume(TokenType.CLOSE_BRACES);
 
-            functionDeclaration.block = new BodyNode(block);
+            functionDeclaration.body = new BodyNode(block);
         }
 
         return new AnalyzerResult(

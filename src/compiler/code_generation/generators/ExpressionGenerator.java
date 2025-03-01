@@ -17,8 +17,8 @@ import parser.nodes.literals.*;
 import parser.nodes.variable.FieldReferenceNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.files.FileWrapper;
-import semantic_analysis.loaders.SignatureLoader;
 import semantic_analysis.scopes.Scope;
+import semantic_analysis.visitors.ParameterTraverse;
 
 import java.util.List;
 
@@ -89,7 +89,7 @@ public class ExpressionGenerator {
 
             final boolean isInterface = caller instanceof InterfaceNode;
 
-            final FunctionDeclarationNode declaration = SignatureLoader.findMethodWithParameters(
+            final FunctionDeclarationNode declaration = ParameterTraverse.findMethodWithParameters(
                 scope,
                 methods,
                 funcCallNode.name,
@@ -147,7 +147,7 @@ public class ExpressionGenerator {
 
         ConstructorNode constructorNode = null;
         for (final ConstructorNode currentConstructor : objClass.constructors) {
-            if (SignatureLoader.compareParameterTypes(scope, currentConstructor.parameters, objNode.arguments)) {
+            if (ParameterTraverse.compareParametersWithArguments(scope, currentConstructor.parameters, objNode.arguments)) {
                 constructorNode = currentConstructor;
             }
         }
