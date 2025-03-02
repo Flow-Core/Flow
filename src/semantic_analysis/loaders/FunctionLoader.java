@@ -34,18 +34,28 @@ public class FunctionLoader {
 
         final TypeDeclarationNode containingType = scope.getContainingType();
         if (
-            !functionDeclarationNode.modifiers.contains("override") &&
             ParameterTraverse.findMethodWithParameters(
                 scope,
-                containingType == null ? scope.symbols().functions() : containingType.getAllSuperFunctions(scope),
+                scope.symbols().functions(),
                 functionDeclarationNode.name,
                 functionDeclarationNode.parameters.stream()
                     .map(parameterNode -> parameterNode.type).toList()
             ) != null
         ) {
-            if (containingType == null) {
-                LoggerFacade.error("Conflicting overloads for: " + functionDeclarationNode.name, functionDeclarationNode);
-            } else {
+            LoggerFacade.error("Conflicting overloads for: " + functionDeclarationNode.name, functionDeclarationNode);
+        }
+
+        if (containingType != null) {
+            if (
+                !functionDeclarationNode.modifiers.contains("override") &&
+                ParameterTraverse.findMethodWithParameters(
+                    scope,
+                    containingType.getAllSuperFunctions(scope),
+                    functionDeclarationNode.name,
+                    functionDeclarationNode.parameters.stream()
+                        .map(parameterNode -> parameterNode.type).toList()
+                ) != null
+            ) {
                 LoggerFacade.error("'" + functionDeclarationNode.name + "' hides member of its supertype and needs an 'override' modifier", functionDeclarationNode);
             }
         }
