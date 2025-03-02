@@ -67,7 +67,7 @@ public class BuildSystem {
                 final CodeGeneration codeGeneration = new CodeGeneration(file);
                 final List<CodeGeneration.ClassFile> bytes = codeGeneration.generate();
 
-                File buildDir = new File(buildPath + packageWrapper.getKey().replace(".", "/"));
+                File buildDir = new File(buildPath + "/" + packageWrapper.getKey().replace(".", "/"));
                 if (!buildDir.exists()) {
                     if (!buildDir.mkdirs()) {
                         throw LoggerFacade.getLogger().panic("Couldn't make build dir");
