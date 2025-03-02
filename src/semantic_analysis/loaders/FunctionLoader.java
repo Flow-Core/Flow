@@ -32,7 +32,6 @@ public class FunctionLoader {
             LoggerFacade.error("Unresolved symbol: '" + functionDeclarationNode.returnType + "'", functionDeclarationNode);
         }
 
-        final TypeDeclarationNode containingType = scope.getContainingType();
         if (
             ParameterTraverse.findMethodWithParameters(
                 scope,
@@ -45,6 +44,7 @@ public class FunctionLoader {
             LoggerFacade.error("Conflicting overloads for: " + functionDeclarationNode.name, functionDeclarationNode);
         }
 
+        final TypeDeclarationNode containingType = scope.getContainingType();
         if (containingType != null) {
             if (
                 !functionDeclarationNode.modifiers.contains("override") &&
