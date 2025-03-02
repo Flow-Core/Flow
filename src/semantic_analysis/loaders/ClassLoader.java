@@ -69,13 +69,10 @@ public class ClassLoader implements ASTVisitor<Scope> {
         final List<FunctionDeclarationNode> overriddenFunctions = getFunctionsByModifier("override", classDeclaration, scope);
 
         for (final FunctionDeclarationNode abstractFunction : abstractFunctions) {
-            final FunctionDeclarationNode method = ParameterTraverse.findMethodWithParameters(
-                scope,
-                overriddenFunctions,
-                abstractFunction.name,
-                abstractFunction.parameters.stream()
-                    .map(parameter -> parameter.type).toList()
-            );
+            final FunctionDeclarationNode method = overriddenFunctions.stream()
+                .filter(function -> function.name.equals(abstractFunction.name))
+                .filter(function -> ParameterTraverse.compareParameterTypes(scope, abstractFunction.parameters, function.parameters.stream().map(parameterNode -> parameterNode.type).toList()))
+                .findFirst().orElse(null);
             if (method == null) {
                 LoggerFacade.error("Class '" + classDeclaration.name + "' is not abstract and does not implement abstract base class member '" + abstractFunction.name + "'", classDeclaration);
                 return;
