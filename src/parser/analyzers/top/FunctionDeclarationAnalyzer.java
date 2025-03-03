@@ -2,6 +2,7 @@ package parser.analyzers.top;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
+import parser.analyzers.inline.FlowTypeAnalyzer;
 import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
@@ -85,12 +86,8 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
         while (!parser.check(TokenType.CLOSE_PARENTHESES)) {
             String name = parser.consume(TokenType.IDENTIFIER).value();
             parser.consume(TokenType.COLON_OPERATOR);
-            String type = parser.consume(TokenType.IDENTIFIER).value();
-            boolean isNullable = false;
-            if (parser.check(TokenType.NULLABLE)) {
-                isNullable = true;
-                parser.advance();
-            }
+
+            final FlowType type = FlowTypeAnalyzer.analyze(parser);
 
             int line = parser.peek().line();
 
@@ -101,7 +98,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
             }
 
             ParameterNode arg = (ParameterNode) ASTMetaDataStore.getInstance().addMetadata(new ParameterNode(
-                new FlowType(type, isNullable, false),
+                type,
                 name,
                 new ExpressionBaseNode(defaultValue, line, parser.file)
             ), line, parser.file);
