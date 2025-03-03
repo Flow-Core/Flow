@@ -133,9 +133,9 @@ public class LibLoader {
 
         for (MethodNode method : classNode.methods) {
             if (method.name.equals("<init>")) {
-                constructors.add(convertToFlowConstructor(classNode, method));
+                constructors.add(convertToFlowConstructor(method));
             } else {
-                methods.add(convertToFlowMethod(classNode, method));
+                methods.add(convertToFlowMethod(method));
             }
         }
 
@@ -173,7 +173,7 @@ public class LibLoader {
 
         List<FunctionDeclarationNode> methods = new ArrayList<>();
         for (MethodNode method : classNode.methods) {
-            methods.add(convertToFlowMethod(classNode, method));
+            methods.add(convertToFlowMethod(method));
         }
 
         InterfaceNode flowInterface = new InterfaceNode(
@@ -196,28 +196,28 @@ public class LibLoader {
         }
     }
 
-    private static FunctionDeclarationNode convertToFlowMethod(ClassNode classNode, MethodNode method) {
+    private static FunctionDeclarationNode convertToFlowMethod(MethodNode method) {
         FlowType returnType = mapType(trimPackageName(Type.getReturnType(method.desc).getClassName()));
 
         return new FunctionDeclarationNode(
             method.name,
             returnType,
             extractModifiers(method.access),
-            parseParameters(classNode, method, false),
+            parseParameters(method),
             null
         );
     }
 
-    private static ConstructorNode convertToFlowConstructor(ClassNode classNode, MethodNode method) {
+    private static ConstructorNode convertToFlowConstructor(MethodNode method) {
         final List<String> modifier = extractModifiers(method.access);
         return new ConstructorNode(
             modifier.isEmpty() ? "public" : modifier.get(0),
-            parseParameters(classNode, method, true),
+            parseParameters(method),
             new BodyNode(new BlockNode(new ArrayList<>()), new Scope(null, SymbolTable.getEmptySymbolTable(), null, Scope.Type.FUNCTION))
         );
     }
 
-    private static List<ParameterNode> parseParameters(ClassNode classNode, MethodNode methodNode, boolean isConstructor) {
+    private static List<ParameterNode> parseParameters(MethodNode methodNode) {
         Type[] argumentTypes = Type.getArgumentTypes(methodNode.desc);
         List<ParameterNode> parameters = new ArrayList<>();
 
@@ -231,16 +231,6 @@ public class LibLoader {
                 new ParameterNode(
                     type,
                     paramName,
-                    null
-                )
-            );
-        }
-
-        if (!isConstructor && (methodNode.access & Opcodes.ACC_STATIC) == 0) {
-            parameters.add(
-                0,
-                new ParameterNode(new FlowType(trimPackageName(classNode.name.replace("/", ".")), true, false),
-                    "this",
                     null
                 )
             );
