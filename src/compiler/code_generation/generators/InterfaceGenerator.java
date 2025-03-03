@@ -35,7 +35,7 @@ public class InterfaceGenerator {
         final List<CodeGeneration.ClassFile> classes = BlockGenerator.generateClassBlock(interfaceNode.block, file);
 
         for (final FunctionDeclarationNode functionDeclarationNode : interfaceNode.methods) {
-            FunctionGenerator.generate(functionDeclarationNode, file, cw, true);
+            FunctionGenerator.generate(functionDeclarationNode, interfaceNode, file, cw, true);
         }
 
         cw.visitEnd();

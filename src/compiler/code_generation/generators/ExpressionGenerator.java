@@ -36,7 +36,7 @@ public class ExpressionGenerator {
         } else if (expression instanceof ObjectNode objectNode) {
             result = generateObjectInstantiation(objectNode, file.scope(), file, vm, mv, tracker);
         } else if (expression instanceof FieldReferenceNode fieldReferenceNode) {
-            result = generateFieldReference(fieldReferenceNode, file.scope(), mv, tracker, expectedType);
+            result = generateFieldReference(fieldReferenceNode, file.scope(), file, mv, vm, tracker, expectedType);
         } else if (expression instanceof UnaryOperatorNode unaryExpression) {
             result = generateUnary(unaryExpression, file.scope(), file, mv, vm, tracker, expectedType);
         } else if (expression instanceof LiteralNode literalNode) {
@@ -99,6 +99,16 @@ public class ExpressionGenerator {
             final String descriptor = FunctionGenerator.getDescriptor(declaration, scope);
             final boolean isStatic = declaration.modifiers.contains("static");
 
+            if (!isStatic) {
+                ExpressionGenerator.generate(
+                    funcCallNode.caller,
+                    mv,
+                    vm,
+                    file,
+                    new FlowType(funcCallNode.callerType, false, false)
+                );
+            }
+
             processFunctionArguments(
                 declaration.parameters,
                 funcCallNode.arguments,
@@ -119,14 +129,19 @@ public class ExpressionGenerator {
         }
     }
 
-    private static FlowType generateFieldReference(FieldReferenceNode refNode, Scope scope, MethodVisitor mv, StackTracker tracker, FlowType expectedType) {
-        final String holderFQName = FQNameMapper.getFQName(refNode.holderType, scope);
+    private static FlowType generateFieldReference(FieldReferenceNode refNode, Scope scope, FileWrapper file, MethodVisitor mv, VariableManager vm, StackTracker tracker, FlowType expectedType) {
+        final String holderFQName = FQNameMapper.getFQName(refNode.holderType.name, scope);
         final String descriptor = getJVMName(refNode.type, scope);
+
+        if (refNode.type.shouldBePrimitive()) refNode.type.isPrimitive = true;
 
         if (refNode.isStatic)
             mv.visitFieldInsn(Opcodes.GETSTATIC, holderFQName, refNode.name, descriptor);
-        else
+        else {
+            generate(refNode.holder, mv, vm, file, refNode.holderType);
+
             mv.visitFieldInsn(Opcodes.GETFIELD, holderFQName, refNode.name, descriptor);
+        }
 
         BoxMapper.boxIfNeeded(refNode.type, expectedType, mv);
 
@@ -180,6 +195,9 @@ public class ExpressionGenerator {
     }
 
     private static FlowType generateUnary(UnaryOperatorNode unaryExpression, Scope scope, FileWrapper file, MethodVisitor mv, VariableManager vm, StackTracker tracker, FlowType expectedType) {
+        if (unaryExpression.operator.equals("!!"))
+            return generateDoubleBang(unaryExpression, file, mv, vm, tracker, expectedType);
+
         final FlowType actualType = generate(unaryExpression.operand, mv, vm, file, null);
         if (actualType == null) {
             throw new IllegalArgumentException("Could not determine type");
@@ -206,6 +224,7 @@ public class ExpressionGenerator {
                 }
                 case "long" -> {
                     if (isPostfix) {
+                        mv.visitVarInsn(Opcodes.LLOAD, varIndex);
                         mv.visitInsn(Opcodes.DUP2);
                         mv.visitInsn(Opcodes.LCONST_1);
                         mv.visitInsn(isIncrement ? Opcodes.LADD : Opcodes.LSUB);
@@ -219,6 +238,7 @@ public class ExpressionGenerator {
                 }
                 case "float" -> {
                     if (isPostfix) {
+                        mv.visitVarInsn(Opcodes.FLOAD, varIndex);
                         mv.visitInsn(Opcodes.DUP);
                         mv.visitLdcInsn(1.0f);
                         mv.visitInsn(isIncrement ? Opcodes.FADD : Opcodes.FSUB);
@@ -232,6 +252,7 @@ public class ExpressionGenerator {
                 }
                 case "double" -> {
                     if (isPostfix) {
+                        mv.visitVarInsn(Opcodes.DLOAD, varIndex);
                         mv.visitInsn(Opcodes.DUP2);
                         mv.visitLdcInsn(1.0);
                         mv.visitInsn(isIncrement ? Opcodes.DADD : Opcodes.DSUB);
@@ -246,13 +267,14 @@ public class ExpressionGenerator {
             }
         } else if (unaryExpression.operand instanceof FieldReferenceNode fieldReferenceNode) {
             boolean isStatic = fieldReferenceNode.holder == null;
-            final String fieldDescriptor = FQNameMapper.getFQName(fieldReferenceNode.type.name, file.scope());
+            final String fieldOwner = FQNameMapper.getFQName(fieldReferenceNode.holderType.name, file.scope());
+            final String fieldDescriptor = getJVMName(fieldReferenceNode.type, file.scope());
 
             if (!isStatic) {
                 generate(fieldReferenceNode.holder, mv, vm, file, expectedType);
             }
 
-            mv.visitFieldInsn(isStatic ? Opcodes.GETSTATIC : Opcodes.GETFIELD, fieldReferenceNode.holderType, fieldReferenceNode.name, fieldDescriptor);
+            mv.visitFieldInsn(isStatic ? Opcodes.GETSTATIC : Opcodes.GETFIELD, fieldOwner, fieldReferenceNode.name, fieldDescriptor);
 
             switch (actualType.toString()) {
                 case "int" -> {
@@ -305,12 +327,22 @@ public class ExpressionGenerator {
                 mv.visitInsn(Opcodes.SWAP);
             }
 
-            mv.visitFieldInsn(isStatic ? Opcodes.PUTSTATIC : Opcodes.PUTFIELD, fieldReferenceNode.holderType, fieldReferenceNode.name, fieldDescriptor);
+            mv.visitFieldInsn(isStatic ? Opcodes.PUTSTATIC : Opcodes.PUTFIELD, fieldOwner, fieldReferenceNode.name, fieldDescriptor);
         }
 
         BoxMapper.boxIfNeeded(actualType, expectedType, mv);
 
         return tracker.hang(actualType);
+    }
+
+    private static FlowType generateDoubleBang(UnaryOperatorNode unaryExpression, FileWrapper file, MethodVisitor mv, VariableManager vm, StackTracker tracker, FlowType expectedType) {
+        FlowType type = generate(unaryExpression.operand, mv, vm, file, expectedType);
+
+        if (expectedType.isPrimitive) return type;
+
+        // TODO: if null throw
+
+        return type;
     }
 
     private static FlowType generateLiteral(LiteralNode literalNode, MethodVisitor mv, StackTracker tracker, FlowType expectedType) {

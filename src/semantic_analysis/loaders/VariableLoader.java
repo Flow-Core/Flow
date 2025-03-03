@@ -6,6 +6,7 @@ import parser.nodes.classes.FieldNode;
 import parser.nodes.expressions.BinaryExpressionNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.literals.LiteralNode;
+import parser.nodes.variable.FieldReferenceNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.scopes.Scope;
@@ -132,9 +133,30 @@ public class VariableLoader {
     }
 
     private static FieldNode getFieldNode(VariableAssignmentNode variableAssignment, Scope scope) {
-        final FieldNode fieldNode = scope.getField(((VariableReferenceNode) variableAssignment.variable.expression).variable);
-        if (fieldNode == null) {
-            LoggerFacade.error("Unresolved symbol: '" + ((VariableReferenceNode) variableAssignment.variable.expression).variable + "'", variableAssignment);
+        new ExpressionTraverse().traverse(variableAssignment.variable, scope);
+
+        final FieldNode fieldNode;
+
+        if (variableAssignment.variable.expression instanceof VariableReferenceNode variableReference) {
+            fieldNode = scope.getField(variableReference.variable);
+
+            if (fieldNode == null) {
+                LoggerFacade.error("Unresolved symbol: '" + variableReference.variable + "'", variableAssignment);
+                return null;
+            }
+
+            if (scope.type() == Scope.Type.FUNCTION && !fieldNode.modifiers.isEmpty()) {
+                LoggerFacade.error("Modifiers are not applicable to 'local variable'", variableAssignment);
+            }
+        } else if (variableAssignment.variable.expression instanceof FieldReferenceNode fieldReference) {
+            fieldNode = scope.getField(fieldReference.name);
+
+            if (fieldNode == null) {
+                LoggerFacade.error("Unresolved symbol: '" + fieldReference.name + "'", variableAssignment);
+                return null;
+            }
+        } else {
+            LoggerFacade.error("'" + variableAssignment.variable.expression + "' is not assignable");
             return null;
         }
 
@@ -143,10 +165,6 @@ public class VariableLoader {
                 || fieldNode.initialization.declaration.modifier.equals("val") && fieldNode.isInitialized
         ) {
             LoggerFacade.error(fieldNode.initialization.declaration.modifier + " cannot be reassigned", variableAssignment);
-        }
-
-        if (scope.type() == Scope.Type.FUNCTION && !fieldNode.modifiers.isEmpty()) {
-            LoggerFacade.error("Modifier are not applicable to 'local variable'", variableAssignment);
         }
 
         return fieldNode;
