@@ -55,8 +55,10 @@ public class ImportLoader {
                 }
 
                 validateImport(importNode, data, globalPackages);
-            } else if (i != 0 && node instanceof PackageNode) {
-                LoggerFacade.error("Package must be on top of the file", node);
+            } else if (node instanceof PackageNode) {
+                if (i != 0) {
+                    LoggerFacade.error("Package must be on top of the file", node);
+                }
             } else {
                 finishedImports = true;
             }
