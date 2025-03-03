@@ -9,6 +9,7 @@ import org.objectweb.asm.Opcodes;
 import parser.nodes.FlowType;
 import parser.nodes.classes.BaseClassNode;
 import parser.nodes.classes.ObjectNode;
+import parser.nodes.classes.TypeDeclarationNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.files.FileWrapper;
@@ -17,7 +18,13 @@ import semantic_analysis.scopes.Scope;
 import java.util.List;
 
 public class FunctionGenerator {
-    public static void generate(FunctionDeclarationNode functionDeclarationNode, FileWrapper file, ClassWriter cw, boolean isSignature) {
+    public static void generate(
+        FunctionDeclarationNode functionDeclarationNode,
+        TypeDeclarationNode containingType,
+        FileWrapper file,
+        ClassWriter cw,
+        boolean isSignature
+    ) {
         boolean isAbstract = functionDeclarationNode.body == null && isSignature;
 
         final MethodVisitor mv = cw.visitMethod(
@@ -32,6 +39,17 @@ public class FunctionGenerator {
             mv.visitCode();
 
             VariableManager vm =  new VariableManager(mv);
+
+            if (!functionDeclarationNode.modifiers.contains("static")) {
+                vm.recognizeVariable(
+                    "this",
+                    new FlowType(
+                        containingType.name,
+                        false,
+                        false
+                    )
+                );
+            }
 
             for (ParameterNode parameterNode : functionDeclarationNode.parameters) {
                 vm.recognizeVariable(parameterNode.name, parameterNode.type);
@@ -49,7 +67,13 @@ public class FunctionGenerator {
         mv.visitEnd();
     }
 
-    public static void generateConstructor(BaseClassNode baseClassNode, FunctionDeclarationNode functionDeclarationNode, FileWrapper file, ClassWriter cw) {
+    public static void generateConstructor(
+        BaseClassNode baseClassNode,
+        FunctionDeclarationNode functionDeclarationNode,
+        TypeDeclarationNode containingType,
+        FileWrapper file,
+        ClassWriter cw
+    ) {
         final MethodVisitor mv = cw.visitMethod(
             ModifierMapper.map(functionDeclarationNode.modifiers),
             functionDeclarationNode.name,
@@ -65,8 +89,19 @@ public class FunctionGenerator {
         mv.visitCode();
 
         VariableManager vm =  new VariableManager(mv);
+        vm.recognizeVariable(
+            "this",
+            new FlowType(
+                containingType.name,
+                false,
+                false
+            )
+        );
 
         for (ParameterNode parameterNode : functionDeclarationNode.parameters) {
+            if (parameterNode.type.shouldBePrimitive())
+                parameterNode.type.isPrimitive = true;
+
             vm.recognizeVariable(parameterNode.name, parameterNode.type);
         }
 

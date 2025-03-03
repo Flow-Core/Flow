@@ -42,7 +42,7 @@ public class ClassGenerator {
         final List<CodeGeneration.ClassFile> classes = BlockGenerator.generateClassBlock(classDeclarationNode.classBlock, file);
 
         for (final FunctionDeclarationNode functionDeclarationNode : classDeclarationNode.methods) {
-            FunctionGenerator.generate(functionDeclarationNode, file, cw, functionDeclarationNode.modifiers.contains("abstract"));
+            FunctionGenerator.generate(functionDeclarationNode, classDeclarationNode, file, cw, functionDeclarationNode.modifiers.contains("abstract"));
         }
 
         for (final FieldNode fieldNode : classDeclarationNode.fields) {
@@ -61,7 +61,7 @@ public class ClassGenerator {
             if (classDeclarationNode.initBlock != null)
                 constructorNode.body.blockNode.children.addAll(classDeclarationNode.initBlock.children);
 
-            FunctionGenerator.generateConstructor(baseClassNode, function, file, cw);
+            FunctionGenerator.generateConstructor(baseClassNode, function, classDeclarationNode, file, cw);
         }
 
         if (classDeclarationNode.name.equals(file.name() + "Fl")) {

@@ -9,17 +9,23 @@ import java.util.Objects;
 
 public class FunctionCallNode implements ExpressionNode {
     public String callerType;
+    public ExpressionNode caller;
+    public boolean isSafeCall;
     public String name;
     public List<ArgumentNode> arguments;
 
     public FunctionCallNode(String name, List<ArgumentNode> arguments) {
         this.name = name;
         this.arguments = arguments;
+        this.caller = null;
         this.callerType = null;
+        this.isSafeCall = false;
     }
 
-    public FunctionCallNode(String callerType, String name, List<ArgumentNode> arguments) {
+    public FunctionCallNode(String callerType, ExpressionNode caller, boolean isSafeCall, String name, List<ArgumentNode> arguments) {
         this.callerType = callerType;
+        this.caller = caller;
+        this.isSafeCall = isSafeCall;
         this.name = name;
         this.arguments = arguments;
     }

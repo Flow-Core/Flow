@@ -18,6 +18,9 @@ public class Main {
             FlowCLI.parseArguments(args);
         } catch (Exception e) {
             logger.log(Logger.Severity.ERROR, e.getMessage());
+            e.printStackTrace();
+
+            logger.dump();
             System.exit(1);
         }
     }

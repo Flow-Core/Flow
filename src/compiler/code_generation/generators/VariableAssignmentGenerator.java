@@ -13,6 +13,8 @@ import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.files.FileWrapper;
 import semantic_analysis.scopes.Scope;
 
+import static compiler.code_generation.generators.FunctionGenerator.getJVMName;
+
 public class VariableAssignmentGenerator {
     public static void generate(
         VariableAssignmentNode variableAssignmentNode,
@@ -32,7 +34,7 @@ public class VariableAssignmentGenerator {
 
             vm.storeVariable(variableReferenceNode.variable, null);
         } else if (variable instanceof FieldReferenceNode fieldReferenceNode) {
-            final ClassDeclarationNode holder = scope.getClass(fieldReferenceNode.holderType);
+            final ClassDeclarationNode holder = scope.getClass(fieldReferenceNode.holderType.name);
             if (holder == null) {
                 throw new IllegalArgumentException("Holder is not loaded in the current scope");
             }
@@ -40,17 +42,17 @@ public class VariableAssignmentGenerator {
             final FieldNode fieldNode = holder.findField(scope, fieldReferenceNode.name);
 
             int opcode = Opcodes.PUTFIELD;
-            final String holderFQName = FQNameMapper.getFQName(fieldReferenceNode.holderType, scope);
-            final String typeFQName = FQNameMapper.getFQName(fieldReferenceNode.type.name, file.scope());
+            final String holderFQName = FQNameMapper.getFQName(fieldReferenceNode.holderType.name, scope);
+            final String descriptor = getJVMName(fieldReferenceNode.type, file.scope());
 
             if (fieldReferenceNode.holder == null) {
                 opcode = Opcodes.PUTSTATIC;
             } else {
-                ExpressionGenerator.generate(fieldReferenceNode.holder, mv, vm, file, fieldNode.initialization.declaration.type);
+                ExpressionGenerator.generate(fieldReferenceNode.holder, mv, vm, file, fieldReferenceNode.holderType);
             }
 
             ExpressionGenerator.generate(variableAssignmentNode.value.expression, mv, vm, file, fieldNode.initialization.declaration.type);
-            mv.visitFieldInsn(opcode, holderFQName, fieldReferenceNode.name, typeFQName);
+            mv.visitFieldInsn(opcode, holderFQName, fieldReferenceNode.name, descriptor);
         } else {
             throw new UnsupportedOperationException("Invalid variable assignment expression");
         }

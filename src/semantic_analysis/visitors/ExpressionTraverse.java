@@ -85,7 +85,7 @@ public class ExpressionTraverse {
                         }
 
                         return new FieldReferenceNode(
-                            leftType.type.name,
+                            leftType.type,
                             reference.variable,
                             binaryExpression.left,
                             field.initialization.declaration.type,
@@ -99,17 +99,6 @@ public class ExpressionTraverse {
                         scope,
                         call.name
                     );
-
-                    if (!leftType.isTypeReference)
-                        call.arguments.add(
-                            0,
-                            new ArgumentNode(
-                                null,
-                                new ExpressionBaseNode(
-                                    binaryExpression.left
-                                )
-                            )
-                        );
 
                     FunctionDeclarationNode function = ParameterTraverse.findMethodWithParameters(
                         scope,
@@ -133,6 +122,8 @@ public class ExpressionTraverse {
 
                     return new FunctionCallNode(
                         leftType.type.name,
+                        binaryExpression.left,
+                        binaryExpression.operator.equals("?."),
                         call.name,
                         call.arguments
                     );
@@ -188,6 +179,8 @@ public class ExpressionTraverse {
             if (functionDecl != null) {
                 return new FunctionCallNode(
                     leftType.type.name,
+                    binaryExpression.left,
+                    false,
                     operatorName,
                     List.of(
                         new ArgumentNode(null, new ExpressionBaseNode(binaryExpression.left)),
@@ -264,6 +257,8 @@ public class ExpressionTraverse {
             if (functionDecl != null) {
                 return new FunctionCallNode(
                     operandType.type.name,
+                    unaryExpression.operand,
+                    false,
                     operatorName,
                     List.of(
                         new ArgumentNode(null, new ExpressionBaseNode(unaryExpression.operand))
@@ -290,7 +285,7 @@ public class ExpressionTraverse {
 
         if (field != null) {
             return new FieldReferenceNode(
-                containingType != null ? containingType.name : null,
+                containingType != null ? new FlowType(containingType.name, false, false) : null,
                 field.initialization.declaration.name,
                 new VariableReferenceNode("this"),
                 field.initialization.declaration.type,
@@ -435,7 +430,7 @@ public class ExpressionTraverse {
             ClassDeclarationNode holder = null;
 
             if (field.holderType != null) {
-                holder = scope.getClass(field.holderType);
+                holder = scope.getClass(field.holderType.name);
 
                 if (holder == null) {
                     LoggerFacade.error("Unresolved symbol: '" + field.holderType + "'", root);

@@ -8,8 +8,7 @@ public class BoxMapper {
     public static void boxIfNeeded(FlowType type, FlowType expectedType, MethodVisitor mv) {
         if (expectedType != null) {
             if (expectedType.shouldBePrimitive()) {
-                unbox(expectedType, mv);
-                return;
+                expectedType.isPrimitive = true;
             }
 
             if (needUnboxing(type, expectedType)) {

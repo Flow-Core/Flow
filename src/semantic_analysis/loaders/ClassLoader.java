@@ -4,9 +4,7 @@ import logger.LoggerFacade;
 import parser.nodes.ASTMetaDataStore;
 import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
-import parser.nodes.FlowType;
 import parser.nodes.classes.*;
-import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.scopes.Scope;
@@ -34,7 +32,7 @@ public class ClassLoader implements ASTVisitor<Scope> {
         validateBaseClass(classDeclaration, scope);
         validateInterfaces(classDeclaration.implementedInterfaces, scope);
 
-        addThisParameterToInstanceMethods(classDeclaration);
+        checkAbstractMethods(classDeclaration);
 
         if (!classDeclaration.modifiers.contains("abstract")) {
             checkIfAllOverridden(classDeclaration, scope);
@@ -220,19 +218,8 @@ public class ClassLoader implements ASTVisitor<Scope> {
         }
     }
 
-    private void addThisParameterToInstanceMethods(ClassDeclarationNode classDeclaration) {
+    private void checkAbstractMethods(ClassDeclarationNode classDeclaration) {
         for (FunctionDeclarationNode functionDeclaration : classDeclaration.methods) {
-            if (!functionDeclaration.modifiers.contains("static")) {
-                functionDeclaration.parameters.add(0, new ParameterNode(
-                    new FlowType(
-                        classDeclaration.name,
-                        false,
-                        false
-                    ),
-                    "this",
-                    null
-                ));
-            }
             if (functionDeclaration.modifiers.contains("abstract")) {
                 if (!classDeclaration.modifiers.contains("abstract")) {
                     LoggerFacade.error("Abstract function '" + functionDeclaration.name + "' in non-abstract class '" + classDeclaration.name + "'", functionDeclaration);
@@ -253,20 +240,6 @@ public class ClassLoader implements ASTVisitor<Scope> {
         ModifierLoader.load(interfaceDeclaration.modifiers, ModifierLoader.ModifierType.INTERFACE);
 
         validateInterfaces(interfaceDeclaration, scope);
-
-        for (FunctionDeclarationNode functionDeclaration : interfaceDeclaration.methods) {
-            if (!functionDeclaration.modifiers.contains("static")) {
-                functionDeclaration.parameters.add(0, new ParameterNode(
-                    new FlowType(
-                        interfaceDeclaration.name,
-                        false,
-                        false
-                    ),
-                    "this",
-                    null
-                ));
-            }
-        }
     }
 
     private List<FunctionDeclarationNode> getFunctionsByModifier(
