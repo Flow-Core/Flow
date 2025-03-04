@@ -4,6 +4,7 @@ import parser.nodes.generics.TypeArgument;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class FlowType {
     public String name;
@@ -38,7 +39,41 @@ public class FlowType {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        FlowType flowType = (FlowType) o;
+
+        if (isNullable != flowType.isNullable) return false;
+        if (isPrimitive != flowType.isPrimitive) return false;
+        if (!Objects.equals(name, flowType.name)) return false;
+        return Objects.equals(typeArguments, flowType.typeArguments);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (isNullable ? 1 : 0);
+        result = 31 * result + (isPrimitive ? 1 : 0);
+        result = 31 * result + (typeArguments != null ? typeArguments.hashCode() : 0);
+        return result;
+    }
+
+    @Override
     public String toString() {
-        return (isPrimitive ? name.toLowerCase() : name) + (isNullable ? "?" : "");
+        final StringBuilder sb = new StringBuilder((isPrimitive ? name.toLowerCase() : name) + "<");
+
+        for (final TypeArgument typeArgument : typeArguments) {
+            sb.append(typeArgument).append(", ");
+        }
+
+        if (!typeArguments.isEmpty()) {
+            sb.delete(sb.length() - 2, sb.length());
+        }
+
+        sb.append(">").append(isNullable ? "?" : "");
+
+        return sb.toString();
     }
 }

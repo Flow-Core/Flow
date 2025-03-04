@@ -26,6 +26,16 @@ public record SymbolTable(
         if (!superType.isNullable && type.isNullable)
             return false;
 
+        if (type.typeArguments.size() != superType.typeArguments.size()) {
+            return false;
+        }
+
+        for (int i = 0; i < type.typeArguments.size(); i++) {
+            if (!type.typeArguments.get(i).equals(superType.typeArguments.get(i))) {
+                return false;
+            }
+        }
+
         if (Objects.equals(type.name, superType.name)) {
             return true;
         }

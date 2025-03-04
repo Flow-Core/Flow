@@ -23,6 +23,6 @@ public class TypeParameterNode extends TypeDeclarationNode {
 
     @Override
     public String toString() {
-        return "<" + (bound == null ? name : name + ": " + bound) + ">";
+        return bound == null ? name : name + ": " + bound;
     }
 }
