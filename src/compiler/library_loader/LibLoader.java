@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Stream;
 
 import static compiler.library_loader.TypeMapper.mapType;
 
@@ -111,7 +112,7 @@ public class LibLoader {
 
         List<parser.nodes.classes.FieldNode> fields = new ArrayList<>();
         for (FieldNode field : classNode.fields) {
-            FlowType fieldType = TypeMapper.mapType(trimPackageName(Type.getType(field.desc).getClassName()));
+            FlowType fieldType = TypeMapper.mapType(Type.getType(field.desc).getClassName());
 
             parser.nodes.classes.FieldNode fieldNode = new parser.nodes.classes.FieldNode(
                 extractModifiers(field.access),
@@ -197,7 +198,7 @@ public class LibLoader {
     }
 
     private static FunctionDeclarationNode convertToFlowMethod(MethodNode method) {
-        FlowType returnType = mapType(trimPackageName(Type.getReturnType(method.desc).getClassName()));
+        FlowType returnType = mapType(Type.getReturnType(method.desc).getClassName());
 
         return new FunctionDeclarationNode(
             method.name,
@@ -213,7 +214,17 @@ public class LibLoader {
         return new ConstructorNode(
             modifier.isEmpty() ? "public" : modifier.get(0),
             parseParameters(method),
-            new BodyNode(new BlockNode(new ArrayList<>()), new Scope(null, SymbolTable.getEmptySymbolTable(), null, Scope.Type.FUNCTION))
+            new BodyNode(
+                new BlockNode(
+                    new ArrayList<>()
+                ),
+                new Scope(
+                    null,
+                    SymbolTable.getEmptySymbolTable(),
+                    null,
+                    Scope.Type.FUNCTION
+                )
+            )
         );
     }
 
@@ -222,7 +233,7 @@ public class LibLoader {
         List<ParameterNode> parameters = new ArrayList<>();
 
         for (int i = 0; i < argumentTypes.length; i++) {
-            FlowType type = mapType(trimPackageName(argumentTypes[i].getClassName()));
+            FlowType type = mapType(argumentTypes[i].getClassName());
             String paramName = (methodNode.parameters != null && i < methodNode.parameters.size())
                 ? methodNode.parameters.get(i).name
                 : null;
@@ -260,16 +271,17 @@ public class LibLoader {
         try (FileSystem jrtFS = FileSystems.newFileSystem(URI.create("jrt:/"), Map.of())) {
             Path modulesPath = jrtFS.getPath("modules/java.base");
 
-            Files.walk(modulesPath)
-                .filter(Files::isRegularFile)
-                .filter(p -> p.toString().endsWith(".class"))
-                .forEach(file -> {
-                    try {
-                        registerJavaClass(file, packages);
-                    } catch (IOException e) {
-                        LoggerFacade.error("Failed to load Java standard class: " + file);
-                    }
-                });
+            try (Stream<Path> paths = Files.walk(modulesPath)) {
+                paths.filter(Files::isRegularFile)
+                    .filter(p -> p.toString().endsWith(".class"))
+                    .forEach(file -> {
+                        try {
+                            registerJavaClass(file, packages);
+                        } catch (IOException e) {
+                            LoggerFacade.error("Failed to load Java standard class: " + file);
+                        }
+                    });
+            }
 
         } catch (IOException e) {
             LoggerFacade.error("Failed to load Java standard library: " + e.getMessage());

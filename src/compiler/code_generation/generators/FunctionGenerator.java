@@ -164,9 +164,7 @@ public class FunctionGenerator {
         for (int i = 0; i < functionDeclarationNode.parameters.size(); i++) {
             final ParameterNode parameterNode = functionDeclarationNode.parameters.get(i);
 
-            if (i > 0 || functionDeclarationNode.modifiers.contains("static")) {
-                sb.append(getJVMName(parameterNode.type, scope));
-            }
+            sb.append(getJVMName(parameterNode.type, scope));
         }
 
         sb.append(")").append(

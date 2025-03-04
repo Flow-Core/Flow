@@ -59,7 +59,11 @@ public class ExpressionGenerator {
 
     private static FlowType generateFuncCall(FunctionCallNode funcCallNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv, StackTracker tracker, FlowType expectedType) {
         if (funcCallNode.callerType == null) {
-            final FunctionDeclarationNode declaration = scope.getFunction(funcCallNode.name);
+            final FunctionDeclarationNode declaration = ParameterTraverse.findMethodByArguments(
+                scope,
+                funcCallNode.name,
+                funcCallNode.arguments
+            );
             if (declaration == null) {
                 throw new IllegalArgumentException("Function " + funcCallNode.name + " was not found in the scope");
             }
@@ -89,12 +93,11 @@ public class ExpressionGenerator {
 
             final boolean isInterface = caller instanceof InterfaceNode;
 
-            final FunctionDeclarationNode declaration = ParameterTraverse.findMethodWithParameters(
+            final FunctionDeclarationNode declaration = ParameterTraverse.findMethodByArguments(
                 scope,
                 methods,
                 funcCallNode.name,
-                funcCallNode.arguments.stream()
-                    .map(argument -> argument.type).toList()
+                funcCallNode.arguments
             );
             final String descriptor = FunctionGenerator.getDescriptor(declaration, scope);
             final boolean isStatic = declaration.modifiers.contains("static");
