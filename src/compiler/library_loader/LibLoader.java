@@ -152,6 +152,7 @@ public class LibLoader {
             className,
             extractModifiers(classNode.access),
             new ArrayList<>(),
+            new ArrayList<>(),
             baseClasses,
             interfaces,
             fields,
@@ -180,6 +181,7 @@ public class LibLoader {
         InterfaceNode flowInterface = new InterfaceNode(
             interfaceName,
             extractModifiers(classNode.access),
+            new ArrayList<>(),
             implementedInterfaces,
             methods,
             new BlockNode(new ArrayList<>())

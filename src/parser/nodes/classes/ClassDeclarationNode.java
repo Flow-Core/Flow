@@ -4,6 +4,7 @@ import parser.nodes.ASTVisitor;
 import parser.nodes.FlowType;
 import parser.nodes.components.BlockNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeParameterNode;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.visitors.ParameterTraverse;
 
@@ -23,6 +24,7 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
     public ClassDeclarationNode(
         final String name,
         final List<String> modifiers,
+        final List<TypeParameterNode> typeParameters,
         final List<FieldNode> primaryConstructor,
         final List<BaseClassNode> baseClasses,
         final List<BaseInterfaceNode> implementedInterfaces,
@@ -33,6 +35,7 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
         final BlockNode classBlock
     ) {
         this.name = name;
+        this.typeParameters = typeParameters;
         this.modifiers = modifiers != null ? modifiers : new ArrayList<>();
         this.primaryConstructor = primaryConstructor;
         this.baseClasses = baseClasses;
@@ -126,6 +129,10 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
             field.accept(visitor, data);
         }
 
+        for (final TypeParameterNode typeParameterNode : typeParameters) {
+            typeParameterNode.accept(visitor, data);
+        }
+
         for (final BaseClassNode baseClass : baseClasses) {
             baseClass.accept(visitor, data);
         }
@@ -157,10 +164,10 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
 
         ClassDeclarationNode that = (ClassDeclarationNode) o;
 
-        if (!Objects.equals(name, that.name)) return false;
         if (!Objects.equals(modifiers, that.modifiers)) return false;
         if (!Objects.equals(primaryConstructor, that.primaryConstructor))
             return false;
@@ -173,7 +180,7 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
 
     @Override
     public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
+        int result = super.hashCode();
         result = 31 * result + (modifiers != null ? modifiers.hashCode() : 0);
         result = 31 * result + (primaryConstructor != null ? primaryConstructor.hashCode() : 0);
         result = 31 * result + (baseClasses != null ? baseClasses.hashCode() : 0);
@@ -188,12 +195,13 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
     public String toString() {
         return "ClassDeclarationNode{" +
             "name='" + name + '\'' +
+            ", typeParameters=" + typeParameters +
+            ", methods=" + methods +
+            ", implementedInterfaces=" + implementedInterfaces +
             ", modifiers=" + modifiers +
             ", primaryConstructor=" + primaryConstructor +
             ", baseClasses=" + baseClasses +
-            ", interfaces=" + implementedInterfaces +
             ", fields=" + fields +
-            ", methods=" + methods +
             ", constructors=" + constructors +
             ", initBlock=" + initBlock +
             ", classBlock=" + classBlock +

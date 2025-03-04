@@ -33,6 +33,7 @@ public class VariableAnalyzer {
 
             return (InitializedVariableNode) ASTMetaDataStore.getInstance().addMetadata(new InitializedVariableNode(declaration, assignment), line, parser.file);
         } else if (parser.check(TokenType.COLON_OPERATOR)) {
+            parser.advance();
             final FlowType type = FlowTypeAnalyzer.analyze(parser);
 
             VariableDeclarationNode variableDeclarationNode = new VariableDeclarationNode(

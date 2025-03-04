@@ -3,6 +3,7 @@ package parser.nodes.classes;
 import parser.nodes.ASTVisitor;
 import parser.nodes.components.BlockNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeParameterNode;
 
 import java.util.List;
 import java.util.Objects;
@@ -14,11 +15,13 @@ public class InterfaceNode extends TypeDeclarationNode {
     public InterfaceNode(
         String name,
         List<String> modifiers,
+        List<TypeParameterNode> typeParameters,
         List<BaseInterfaceNode> implementedInterfaces,
         List<FunctionDeclarationNode> methods,
         BlockNode block
     ) {
         this.name = name;
+        this.typeParameters = typeParameters;
         this.modifiers = modifiers;
         this.implementedInterfaces = implementedInterfaces;
         this.methods = methods;
