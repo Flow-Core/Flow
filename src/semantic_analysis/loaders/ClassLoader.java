@@ -7,6 +7,7 @@ import parser.nodes.ASTVisitor;
 import parser.nodes.classes.*;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeParameterNode;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.visitors.ExpressionTraverse;
 import semantic_analysis.visitors.ParameterTraverse;
@@ -32,6 +33,8 @@ public class ClassLoader implements ASTVisitor<Scope> {
         validateBaseClass(classDeclaration, scope);
         validateInterfaces(classDeclaration.implementedInterfaces, scope);
 
+        loadTypeParameters(classDeclaration, scope);
+
         checkAbstractMethods(classDeclaration);
 
         if (!classDeclaration.modifiers.contains("abstract")) {
@@ -39,6 +42,18 @@ public class ClassLoader implements ASTVisitor<Scope> {
         }
 
         loadConstructors(classDeclaration, scope);
+    }
+
+    private void loadTypeParameters(final TypeDeclarationNode typeDeclarationNode, final Scope scope) {
+        for (final TypeParameterNode typeParameterNode : typeDeclarationNode.typeParameters) {
+            final TypeDeclarationNode bound = scope.getTypeDeclaration(typeParameterNode.bound.name);
+            if (bound == null) {
+                LoggerFacade.error("Unresolved symbol: '" + typeParameterNode.bound.name + "'", typeDeclarationNode);
+                return;
+            }
+
+            typeParameterNode.updateBound(bound);
+        }
     }
 
     private void loadConstructors(final ClassDeclarationNode classDeclaration, final Scope scope) {
@@ -238,6 +253,8 @@ public class ClassLoader implements ASTVisitor<Scope> {
 
     private void handleInterface(final InterfaceNode interfaceDeclaration, final Scope scope) {
         ModifierLoader.load(interfaceDeclaration.modifiers, ModifierLoader.ModifierType.INTERFACE);
+
+        loadTypeParameters(interfaceDeclaration, scope);
 
         validateInterfaces(interfaceDeclaration, scope);
     }
