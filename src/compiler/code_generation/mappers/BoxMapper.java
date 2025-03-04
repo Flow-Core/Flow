@@ -51,6 +51,7 @@ public class BoxMapper {
             case "Byte" -> mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Byte", "value", "B");
             case "Char" -> mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Char", "value", "C");
             case "Short" -> mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Short", "value", "S");
+            default -> throw new IllegalArgumentException("Cannot box unknown type: " + type);
         }
     }
 }
