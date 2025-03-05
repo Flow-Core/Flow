@@ -1,14 +1,18 @@
 package compiler.code_generation.mappers;
 
+import compiler.code_generation.constants.CodeGenerationConstant;
 import parser.nodes.ASTNode;
 import parser.nodes.FlowType;
 import parser.nodes.generics.TypeArgument;
+import parser.nodes.generics.TypeParameterNode;
 import semantic_analysis.scopes.Scope;
+
+import java.util.List;
 
 public class FQNameMapper {
     public static String getJVMName(FlowType type, Scope scope) {
         if (!type.isPrimitive && !type.shouldBePrimitive() && !type.name.equals("Void")) {
-            return getSignature(type, scope);
+            return parseTypeArgumentSignature(type, scope);
         }
 
         return switch (type.name) {
@@ -25,20 +29,39 @@ public class FQNameMapper {
         };
     }
 
-    private static String getSignature(FlowType type, Scope scope) {
+    private static String parseTypeArgumentSignature(FlowType type, Scope scope) {
         StringBuilder jvmName = new StringBuilder();
         jvmName.append("L").append(FQNameMapper.getFQName(type.name, scope));
 
         if (!type.typeArguments.isEmpty()) {
             jvmName.append("<");
-            for (TypeArgument arg : type.typeArguments) {
-                jvmName.append(getSignature(arg.type, scope));
+            for (final TypeArgument arg : type.typeArguments) {
+                jvmName.append(parseTypeArgumentSignature(arg.type, scope));
             }
             jvmName.append(">");
         }
 
         jvmName.append(";");
         return jvmName.toString();
+    }
+
+    public static String parseTypeParameterSignature(List<TypeParameterNode> typeParameters, Scope scope) {
+        if (typeParameters.isEmpty()) {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder("<");
+        for (TypeParameterNode parameter : typeParameters) {
+            sb.append(parameter.name);
+            sb.append(":");
+            if (parameter.bound != null) {
+                sb.append(getJVMName(parameter.bound, scope));
+            } else {
+                sb.append("L").append(CodeGenerationConstant.baseObjectFQName).append(";");
+            }
+        }
+        sb.append(">");
+        return sb.toString();
     }
 
     public static String getFQName(ASTNode node, Scope scope) {
