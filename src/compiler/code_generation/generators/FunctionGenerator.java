@@ -31,7 +31,7 @@ public class FunctionGenerator {
             ModifierMapper.map(functionDeclarationNode.modifiers) | (isAbstract ? (Opcodes.ACC_ABSTRACT | Opcodes.ACC_PUBLIC) : 0),
             functionDeclarationNode.name,
             getDescriptor(functionDeclarationNode, file.scope()),
-            null,
+            getFunctionSignature(functionDeclarationNode, file.scope()),
             null
         );
 
@@ -176,4 +176,24 @@ public class FunctionGenerator {
 
         return sb.toString();
     }
+
+    public static String getFunctionSignature(FunctionDeclarationNode function, Scope scope) {
+        StringBuilder signature = new StringBuilder();
+
+        String typeParametersSignature = FQNameMapper.parseTypeParameterSignature(function.typeParameters, scope);
+        if (typeParametersSignature != null) {
+            signature.append(typeParametersSignature);
+        }
+
+        signature.append("(");
+        for (ParameterNode parameter : function.parameters) {
+            signature.append(FQNameMapper.getJVMName(parameter.type, scope));
+        }
+        signature.append(")");
+
+        signature.append(FQNameMapper.getJVMName(function.returnType, scope));
+
+        return signature.toString();
+    }
+
 }
