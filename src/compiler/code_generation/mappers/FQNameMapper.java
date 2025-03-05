@@ -2,12 +2,25 @@ package compiler.code_generation.mappers;
 
 import parser.nodes.ASTNode;
 import parser.nodes.FlowType;
+import parser.nodes.generics.TypeArgument;
 import semantic_analysis.scopes.Scope;
 
 public class FQNameMapper {
     public static String getJVMName(FlowType type, Scope scope) {
         if (!type.isPrimitive && !type.shouldBePrimitive() && !type.name.equals("Void")) {
-            return "L" + FQNameMapper.getFQName(type.name, scope) + ";";
+            StringBuilder jvmName = new StringBuilder();
+            jvmName.append("L").append(FQNameMapper.getFQName(type.name, scope));
+
+            if (!type.typeArguments.isEmpty()) {
+                jvmName.append("<");
+                for (TypeArgument arg : type.typeArguments) {
+                    jvmName.append(getJVMName(arg.type, scope));
+                }
+                jvmName.append(">");
+            }
+
+            jvmName.append(";");
+            return jvmName.toString();
         }
 
         return switch (type.name) {
