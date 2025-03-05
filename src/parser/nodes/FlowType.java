@@ -62,17 +62,19 @@ public class FlowType {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder((isPrimitive ? name.toLowerCase() : name) + "<");
-
-        for (final TypeArgument typeArgument : typeArguments) {
-            sb.append(typeArgument).append(", ");
-        }
+        final StringBuilder sb = new StringBuilder(isPrimitive ? name.toLowerCase() : name);
 
         if (!typeArguments.isEmpty()) {
-            sb.delete(sb.length() - 2, sb.length());
+            sb.append("<");
+
+            for (final TypeArgument typeArgument : typeArguments) {
+                sb.append(typeArgument).append(", ");
+            }
+
+            sb.delete(sb.length() - 2, sb.length()).append(">");
         }
 
-        sb.append(">").append(isNullable ? "?" : "");
+        sb.append(isNullable ? "?" : "");
 
         return sb.toString();
     }

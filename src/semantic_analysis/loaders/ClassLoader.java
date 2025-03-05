@@ -53,6 +53,7 @@ public class ClassLoader implements ASTVisitor<Scope> {
             }
 
             typeParameterNode.updateBound(bound);
+            scope.symbols().typeParameters().add(typeParameterNode);
         }
     }
 

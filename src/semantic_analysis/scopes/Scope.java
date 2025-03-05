@@ -83,7 +83,7 @@ public record Scope (
     }
 
     public boolean findTypeDeclaration(String symbol) {
-        return findClass(symbol) || findInterface(symbol);
+        return symbols.findTypeDeclaration(symbol) || (parent != null && parent().findTypeDeclaration(symbol));
     }
 
     public boolean findFunction(String symbol) {

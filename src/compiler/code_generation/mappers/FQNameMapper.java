@@ -3,6 +3,7 @@ package compiler.code_generation.mappers;
 import compiler.code_generation.constants.CodeGenerationConstant;
 import parser.nodes.ASTNode;
 import parser.nodes.FlowType;
+import parser.nodes.classes.TypeDeclarationNode;
 import parser.nodes.generics.TypeArgument;
 import parser.nodes.generics.TypeParameterNode;
 import semantic_analysis.scopes.Scope;
@@ -78,9 +79,13 @@ public class FQNameMapper {
             return map(name);
         }
 
-        ASTNode node = scope.getTypeDeclaration(name);
+        TypeDeclarationNode node = scope.getTypeDeclaration(name);
         if (node == null) {
             throw new IllegalArgumentException("Class should be loaded in the current scope");
+        }
+
+        if (node instanceof TypeParameterNode typeParameterNode) {
+            return "T" + typeParameterNode.name;
         }
 
         return getFQName(node, scope);

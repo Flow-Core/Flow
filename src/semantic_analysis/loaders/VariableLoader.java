@@ -80,12 +80,13 @@ public class VariableLoader {
                 LoggerFacade.error("Type mismatch: expected '"  + varType + "' but received '" + actualType + "'", fieldNode);
             }
         } else {
-            if (actualType != null)
+            if (actualType != null) {
                 if (actualType.name.equals("null")) {
                     LoggerFacade.error("Cannot infer variable type from 'null'", fieldNode);
                 } else {
                     fieldNode.initialization.declaration.type = actualType;
                 }
+            }
         }
 
         if (scope.type() == Scope.Type.TOP && !fieldNode.modifiers.contains("static")) {
