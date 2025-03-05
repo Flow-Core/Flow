@@ -6,11 +6,13 @@ import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.TypeDeclarationNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeParameterNode;
 import parser.nodes.statements.ReturnStatementNode;
 import parser.nodes.variable.InitializedVariableNode;
 import parser.nodes.variable.VariableDeclarationNode;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
+import semantic_analysis.scopes.TypeRecognize;
 import semantic_analysis.visitors.BlockTraverse;
 import semantic_analysis.visitors.ParameterTraverse;
 
@@ -28,7 +30,14 @@ public class FunctionLoader {
                 : ModifierLoader.ModifierType.FUNCTION
         );
 
-        if (!scope.findTypeDeclaration(functionDeclarationNode.returnType.name)) {
+        final SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
+        symbolTable.typeParameters().addAll(functionDeclarationNode.typeParameters);
+        final Scope functionScope = new Scope(scope, symbolTable, functionDeclarationNode, Scope.Type.FUNCTION);
+        functionDeclarationNode.body.scope = functionScope;
+
+        loadTypeParameters(functionDeclarationNode, scope);
+
+        if (!functionScope.findTypeDeclaration(functionDeclarationNode.returnType.name)) {
             LoggerFacade.error("Unresolved symbol: '" + functionDeclarationNode.returnType + "'", functionDeclarationNode);
         }
 
@@ -60,7 +69,8 @@ public class FunctionLoader {
             }
         }
 
-        checkParameters(functionDeclarationNode.parameters, scope);
+        checkParameters(functionDeclarationNode.parameters, functionScope);
+        symbolTable.recognizeSymbolTable(loadParameters(functionDeclarationNode.parameters));
 
         if (scope.type() == Scope.Type.TOP && !functionDeclarationNode.modifiers.contains("static")) {
             functionDeclarationNode.modifiers.add("static");
@@ -91,7 +101,6 @@ public class FunctionLoader {
     }
 
     public static void loadBody(final FunctionDeclarationNode functionDeclarationNode, final Scope scope) {
-        final SymbolTable symbolTable = loadParameters(functionDeclarationNode.parameters);
         final TypeDeclarationNode containingType = scope.getContainingType();
 
         if (functionDeclarationNode.body == null) {
@@ -99,12 +108,10 @@ public class FunctionLoader {
         }
 
         if (containingType != null && !functionDeclarationNode.modifiers.contains("static")) {
-            addThisToSymbolTable(symbolTable, containingType.name);
+            addThisToSymbolTable(functionDeclarationNode.body.scope.symbols(), containingType.name);
         }
 
-        final Scope functionScope = new Scope(scope, symbolTable, functionDeclarationNode, Scope.Type.FUNCTION);
-        BlockTraverse.traverse(functionDeclarationNode.body.blockNode, functionScope);
-        functionDeclarationNode.body.scope = functionScope;
+        BlockTraverse.traverse(functionDeclarationNode.body.blockNode, functionDeclarationNode.body.scope);
 
         if (!functionDeclarationNode.returnType.name.equals("Void")) {
             boolean haveReturn = false;
@@ -140,5 +147,18 @@ public class FunctionLoader {
         }
 
         return symbolTable;
+    }
+
+    private static void loadTypeParameters(final FunctionDeclarationNode functionDeclarationNode, final Scope scope) {
+        for (final TypeParameterNode typeParameterNode : functionDeclarationNode.typeParameters) {
+            final TypeDeclarationNode bound = TypeRecognize.getTypeDeclaration(typeParameterNode.bound.name, scope);
+            if (bound == null) {
+                LoggerFacade.error("Unresolved symbol: '" + typeParameterNode.bound.name + "'", functionDeclarationNode);
+                return;
+            }
+
+            typeParameterNode.updateBound(bound);
+            scope.symbols().typeParameters().add(typeParameterNode);
+        }
     }
 }

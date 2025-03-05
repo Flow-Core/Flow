@@ -18,6 +18,7 @@ public class TypeParameterNode extends TypeDeclarationNode {
 
     public void updateBound(TypeDeclarationNode bound) {
         methods = bound.methods;
+        implementedInterfaces = bound.implementedInterfaces;
         typeParameters = bound.typeParameters;
     }
 

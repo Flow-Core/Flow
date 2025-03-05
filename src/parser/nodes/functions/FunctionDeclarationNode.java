@@ -84,6 +84,18 @@ public class FunctionDeclarationNode implements ASTNode {
         }
 
         sb.append(name);
+
+        if (!typeParameters.isEmpty()) {
+            sb.append("<");
+        }
+        for (TypeParameterNode typeParameterNode : typeParameters) {
+            sb.append(typeParameterNode.name).append(": ").append(typeParameterNode.bound).append(", ");
+        }
+        if (!typeParameters.isEmpty()) {
+            sb.delete(sb.length() - 2, sb.length());
+            sb.append(">");
+        }
+
         sb.append("(");
 
         for (ParameterNode parameterNode : parameters) {
