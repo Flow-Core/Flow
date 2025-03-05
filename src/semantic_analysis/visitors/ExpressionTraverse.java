@@ -22,6 +22,9 @@ import semantic_analysis.scopes.TypeRecognize;
 
 import java.util.List;
 
+import static semantic_analysis.visitors.ParameterTraverse.findConstructor;
+import static semantic_analysis.visitors.ParameterTraverse.findMethodWithParameters;
+
 public class ExpressionTraverse {
     public FlowType traverse(ExpressionBaseNode root, Scope scope, boolean keepCompileTime) {
         if (!keepCompileTime)
@@ -101,7 +104,7 @@ public class ExpressionTraverse {
                         call.name
                     );
 
-                    FunctionDeclarationNode function = ParameterTraverse.findMethodWithParameters(
+                    FunctionDeclarationNode function = findMethodWithParameters(
                         scope,
                         functions,
                         call.name,
@@ -276,7 +279,7 @@ public class ExpressionTraverse {
     private static ExpressionNode transformVariableReference(ExpressionBaseNode root, VariableReferenceNode referenceNode, Scope scope) {
         if (
             scope.type() == Scope.Type.FUNCTION && scope.findLocalVariable(referenceNode.variable) ||
-                scope.findTypeDeclaration(referenceNode.variable)
+                TypeRecognize.findTypeDeclaration(referenceNode.variable, scope)
         ) {
             return referenceNode;
         }
@@ -303,40 +306,70 @@ public class ExpressionTraverse {
             return null;
         }
         if (expression instanceof ObjectNode objectNode) {
-            if (!scope.findTypeDeclaration(objectNode.className)) {
-                LoggerFacade.error("Unresolved symbol: '" + objectNode.className + "'", root);
+            if (objectNode.type.isNullable) {
+                LoggerFacade.warning("The nullable type indicator ('?') has no effect when instantiating an object and will be ignored");
+                objectNode.type.isNullable = false;
+            }
+
+            TypeDeclarationNode baseType = TypeRecognize.getTypeDeclaration(objectNode.type.name, scope);
+
+            if (baseType == null) {
+                LoggerFacade.error("Unresolved symbol: '" + objectNode.type.name + "'", root);
                 return null;
             }
+
+            if (baseType instanceof InterfaceNode) {
+                LoggerFacade.error("Type '" + objectNode.type.name + "' does not have a constructor", root);
+                return null;
+            }
+
+            ClassDeclarationNode baseClass = (ClassDeclarationNode)baseType;
 
             for (final ArgumentNode argNode : objectNode.arguments) {
                 argNode.type = new ExpressionTraverse().traverse(argNode.value, scope, true);
             }
 
+            if (findConstructor(scope, baseClass.constructors, objectNode.arguments) == null) {
+                LoggerFacade.error("No matching constructor found for the specified arguments", root);
+                return null;
+            }
+
             return new TypeWrapper(
-                new FlowType(
-                    objectNode.className,
-                    false,
-                    false
-                ),
+                objectNode.type,
                 false
             );
         }
         if (expression instanceof BaseClassNode baseClassNode) {
-            if (!scope.findTypeDeclaration(baseClassNode.name)) {
-                LoggerFacade.error("Unresolved symbol: '" + baseClassNode.name + "'", root);
+            if (baseClassNode.type.isNullable) {
+                LoggerFacade.error("Cannot extend nullable type '" + baseClassNode.type + "'", root);
                 return null;
             }
+
+            TypeDeclarationNode baseType = TypeRecognize.getTypeDeclaration(baseClassNode.type.name, scope);
+
+            if (baseType == null) {
+                LoggerFacade.error("Unresolved symbol: '" + baseClassNode.type.name + "'", root);
+                return null;
+            }
+
+            if (baseType instanceof InterfaceNode) {
+                LoggerFacade.error("Type '" + baseClassNode.type.name + "' does not have a constructor", root);
+                return null;
+            }
+
+            ClassDeclarationNode baseClass = (ClassDeclarationNode)baseType;
 
             for (final ArgumentNode argNode : baseClassNode.arguments) {
                 argNode.type = new ExpressionTraverse().traverse(argNode.value, scope, true);
             }
 
+            if (findConstructor(scope, baseClass.constructors, baseClassNode.arguments) == null) {
+                LoggerFacade.error("No matching constructor found for the specified arguments", root);
+                return null;
+            }
+
             return new TypeWrapper(
-                new FlowType(
-                    baseClassNode.name,
-                    false,
-                    false
-                ),
+                baseClassNode.type,
                 false
             );
         }

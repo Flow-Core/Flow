@@ -110,7 +110,7 @@ public class FunctionGenerator {
         if (baseClassNode != null) {
             ExpressionGenerator.generateConstructorCall(
                 new ObjectNode(
-                    baseClassNode.name,
+                    baseClassNode.type,
                     baseClassNode.arguments
                 ),
                 file.scope(),
@@ -121,7 +121,7 @@ public class FunctionGenerator {
         } else {
             ExpressionGenerator.generateConstructorCall(
                 new ObjectNode(
-                    "flow.Thing",
+                    new FlowType("flow.Thing", false, false),
                     List.of()
                 ),
                 file.scope(),

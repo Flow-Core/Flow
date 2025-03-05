@@ -2,6 +2,7 @@ package semantic_analysis.visitors;
 
 import logger.LoggerFacade;
 import parser.nodes.FlowType;
+import parser.nodes.classes.ConstructorNode;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
@@ -32,6 +33,16 @@ public class ParameterTraverse {
     ) {
         return methods.stream()
             .filter(method -> method.name.equals(name))
+            .filter(method -> compareParametersWithArguments(scope, method.parameters, arguments))
+            .findFirst().orElse(null);
+    }
+
+    public static ConstructorNode findConstructor(
+        Scope scope,
+        List<ConstructorNode> constructors,
+        List<ArgumentNode> arguments
+    ) {
+        return constructors.stream()
             .filter(method -> compareParametersWithArguments(scope, method.parameters, arguments))
             .findFirst().orElse(null);
     }
