@@ -147,10 +147,10 @@ public class FunctionGenerator {
         final StringBuilder sb = new StringBuilder("(");
 
         for (final ParameterNode parameterNode : parameters) {
-            sb.append(getJVMName(parameterNode.type, scope));
+            sb.append(FQNameMapper.getJVMName(parameterNode.type, scope));
         }
 
-        sb.append(")").append(getJVMName(returnType, scope));
+        sb.append(")").append(FQNameMapper.getJVMName(returnType, scope));
 
         return sb.toString();
     }
@@ -164,35 +164,16 @@ public class FunctionGenerator {
         for (int i = 0; i < functionDeclarationNode.parameters.size(); i++) {
             final ParameterNode parameterNode = functionDeclarationNode.parameters.get(i);
 
-            sb.append(getJVMName(parameterNode.type, scope));
+            sb.append(FQNameMapper.getJVMName(parameterNode.type, scope));
         }
 
         sb.append(")").append(
-            getJVMName(
+            FQNameMapper.getJVMName(
                 functionDeclarationNode.returnType,
                 scope
             )
         );
 
         return sb.toString();
-    }
-
-    public static String getJVMName(FlowType type, Scope scope) {
-        if (!type.isPrimitive && !type.shouldBePrimitive() && !type.name.equals("Void")) {
-            return "L" + FQNameMapper.getFQName(type.name, scope) + ";";
-        }
-
-        return switch (type.name) {
-            case "Void" -> "V";
-            case "Int" -> "I";
-            case "Bool" -> "Z";
-            case "Float" -> "F";
-            case "Double" -> "D";
-            case "Long" -> "J";
-            case "Byte" -> "B";
-            case "Char" -> "C";
-            case "Short" -> "S";
-            default -> "L" + FQNameMapper.getFQName(type.name, scope) + ";";
-        };
     }
 }

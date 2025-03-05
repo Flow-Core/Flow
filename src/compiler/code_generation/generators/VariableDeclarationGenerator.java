@@ -1,6 +1,7 @@
 package compiler.code_generation.generators;
 
 import compiler.code_generation.manager.VariableManager;
+import compiler.code_generation.mappers.FQNameMapper;
 import compiler.code_generation.mappers.ModifierMapper;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
@@ -10,8 +11,6 @@ import parser.nodes.classes.FieldNode;
 import parser.nodes.literals.LiteralNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import semantic_analysis.files.FileWrapper;
-
-import static compiler.code_generation.generators.FunctionGenerator.getJVMName;
 
 public class VariableDeclarationGenerator {
     public static void generateLocalVariable(
@@ -41,7 +40,7 @@ public class VariableDeclarationGenerator {
         cw.visitField(
             ModifierMapper.map(fieldNode.modifiers),
             fieldNode.initialization.declaration.name,
-            getJVMName(fieldNode.initialization.declaration.type, file.scope()),
+            FQNameMapper.getJVMName(fieldNode.initialization.declaration.type, file.scope()),
             null,
             fieldNode.initialization.declaration.modifier.equals("const")
                 ? ((LiteralNode) fieldNode.initialization.assignment.value.expression).getValue()

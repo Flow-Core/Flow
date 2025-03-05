@@ -13,8 +13,6 @@ import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.files.FileWrapper;
 import semantic_analysis.scopes.Scope;
 
-import static compiler.code_generation.generators.FunctionGenerator.getJVMName;
-
 public class VariableAssignmentGenerator {
     public static void generate(
         VariableAssignmentNode variableAssignmentNode,
@@ -43,7 +41,7 @@ public class VariableAssignmentGenerator {
 
             int opcode = Opcodes.PUTFIELD;
             final String holderFQName = FQNameMapper.getFQName(fieldReferenceNode.holderType.name, scope);
-            final String descriptor = getJVMName(fieldReferenceNode.type, file.scope());
+            final String descriptor = FQNameMapper.getJVMName(fieldReferenceNode.type, file.scope());
 
             if (fieldReferenceNode.holder == null) {
                 opcode = Opcodes.PUTSTATIC;

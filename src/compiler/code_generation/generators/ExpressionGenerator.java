@@ -22,8 +22,6 @@ import semantic_analysis.visitors.ParameterTraverse;
 
 import java.util.List;
 
-import static compiler.code_generation.generators.FunctionGenerator.getJVMName;
-
 public class ExpressionGenerator {
     public static FlowType generate(ExpressionNode expression, MethodVisitor mv, VariableManager vm, FileWrapper file, FlowType expectedType) {
         final StackTracker tracker = new StackTracker(mv);
@@ -134,7 +132,7 @@ public class ExpressionGenerator {
 
     private static FlowType generateFieldReference(FieldReferenceNode refNode, Scope scope, FileWrapper file, MethodVisitor mv, VariableManager vm, StackTracker tracker, FlowType expectedType) {
         final String holderFQName = FQNameMapper.getFQName(refNode.holderType.name, scope);
-        final String descriptor = getJVMName(refNode.type, scope);
+        final String descriptor = FQNameMapper.getJVMName(refNode.type, scope);
 
         if (refNode.type.shouldBePrimitive()) refNode.type.isPrimitive = true;
 
@@ -271,7 +269,7 @@ public class ExpressionGenerator {
         } else if (unaryExpression.operand instanceof FieldReferenceNode fieldReferenceNode) {
             boolean isStatic = fieldReferenceNode.holder == null;
             final String fieldOwner = FQNameMapper.getFQName(fieldReferenceNode.holderType.name, file.scope());
-            final String fieldDescriptor = getJVMName(fieldReferenceNode.type, file.scope());
+            final String fieldDescriptor = FQNameMapper.getJVMName(fieldReferenceNode.type, file.scope());
 
             if (!isStatic) {
                 generate(fieldReferenceNode.holder, mv, vm, file, expectedType);
