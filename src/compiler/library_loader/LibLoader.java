@@ -5,6 +5,8 @@ import logger.LoggerFacade;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.signature.SignatureReader;
+import org.objectweb.asm.signature.SignatureVisitor;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -14,6 +16,7 @@ import parser.nodes.components.BlockNode;
 import parser.nodes.components.BodyNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeArgument;
 import parser.nodes.generics.TypeParameterNode;
 import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.scopes.Scope;
@@ -27,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
@@ -104,6 +108,14 @@ public class LibLoader {
             convertToFlowType(st, classNode);
 
             return packageWrapper;
+        }
+    }
+
+    private static void convertToFlowType(SymbolTable symbolTable, ClassNode classNode) {
+        if ((classNode.access & Opcodes.ACC_INTERFACE) != 0) {
+            convertToFlowInterface(symbolTable, classNode);
+        } else {
+            convertToFlowClass(symbolTable, classNode);
         }
     }
 
@@ -196,28 +208,58 @@ public class LibLoader {
         if (signature == null) return List.of();
 
         List<TypeParameterNode> typeParameters = new ArrayList<>();
-        int start = signature.indexOf('<');
-        int end = signature.indexOf('>');
-        if (start != -1 && end != -1) {
-            String content = signature.substring(start + 1, end);
-            String[] params = content.split(";");
-            for (String param : params) {
-                if (param.isEmpty()) continue;
-                String name = param.substring(0, param.indexOf(':'));
-                String boundRaw = param.substring(param.indexOf(':') + 1);
-                String bound = trimPackageName(Type.getObjectType(boundRaw).getClassName());
-                typeParameters.add(new TypeParameterNode(name, new FlowType(bound, false, false)));
+
+        SignatureReader reader = new SignatureReader(signature);
+        reader.accept(new SignatureVisitor(Opcodes.ASM9) {
+            String currentName;
+            FlowType currentBound;
+
+            @Override
+            public void visitFormalTypeParameter(String name) {
+                if (currentName != null) {
+                    typeParameters.add(new TypeParameterNode(currentName, currentBound));
+                }
+                currentName = name;
+                currentBound = null;
             }
-        }
+
+            @Override
+            public SignatureVisitor visitClassBound() {
+                return createFlowTypeVisitor(boundType -> currentBound = boundType);
+            }
+
+            @Override
+            public void visitEnd() {
+                if (currentName != null) {
+                    typeParameters.add(new TypeParameterNode(currentName, currentBound));
+                }
+            }
+        });
+
         return typeParameters;
     }
 
-    private static void convertToFlowType(SymbolTable symbolTable, ClassNode classNode) {
-        if ((classNode.access & Opcodes.ACC_INTERFACE) != 0) {
-            convertToFlowInterface(symbolTable, classNode);
-        } else {
-            convertToFlowClass(symbolTable, classNode);
-        }
+    private static SignatureVisitor createFlowTypeVisitor(Consumer<FlowType> onComplete) {
+        return new SignatureVisitor(Opcodes.ASM9) {
+            String name;
+            final List<TypeArgument> typeArguments = new ArrayList<>();
+
+            @Override
+            public void visitClassType(String name) {
+                this.name = name.replace('/', '.');
+            }
+
+            @Override
+            public SignatureVisitor visitTypeArgument(char wildcard) {
+                return createFlowTypeVisitor(type -> typeArguments.add(new TypeArgument(type)));
+            }
+
+            @Override
+            public void visitEnd() {
+                FlowType flowType = new FlowType(trimPackageName(name), false, false, typeArguments);
+                onComplete.accept(flowType);
+            }
+        };
     }
 
     private static FunctionDeclarationNode convertToFlowMethod(MethodNode method) {
