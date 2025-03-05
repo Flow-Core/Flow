@@ -14,6 +14,7 @@ import parser.nodes.components.BlockNode;
 import parser.nodes.components.BodyNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeParameterNode;
 import semantic_analysis.files.PackageWrapper;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
@@ -151,7 +152,7 @@ public class LibLoader {
         final ClassDeclarationNode flowClass = new ClassDeclarationNode(
             className,
             extractModifiers(classNode.access),
-            new ArrayList<>(),
+            extractTypeParameters(classNode.signature),
             new ArrayList<>(),
             baseClasses,
             interfaces,
@@ -181,7 +182,7 @@ public class LibLoader {
         InterfaceNode flowInterface = new InterfaceNode(
             interfaceName,
             extractModifiers(classNode.access),
-            new ArrayList<>(),
+            extractTypeParameters(classNode.signature),
             implementedInterfaces,
             methods,
             new BlockNode(new ArrayList<>())
@@ -189,6 +190,26 @@ public class LibLoader {
 
         symbolTable.interfaces().add(flowInterface);
         symbolTable.bindingContext().put(flowInterface, classNode.name.replace("/", "."));
+    }
+
+    private static List<TypeParameterNode> extractTypeParameters(String signature) {
+        if (signature == null) return List.of();
+
+        List<TypeParameterNode> typeParameters = new ArrayList<>();
+        int start = signature.indexOf('<');
+        int end = signature.indexOf('>');
+        if (start != -1 && end != -1) {
+            String content = signature.substring(start + 1, end);
+            String[] params = content.split(";");
+            for (String param : params) {
+                if (param.isEmpty()) continue;
+                String name = param.substring(0, param.indexOf(':'));
+                String boundRaw = param.substring(param.indexOf(':') + 1);
+                String bound = trimPackageName(Type.getObjectType(boundRaw).getClassName());
+                typeParameters.add(new TypeParameterNode(name, new FlowType(bound, false, false)));
+            }
+        }
+        return typeParameters;
     }
 
     private static void convertToFlowType(SymbolTable symbolTable, ClassNode classNode) {
