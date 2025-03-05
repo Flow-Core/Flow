@@ -68,17 +68,6 @@ public abstract class TypeDeclarationNode implements ASTNode {
         return allFunctions;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        TypeDeclarationNode that = (TypeDeclarationNode) o;
-
-        if (!Objects.equals(methods, that.methods)) return false;
-        return Objects.equals(implementedInterfaces, that.implementedInterfaces);
-    }
-
     public List<FunctionDeclarationNode> findMethodsWithName(
         Scope scope,
         String name
@@ -105,9 +94,19 @@ public abstract class TypeDeclarationNode implements ASTNode {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TypeDeclarationNode that = (TypeDeclarationNode) o;
+        return Objects.equals(name, that.name) && Objects.equals(methods, that.methods) && Objects.equals(implementedInterfaces, that.implementedInterfaces) && Objects.equals(typeParameters, that.typeParameters);
+    }
+
+    @Override
     public int hashCode() {
-        int result = methods != null ? methods.hashCode() : 0;
-        result = 31 * result + (implementedInterfaces != null ? implementedInterfaces.hashCode() : 0);
+        int result = Objects.hashCode(name);
+        result = 31 * result + Objects.hashCode(methods);
+        result = 31 * result + Objects.hashCode(implementedInterfaces);
+        result = 31 * result + Objects.hashCode(typeParameters);
         return result;
     }
 }
