@@ -18,6 +18,7 @@ import parser.nodes.variable.FieldReferenceNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.loaders.ModifierLoader;
 import semantic_analysis.scopes.Scope;
+import semantic_analysis.scopes.TypeRecognize;
 
 import java.util.List;
 
@@ -55,7 +56,7 @@ public class ExpressionTraverse {
                 return null;
             }
 
-            TypeDeclarationNode leftTypeNode = scope.getTypeDeclaration(leftType.type.name);
+            TypeDeclarationNode leftTypeNode = TypeRecognize.getTypeDeclaration(leftType.type.name, scope);
 
             if (leftTypeNode == null) {
                 LoggerFacade.error("Unresolved symbol: '" + leftType.type + "'", root);
@@ -225,7 +226,7 @@ public class ExpressionTraverse {
                 return unaryExpression;
             }
 
-            ClassDeclarationNode operandTypeNode = scope.getClass(operandType.type.name);
+            ClassDeclarationNode operandTypeNode = TypeRecognize.getClass(operandType.type.name, scope);
 
             if (operandTypeNode == null) {
                 LoggerFacade.error("Unresolved symbol: '" + operandType.type + "'", root);
@@ -281,7 +282,7 @@ public class ExpressionTraverse {
         }
 
         TypeDeclarationNode containingType = scope.getContainingType();
-        FieldNode field = scope.getField(referenceNode.variable);
+        FieldNode field = TypeRecognize.getField(referenceNode.variable, scope);
 
         if (field != null) {
             return new FieldReferenceNode(
@@ -351,7 +352,7 @@ public class ExpressionTraverse {
                 );
             }
 
-            FieldNode field = scope.getField(variable.variable);
+            FieldNode field = TypeRecognize.getField(variable.variable, scope);
 
             if (field != null) {
                 return new TypeWrapper(
@@ -371,7 +372,7 @@ public class ExpressionTraverse {
             }
 
             if (functionCall.callerType != null) {
-                final TypeDeclarationNode caller = scope.getTypeDeclaration(functionCall.callerType);
+                final TypeDeclarationNode caller = TypeRecognize.getTypeDeclaration(functionCall.callerType, scope);
 
                 if (caller == null) {
                     LoggerFacade.error("Unresolved symbol: '" + functionCall.callerType + "'", root);
@@ -406,7 +407,7 @@ public class ExpressionTraverse {
             final String modifier = ModifierLoader.getAccessModifier(function.modifiers);
 
             if (modifier.equals("private") && (containingType == null || !containingType.name.equals(functionCall.callerType)) ||
-                modifier.equals("protected") && (containingType == null || !scope.isSameType(
+                modifier.equals("protected") && (containingType == null || !TypeRecognize.isSameType(
                     new FlowType(
                         containingType.name,
                         false,
@@ -416,7 +417,8 @@ public class ExpressionTraverse {
                         functionCall.callerType,
                         false,
                         false
-                    )
+                    ),
+                    scope
                 ))
             ) {
                 LoggerFacade.error("Cannot access '" + function.name + "', it is " + modifier + " in '" + functionCall.callerType + "'", root);
@@ -430,7 +432,7 @@ public class ExpressionTraverse {
             ClassDeclarationNode holder = null;
 
             if (field.holderType != null) {
-                holder = scope.getClass(field.holderType.name);
+                holder = TypeRecognize.getClass(field.holderType.name, scope);
 
                 if (holder == null) {
                     LoggerFacade.error("Unresolved symbol: '" + field.holderType + "'", root);
@@ -438,7 +440,7 @@ public class ExpressionTraverse {
                 }
                 actualField = holder.findField(scope, field.name);
             } else {
-                actualField = scope.getField(field.name);
+                actualField = TypeRecognize.getField(field.name, scope);
             }
 
             if (actualField == null) {
@@ -452,9 +454,10 @@ public class ExpressionTraverse {
 
             if (holder != null)
                 if (modifier.equals("private") && (containingType == null || !containingType.name.equals(holder.name)) ||
-                    modifier.equals("protected") && (containingType == null || !scope.isSameType(
+                    modifier.equals("protected") && (containingType == null || !TypeRecognize.isSameType(
                         new FlowType(containingType.name, false, false),
-                        new FlowType(holder.name, false, false)
+                        new FlowType(holder.name, false, false),
+                        scope
                     ))
                 ) {
                     LoggerFacade.error("Cannot access '" + field.name + "', it is " + modifier + " in '" + holder.name + "'", root);
@@ -480,7 +483,7 @@ public class ExpressionTraverse {
                     return null;
                 }
 
-                FieldNode field = scope.getField(name);
+                FieldNode field = TypeRecognize.getField(name, scope);
                 if (field == null) {
                     return null;
                 }

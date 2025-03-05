@@ -7,6 +7,7 @@ import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.InterfaceNode;
 import parser.nodes.classes.TypeDeclarationNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeParameterNode;
 
 public record Scope (
     Scope parent,
@@ -44,6 +45,14 @@ public record Scope (
         return declaration != null ?
             declaration :
             parent != null ? parent.getInterface(symbol) : null;
+    }
+
+    public TypeParameterNode getTypeParameter(String symbol) {
+        TypeParameterNode declaration = symbols.getTypeParameter(symbol);
+
+        return declaration != null ?
+            declaration :
+            parent != null ? parent.getTypeParameter(symbol) : null;
     }
 
     public TypeDeclarationNode getTypeDeclaration(String symbol) {

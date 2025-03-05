@@ -6,6 +6,7 @@ import parser.nodes.components.ArgumentNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.scopes.Scope;
+import semantic_analysis.scopes.TypeRecognize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,9 +76,10 @@ public class ParameterTraverse {
         if (parameterTypes.size() != parameters.size()) return false;
 
         for (int i = 0; i < parameters.size(); i++) {
-            if (!scope.isSameType(
+            if (!TypeRecognize.isSameType(
                 parameterTypes.get(i),
-                parameters.get(i).type
+                parameters.get(i).type,
+                scope
             ))
                 return false;
         }
@@ -120,9 +122,10 @@ public class ParameterTraverse {
 
             passedArgument.add(parameterNode);
 
-            if (!scope.isSameType(
+            if (!TypeRecognize.isSameType(
                 argumentNode.type,
-                parameterNode.type
+                parameterNode.type,
+                scope
             ))
                 return false;
         }

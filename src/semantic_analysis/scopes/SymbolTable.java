@@ -131,45 +131,21 @@ public record SymbolTable(
     }
 
     public ClassDeclarationNode getClass(String symbol) {
-        if (symbol.contains(".")) {
-            return (ClassDeclarationNode) getTypeFromFQName(symbol);
-        }
-
         return classes().stream().filter(
             classDeclarationNode -> classDeclarationNode.name.equals(symbol)
         ).findFirst().orElse(null);
     }
 
     public InterfaceNode getInterface(String symbol) {
-        if (symbol.contains(".")) {
-            return (InterfaceNode) getTypeFromFQName(symbol);
-        }
-
         return interfaces().stream().filter(
             interfaceNode -> interfaceNode.name.equals(symbol)
         ).findFirst().orElse(null);
     }
 
     public TypeParameterNode getTypeParameter(String symbol) {
-        if (symbol.contains(".")) {
-            return (TypeParameterNode) getTypeFromFQName(symbol);
-        }
-
         return typeParameters().stream().filter(
             typeParameter -> typeParameter.name.equals(symbol)
         ).findFirst().orElse(null);
-    }
-
-    private TypeDeclarationNode getTypeFromFQName(String symbol) {
-        var type = bindingContext.entrySet().stream().filter(
-            entry -> entry.getValue().equals(symbol)
-        ).findFirst().orElse(null);
-
-        if (type == null) {
-            return null;
-        }
-
-        return (TypeDeclarationNode) type.getKey();
     }
 
     private TypeDeclarationNode getTypeFromSimpleName(String symbol) {
@@ -193,10 +169,6 @@ public record SymbolTable(
     }
 
     public TypeDeclarationNode getTypeDeclaration(String symbol) {
-        if (symbol.contains(".")) {
-            return getTypeFromFQName(symbol);
-        }
-
         TypeDeclarationNode type = getClass(symbol);
 
         if (type == null) {
@@ -227,30 +199,18 @@ public record SymbolTable(
     }
 
     public boolean findClass(String symbol) {
-        if (symbol.contains(".")) {
-            return getTypeFromFQName(symbol) instanceof ClassDeclarationNode;
-        }
-
         return classes().stream().anyMatch(
             existingClass -> existingClass.name.equals(symbol)
         );
     }
 
     public boolean findInterface(String symbol) {
-        if (symbol.contains(".")) {
-            return getTypeFromFQName(symbol) instanceof InterfaceNode;
-        }
-
         return interfaces().stream().anyMatch(
             existingInterface -> existingInterface.name.equals(symbol)
         );
     }
 
     public boolean findParameterType(String symbol) {
-        if (symbol.contains(".")) {
-            return getTypeFromFQName(symbol) instanceof TypeParameterNode;
-        }
-
         return typeParameters().stream().anyMatch(
             typeParameter -> typeParameter.name.equals(symbol)
         );

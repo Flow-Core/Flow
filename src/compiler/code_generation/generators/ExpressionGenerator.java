@@ -18,6 +18,7 @@ import parser.nodes.variable.FieldReferenceNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.files.FileWrapper;
 import semantic_analysis.scopes.Scope;
+import semantic_analysis.scopes.TypeRecognize;
 import semantic_analysis.visitors.ParameterTraverse;
 
 import java.util.List;
@@ -82,7 +83,7 @@ public class ExpressionGenerator {
 
             return tracker.hang(declaration.returnType);
         } else {
-            final TypeDeclarationNode caller = scope.getTypeDeclaration(funcCallNode.callerType);
+            final TypeDeclarationNode caller = TypeRecognize.getTypeDeclaration(funcCallNode.callerType, scope);
             if (caller == null) {
                 throw new RuntimeException("Caller not found in scope: " + funcCallNode.callerType);
             }
@@ -156,7 +157,7 @@ public class ExpressionGenerator {
 
         final String fqObjectName = FQNameMapper.getFQName(objNode.className, scope);
 
-        final ClassDeclarationNode objClass = scope.getClass(objNode.className);
+        final ClassDeclarationNode objClass = TypeRecognize.getClass(objNode.className, scope);
         if (objClass == null) {
             throw new RuntimeException("Class " + objNode.className + " was not found");
         }

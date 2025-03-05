@@ -7,6 +7,7 @@ import parser.nodes.classes.TypeDeclarationNode;
 import parser.nodes.generics.TypeArgument;
 import parser.nodes.generics.TypeParameterNode;
 import semantic_analysis.scopes.Scope;
+import semantic_analysis.scopes.TypeRecognize;
 
 import java.util.List;
 
@@ -79,7 +80,7 @@ public class FQNameMapper {
             return map(name);
         }
 
-        TypeDeclarationNode node = scope.getTypeDeclaration(name);
+        TypeDeclarationNode node = TypeRecognize.getTypeDeclaration(name, scope);
         if (node == null) {
             throw new IllegalArgumentException("Class should be loaded in the current scope");
         }

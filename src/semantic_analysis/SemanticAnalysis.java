@@ -12,6 +12,7 @@ import semantic_analysis.loaders.ClassLoader;
 import semantic_analysis.loaders.*;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
+import semantic_analysis.scopes.TypeRecognize;
 import semantic_analysis.transformers.TopLevelTransformer;
 import semantic_analysis.visitors.ClassTraverse;
 
@@ -43,6 +44,8 @@ public class SemanticAnalysis {
                 final Map<String, PackageWrapper> packagesWithLibs = new HashMap<>();
                 packagesWithLibs.putAll(packages);
                 packagesWithLibs.putAll(libs);
+
+                TypeRecognize.init(packagesWithLibs);
 
                 new ImportLoader().load(file, file.scope().symbols(), packagesWithLibs);
             }

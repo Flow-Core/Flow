@@ -9,6 +9,7 @@ import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.generics.TypeParameterNode;
 import semantic_analysis.scopes.Scope;
+import semantic_analysis.scopes.TypeRecognize;
 import semantic_analysis.visitors.ExpressionTraverse;
 import semantic_analysis.visitors.ParameterTraverse;
 
@@ -46,7 +47,7 @@ public class ClassLoader implements ASTVisitor<Scope> {
 
     private void loadTypeParameters(final TypeDeclarationNode typeDeclarationNode, final Scope scope) {
         for (final TypeParameterNode typeParameterNode : typeDeclarationNode.typeParameters) {
-            final TypeDeclarationNode bound = scope.getTypeDeclaration(typeParameterNode.bound.name);
+            final TypeDeclarationNode bound = TypeRecognize.getTypeDeclaration(typeParameterNode.bound.name, scope);
             if (bound == null) {
                 LoggerFacade.error("Unresolved symbol: '" + typeParameterNode.bound.name + "'", typeDeclarationNode);
                 return;
@@ -91,10 +92,11 @@ public class ClassLoader implements ASTVisitor<Scope> {
                 LoggerFacade.error("Class '" + classDeclaration.name + "' is not abstract and does not implement abstract base class member '" + abstractFunction.name + "'", classDeclaration);
                 return;
             } else if ((method.returnType.isNullable != abstractFunction.returnType.isNullable) ||
-                    !scope.isSameType(
-                        method.returnType,
-                        abstractFunction.returnType
-                    )
+                !TypeRecognize.isSameType(
+                    method.returnType,
+                    abstractFunction.returnType,
+                    scope
+                )
             ) {
                 LoggerFacade.error("Return type of function '" + abstractFunction.name + "' is not a subtype of the overridden member, expected a subtype of: '" + abstractFunction.returnType + "' but found '" + method.returnType + "'", abstractFunction);
                 return;
@@ -175,7 +177,7 @@ public class ClassLoader implements ASTVisitor<Scope> {
         visited.add(currentClass.name);
 
         for (BaseClassNode base : currentClass.baseClasses) {
-            ClassDeclarationNode nextBase = scope.getClass(base.name);
+            ClassDeclarationNode nextBase = TypeRecognize.getClass(base.name, scope);
             if (nextBase != null) {
                 checkCircularInheritance(originalClass, nextBase, new HashSet<>(visited), scope);
             }
@@ -276,13 +278,13 @@ public class ClassLoader implements ASTVisitor<Scope> {
         if (typeDeclarationNode instanceof ClassDeclarationNode classDeclarationNode) {
             if (!classDeclarationNode.baseClasses.isEmpty()) {
                 final String baseClassName = classDeclarationNode.baseClasses.get(0).name;
-                
+
                 final ClassDeclarationNode baseClass = scope.getClass(baseClassName);
                 if (baseClass == null) {
                     LoggerFacade.error("Base class '" + baseClassName + "' for class '" + classDeclarationNode.name + "' was not found", classDeclarationNode);
                     return new ArrayList<>();
                 }
-                
+
                 foundFunctions.addAll(getFunctionsByModifier(modifier, baseClass, scope));
             }
         }

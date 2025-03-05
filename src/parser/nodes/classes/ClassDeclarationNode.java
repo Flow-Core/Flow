@@ -6,6 +6,7 @@ import parser.nodes.components.BlockNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.generics.TypeParameterNode;
 import semantic_analysis.scopes.Scope;
+import semantic_analysis.scopes.TypeRecognize;
 import semantic_analysis.visitors.ParameterTraverse;
 
 import java.util.ArrayList;
@@ -61,7 +62,7 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
                 ).toList());
 
             if (!caller.baseClasses.isEmpty())
-                caller = scope.getClass(caller.baseClasses.get(0).name);
+                caller = TypeRecognize.getClass(caller.baseClasses.get(0).name, scope);
             else
                 break;
         }
@@ -85,7 +86,7 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
                 parameterTypes
             );
 
-            caller = scope.getClass(caller.baseClasses.get(0).name);
+            caller = TypeRecognize.getClass(caller.baseClasses.get(0).name, scope);
         }
         return function;
     }
@@ -115,7 +116,7 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
         while (field == null && caller != null && !caller.baseClasses.isEmpty()) {
             field = findField(caller.fields, name);
 
-            caller = scope.getClass(caller.baseClasses.get(0).name);
+            caller = TypeRecognize.getClass(caller.baseClasses.get(0).name, scope);
         }
 
         return field;

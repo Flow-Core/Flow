@@ -12,6 +12,7 @@ import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.files.FileWrapper;
 import semantic_analysis.scopes.Scope;
+import semantic_analysis.scopes.TypeRecognize;
 
 public class VariableAssignmentGenerator {
     public static void generate(
@@ -23,7 +24,7 @@ public class VariableAssignmentGenerator {
     ) {
         final ExpressionNode variable = variableAssignmentNode.variable.expression;
         if (variable instanceof VariableReferenceNode variableReferenceNode) {
-            final FieldNode fieldNode = scope.getField(variableReferenceNode.variable);
+            final FieldNode fieldNode = TypeRecognize.getField(variableReferenceNode.variable, scope);
             if (fieldNode == null) {
                 throw new IllegalArgumentException("Variable is not loaded in the current scope");
             }
@@ -32,7 +33,7 @@ public class VariableAssignmentGenerator {
 
             vm.storeVariable(variableReferenceNode.variable, null);
         } else if (variable instanceof FieldReferenceNode fieldReferenceNode) {
-            final ClassDeclarationNode holder = scope.getClass(fieldReferenceNode.holderType.name);
+            final ClassDeclarationNode holder = TypeRecognize.getClass(fieldReferenceNode.holderType.name, scope);
             if (holder == null) {
                 throw new IllegalArgumentException("Holder is not loaded in the current scope");
             }

@@ -10,6 +10,7 @@ import parser.nodes.variable.FieldReferenceNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.scopes.Scope;
+import semantic_analysis.scopes.TypeRecognize;
 import semantic_analysis.visitors.ExpressionTraverse;
 
 import java.util.Objects;
@@ -62,7 +63,7 @@ public class VariableLoader {
         }
 
         if (varType != null) {
-            if (varType.name == null || !scope.findTypeDeclaration(varType.name)) {
+            if (varType.name == null || !TypeRecognize.findTypeDeclaration(varType.name, scope)) {
                 LoggerFacade.error("Unresolved symbol: '" + varType + "'", fieldNode);
                 return;
             }
@@ -76,7 +77,7 @@ public class VariableLoader {
                 if (!fieldNode.initialization.declaration.type.isNullable) {
                     LoggerFacade.error("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'", fieldNode);
                 }
-            } else if (!scope.isSameType(actualType, varType)) {
+            } else if (!TypeRecognize.isSameType(actualType, varType, scope)) {
                 LoggerFacade.error("Type mismatch: expected '"  + varType + "' but received '" + actualType + "'", fieldNode);
             }
         } else {
@@ -128,7 +129,7 @@ public class VariableLoader {
             if (!fieldNode.initialization.declaration.type.isNullable) {
                 LoggerFacade.error("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'", fieldNode);
             }
-        } else if (!scope.isSameType(actualType, varType)) {
+        } else if (!TypeRecognize.isSameType(actualType, varType, scope)) {
             LoggerFacade.error("Type mismatch: expected '"  + varType + "' but received '" + actualType + "'", fieldNode);
         }
     }
@@ -139,7 +140,7 @@ public class VariableLoader {
         final FieldNode fieldNode;
 
         if (variableAssignment.variable.expression instanceof VariableReferenceNode variableReference) {
-            fieldNode = scope.getField(variableReference.variable);
+            fieldNode = TypeRecognize.getField(variableReference.variable, scope);
 
             if (fieldNode == null) {
                 LoggerFacade.error("Unresolved symbol: '" + variableReference.variable + "'", variableAssignment);
@@ -150,7 +151,7 @@ public class VariableLoader {
                 LoggerFacade.error("Modifiers are not applicable to 'local variable'", variableAssignment);
             }
         } else if (variableAssignment.variable.expression instanceof FieldReferenceNode fieldReference) {
-            fieldNode = scope.getField(fieldReference.name);
+            fieldNode = TypeRecognize.getField(fieldReference.name, scope);
 
             if (fieldNode == null) {
                 LoggerFacade.error("Unresolved symbol: '" + fieldReference.name + "'", variableAssignment);

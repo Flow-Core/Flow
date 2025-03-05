@@ -41,7 +41,7 @@ class VariableLoaderTest {
     void test_variable_with_explicit_type_should_be_added_to_scope() {
         SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
         Scope scope = new Scope(null, symbolTable, null, Scope.Type.TOP);
-        symbolTable.classes().add(new ClassDeclarationNode("Int", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), new BlockNode(new ArrayList<>()), new BlockNode(new ArrayList<>())));
+        symbolTable.classes().add(new ClassDeclarationNode("Int", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), new BlockNode(new ArrayList<>()), new BlockNode(new ArrayList<>())));
 
         FieldNode fieldNode = FieldNodeGenerator.builder()
             .initialization(
@@ -57,7 +57,7 @@ class VariableLoaderTest {
     void test_variable_with_inferred_type_should_be_added_to_scope() {
         SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
         Scope scope = new Scope(null, symbolTable, null, Scope.Type.TOP);
-        symbolTable.classes().add(new ClassDeclarationNode("Int", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), new BlockNode(new ArrayList<>()), new BlockNode(new ArrayList<>())));
+        symbolTable.classes().add(new ClassDeclarationNode("Int", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), new BlockNode(new ArrayList<>()), new BlockNode(new ArrayList<>())));
 
         FieldNode fieldNode = FieldNodeGenerator.builder()
             .initialization(
@@ -125,7 +125,7 @@ class VariableLoaderTest {
     void test_variable_cannot_assign_null_to_non_nullable_type() {
         SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
         Scope scope = new Scope(null, symbolTable, null, Scope.Type.TOP);
-        symbolTable.classes().add(new ClassDeclarationNode("Int", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), new BlockNode(new ArrayList<>()), new BlockNode(new ArrayList<>())));
+        symbolTable.classes().add(new ClassDeclarationNode("Int", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), new BlockNode(new ArrayList<>()), new BlockNode(new ArrayList<>())));
 
         FieldNode fieldNode = FieldNodeGenerator.builder()
             .initialization(
@@ -153,7 +153,7 @@ class VariableLoaderTest {
     void test_variable_can_assign_null_if_nullable() {
         SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
         Scope scope = new Scope(null, symbolTable, null, Scope.Type.TOP);
-        symbolTable.classes().add(new ClassDeclarationNode("Int", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), new BlockNode(new ArrayList<>()), new BlockNode(new ArrayList<>())));
+        symbolTable.classes().add(new ClassDeclarationNode("Int", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), new BlockNode(new ArrayList<>()), new BlockNode(new ArrayList<>())));
 
         FieldNode fieldNode = FieldNodeGenerator.builder()
             .initialization(
@@ -180,7 +180,7 @@ class VariableLoaderTest {
     void test_cannot_reassign_final_variable() {
         SymbolTable symbolTable = SymbolTable.getEmptySymbolTable();
         Scope scope = new Scope(null, symbolTable, null, Scope.Type.TOP);
-        symbolTable.classes().add(new ClassDeclarationNode("Int", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), new BlockNode(new ArrayList<>()), new BlockNode(new ArrayList<>())));
+        symbolTable.classes().add(new ClassDeclarationNode("Int", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), new BlockNode(new ArrayList<>()), new BlockNode(new ArrayList<>())));
 
         FieldNode fieldNode = FieldNodeGenerator.builder()
             .initialization(

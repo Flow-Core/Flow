@@ -4,6 +4,7 @@ import parser.nodes.classes.InterfaceNode;
 import parser.nodes.classes.BaseInterfaceNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.components.BlockNode;
+import parser.nodes.generics.TypeParameterNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
 public class InterfaceNodeGenerator {
     private String name = "TestInterface";
     private List<String> modifiers = new ArrayList<>();
+    private List<TypeParameterNode> typeParameters = new ArrayList<>();
     private List<BaseInterfaceNode> implementedInterfaces = new ArrayList<>();
     private List<FunctionDeclarationNode> methods = new ArrayList<>();
     private BlockNode block = new BlockNode(new ArrayList<>());
@@ -26,6 +28,11 @@ public class InterfaceNodeGenerator {
 
     public InterfaceNodeGenerator modifiers(List<String> modifiers) {
         this.modifiers = modifiers;
+        return this;
+    }
+
+    public InterfaceNodeGenerator typeParameters(List<TypeParameterNode> typeParameters) {
+        this.typeParameters = typeParameters;
         return this;
     }
 
@@ -45,6 +52,6 @@ public class InterfaceNodeGenerator {
     }
 
     public InterfaceNode build() {
-        return new InterfaceNode(name, modifiers, implementedInterfaces, methods, block);
+        return new InterfaceNode(name, modifiers, typeParameters, implementedInterfaces, methods, block);
     }
 }
