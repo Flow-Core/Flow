@@ -8,19 +8,7 @@ import semantic_analysis.scopes.Scope;
 public class FQNameMapper {
     public static String getJVMName(FlowType type, Scope scope) {
         if (!type.isPrimitive && !type.shouldBePrimitive() && !type.name.equals("Void")) {
-            StringBuilder jvmName = new StringBuilder();
-            jvmName.append("L").append(FQNameMapper.getFQName(type.name, scope));
-
-            if (!type.typeArguments.isEmpty()) {
-                jvmName.append("<");
-                for (TypeArgument arg : type.typeArguments) {
-                    jvmName.append(getJVMName(arg.type, scope));
-                }
-                jvmName.append(">");
-            }
-
-            jvmName.append(";");
-            return jvmName.toString();
+            return getSignature(type, scope);
         }
 
         return switch (type.name) {
@@ -35,6 +23,22 @@ public class FQNameMapper {
             case "Short" -> "S";
             default -> "L" + FQNameMapper.getFQName(type.name, scope) + ";";
         };
+    }
+
+    private static String getSignature(FlowType type, Scope scope) {
+        StringBuilder jvmName = new StringBuilder();
+        jvmName.append("L").append(FQNameMapper.getFQName(type.name, scope));
+
+        if (!type.typeArguments.isEmpty()) {
+            jvmName.append("<");
+            for (TypeArgument arg : type.typeArguments) {
+                jvmName.append(getSignature(arg.type, scope));
+            }
+            jvmName.append(">");
+        }
+
+        jvmName.append(";");
+        return jvmName.toString();
     }
 
     public static String getFQName(ASTNode node, Scope scope) {
