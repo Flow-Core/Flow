@@ -5,6 +5,7 @@ import parser.nodes.ASTVisitor;
 import parser.nodes.FlowType;
 import parser.nodes.components.BodyNode;
 import parser.nodes.components.ParameterNode;
+import parser.nodes.generics.TypeParameterNode;
 
 import java.util.List;
 import java.util.Objects;
@@ -14,19 +15,36 @@ public class FunctionDeclarationNode implements ASTNode {
     public FlowType returnType;
     public List<String> modifiers;
     public List<ParameterNode> parameters;
+    public List<TypeParameterNode> typeParameters;
     public BodyNode body;
 
-    public FunctionDeclarationNode(String name, FlowType returnType, List<String> modifiers, List<ParameterNode> parameters, BodyNode body) {
+    public FunctionDeclarationNode(
+        String name,
+        FlowType returnType,
+        List<String> modifiers,
+        List<ParameterNode> parameters,
+        List<TypeParameterNode> typeParameters,
+        BodyNode body
+    ) {
         this.name = name;
         this.returnType = returnType;
         this.modifiers = modifiers;
         this.parameters = parameters;
+        this.typeParameters = typeParameters;
         this.body = body;
     }
 
     @Override
     public <D> void accept(final ASTVisitor<D> visitor, final D data) {
         ASTNode.super.accept(visitor, data);
+
+        for (final ParameterNode parameterNode : parameters) {
+            parameterNode.accept(visitor, data);
+        }
+
+        for (final TypeParameterNode typeParameterNode : typeParameters) {
+            typeParameterNode.accept(visitor, data);
+        }
 
         if (body != null) {
             body.accept(visitor, data);

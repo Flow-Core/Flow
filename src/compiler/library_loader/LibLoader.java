@@ -270,6 +270,7 @@ public class LibLoader {
             returnType,
             extractModifiers(method.access),
             parseParameters(method),
+            extractTypeParameters(method.signature),
             null
         );
     }

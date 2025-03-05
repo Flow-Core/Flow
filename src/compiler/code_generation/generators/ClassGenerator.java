@@ -55,6 +55,7 @@ public class ClassGenerator {
                 new FlowType("Void", false, true),
                 List.of(constructorNode.accessModifier),
                 constructorNode.parameters,
+                List.of(),
                 constructorNode.body
             );
 

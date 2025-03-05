@@ -14,9 +14,12 @@ import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.components.BlockNode;
+import parser.nodes.generics.TypeParameterNode;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static parser.analyzers.classes.ClassAnalyzer.parseTypeParameters;
 
 public class FunctionDeclarationAnalyzer extends TopAnalyzer {
     @Override
@@ -56,6 +59,8 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
 
         Token funcName = parser.consume(TokenType.IDENTIFIER);
 
+        final List<TypeParameterNode> typeParameters = parseTypeParameters(parser);
+
         List<ParameterNode> parameters = parseParameters(parser);
 
         FlowType returnType = new FlowType("Void", false, true);
@@ -75,6 +80,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
             returnType,
             modifiers,
             parameters,
+            typeParameters,
             null
         );
     }

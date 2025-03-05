@@ -5,6 +5,7 @@ import parser.nodes.components.BlockNode;
 import parser.nodes.components.BodyNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeParameterNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,7 @@ public class FunctionNodeGenerator {
     private FlowType returnType = new FlowType("Void", false, false);
     private List<String> modifiers = new ArrayList<>();
     private List<ParameterNode> parameters = new ArrayList<>();
+    private List<TypeParameterNode> typeParameters = new ArrayList<>();
     private BlockNode block = new BlockNode(new ArrayList<>());
 
     public static FunctionNodeGenerator builder() {
@@ -40,12 +42,17 @@ public class FunctionNodeGenerator {
         return this;
     }
 
+    public FunctionNodeGenerator typeParameters(List<TypeParameterNode> typeParameters) {
+        this.typeParameters = typeParameters;
+        return this;
+    }
+
     public FunctionNodeGenerator block(BlockNode block) {
         this.block = block;
         return this;
     }
 
     public FunctionDeclarationNode build() {
-        return new FunctionDeclarationNode(name, returnType, modifiers, parameters, new BodyNode(block));
+        return new FunctionDeclarationNode(name, returnType, modifiers, parameters, typeParameters, new BodyNode(block));
     }
 }
