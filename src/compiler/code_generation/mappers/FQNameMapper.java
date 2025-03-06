@@ -32,8 +32,8 @@ public class FQNameMapper {
     }
 
     private static String parseTypeArgumentSignature(FlowType type, Scope scope) {
-        StringBuilder jvmName = new StringBuilder();
-        jvmName.append("L").append(FQNameMapper.getFQName(type.name, scope));
+        StringBuilder jvmName = new StringBuilder("L");
+        jvmName.append(FQNameMapper.getFQName(type.name, scope));
 
         if (!type.typeArguments.isEmpty()) {
             jvmName.append("<");
