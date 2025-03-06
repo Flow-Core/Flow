@@ -1,12 +1,17 @@
 package semantic_analysis.scopes;
 
 import parser.nodes.ASTNode;
-import parser.nodes.FlowType;
-import parser.nodes.classes.*;
+import parser.nodes.classes.ClassDeclarationNode;
+import parser.nodes.classes.FieldNode;
+import parser.nodes.classes.InterfaceNode;
+import parser.nodes.classes.TypeDeclarationNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.generics.TypeParameterNode;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
 
 public record SymbolTable(
     List<InterfaceNode> interfaces,
@@ -25,74 +30,6 @@ public record SymbolTable(
             new ArrayList<>(),
             new IdentityHashMap<>()
         );
-    }
-
-    public boolean isSameType(FlowType type, FlowType superType) {
-        if (type == null || superType == null) {
-            return false;
-        }
-
-        if (!superType.isNullable && type.isNullable)
-            return false;
-
-        if (type.typeArguments.size() != superType.typeArguments.size()) {
-            return false;
-        }
-
-        for (int i = 0; i < type.typeArguments.size(); i++) {
-            if (!type.typeArguments.get(i).equals(superType.typeArguments.get(i))) {
-                return false;
-            }
-        }
-
-        if (Objects.equals(type.name, superType.name)) {
-            return true;
-        }
-
-        final ClassDeclarationNode classDeclarationNode = getClass(type.name);
-        if (classDeclarationNode != null) {
-            if (!classDeclarationNode.baseClasses.isEmpty() && classDeclarationNode.baseClasses.get(0).type.name.equals(superType.name)) {
-                return true;
-            }
-            if (!classDeclarationNode.baseClasses.isEmpty() &&
-                isSameType(
-                    new FlowType(
-                        classDeclarationNode.baseClasses.get(0).type.name,
-                        type.isNullable,
-                        type.isPrimitive
-                    ),
-                    superType
-                )
-            ) {
-                return true;
-            }
-        }
-
-        final TypeDeclarationNode typeDeclarationNode = getTypeDeclaration(type.name);
-        if (typeDeclarationNode != null) {
-            final TypeDeclarationNode superTypeDeclaration = getTypeDeclaration(superType.name);
-
-            if (typeDeclarationNode.equals(superTypeDeclaration)) {
-                return true;
-            }
-
-            for (final BaseInterfaceNode baseInterfaceNode : getTypeDeclaration(type.name).implementedInterfaces) {
-                if (baseInterfaceNode.type.name.equals(superType.name) ||
-                    isSameType(
-                        new FlowType(
-                            baseInterfaceNode.type.name,
-                            type.isNullable,
-                            type.isPrimitive
-                        ),
-                        superType
-                    )
-                ) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     public void recognizeSymbolTable(SymbolTable other) {

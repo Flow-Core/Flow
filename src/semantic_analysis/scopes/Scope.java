@@ -1,7 +1,6 @@
 package semantic_analysis.scopes;
 
 import parser.nodes.ASTNode;
-import parser.nodes.FlowType;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.InterfaceNode;
@@ -77,10 +76,6 @@ public record Scope (
         return declaration != null ?
             declaration :
             parent != null ? parent.getField(symbol) : null;
-    }
-
-    public boolean isSameType(FlowType type, FlowType superType) {
-        return symbols().isSameType(type, superType) || parent != null && parent.isSameType(type, superType);
     }
 
     public boolean findClass(String symbol) {
