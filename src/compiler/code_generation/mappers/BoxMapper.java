@@ -7,10 +7,6 @@ import parser.nodes.FlowType;
 public class BoxMapper {
     public static void boxIfNeeded(FlowType type, FlowType expectedType, MethodVisitor mv) {
         if (expectedType != null) {
-            if (expectedType.shouldBePrimitive()) {
-                expectedType.isPrimitive = true;
-            }
-
             if (needUnboxing(type, expectedType)) {
                 unbox(type, mv);
             } else if (needBoxing(type, expectedType)) {
