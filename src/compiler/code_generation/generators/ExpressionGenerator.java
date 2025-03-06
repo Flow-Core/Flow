@@ -107,7 +107,7 @@ public class ExpressionGenerator {
                     mv,
                     vm,
                     file,
-                    new FlowType(funcCallNode.callerType, false, false)
+                    new FlowType(funcCallNode.callerType, true, false)
                 );
             }
 

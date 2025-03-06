@@ -62,7 +62,13 @@ public class FunctionCallNode implements ExpressionNode {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(name + "(");
+        StringBuilder sb = new StringBuilder();
+
+        if (callerType != null) {
+            sb.append(callerType).append(".");
+        }
+
+        sb.append(name).append("(");
 
         for (ArgumentNode argumentNode : arguments) {
             sb.append(argumentNode).append(", ");

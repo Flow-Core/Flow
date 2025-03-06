@@ -103,13 +103,15 @@ public class ExpressionTraverse {
                         call.name
                     );
 
-                    FunctionDeclarationNode function = findMethodWithParameters(
+                    for (final ArgumentNode argNode : call.arguments) {
+                        argNode.type = new ExpressionTraverse().traverse(argNode.value, scope);
+                    }
+
+                    FunctionDeclarationNode function = findMethodByArguments(
                         scope,
                         functions,
                         call.name,
-                        call.arguments.stream().map(
-                            argument -> new ExpressionTraverse().traverse(argument.value, scope)
-                        ).toList()
+                        call.arguments
                     );
 
                     if (function == null) {
@@ -165,13 +167,6 @@ public class ExpressionTraverse {
                         new ArgumentNode(
                             null,
                             new ExpressionBaseNode(
-                                binaryExpression.left
-                            ),
-                            leftType.type
-                        ),
-                        new ArgumentNode(
-                            null,
-                            new ExpressionBaseNode(
                                 binaryExpression.right
                             ),
                             rightType.type
@@ -186,7 +181,6 @@ public class ExpressionTraverse {
                     false,
                     operatorName,
                     List.of(
-                        new ArgumentNode(null, new ExpressionBaseNode(binaryExpression.left)),
                         new ArgumentNode(null, new ExpressionBaseNode(binaryExpression.right))
                     )
                 );
@@ -246,15 +240,7 @@ public class ExpressionTraverse {
                 .filter(method -> ParameterTraverse.compareParametersWithArguments(
                     scope,
                     method.parameters,
-                    List.of(
-                        new ArgumentNode(
-                            null,
-                            new ExpressionBaseNode(
-                                unaryExpression.operand
-                            ),
-                            operandType.type
-                        )
-                    )
+                    List.of()
                 )).findFirst().orElse(null);
 
             if (functionDecl != null) {
@@ -263,9 +249,7 @@ public class ExpressionTraverse {
                     unaryExpression.operand,
                     false,
                     operatorName,
-                    List.of(
-                        new ArgumentNode(null, new ExpressionBaseNode(unaryExpression.operand))
-                    )
+                    List.of()
                 );
             }
 
