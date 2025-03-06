@@ -6,6 +6,8 @@ import parser.nodes.classes.ConstructorNode;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeArgument;
+import parser.nodes.generics.TypeParameterNode;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.TypeRecognize;
 
@@ -77,6 +79,25 @@ public class ParameterTraverse {
         }
 
         return declaration;
+    }
+
+    public static boolean compareTypeParameters(
+        Scope scope,
+        List<TypeParameterNode> typeParameters,
+        List<TypeArgument> typeArguments
+    ) {
+        if (typeArguments.size() != typeParameters.size()) return false;
+
+        for (int i = 0; i < typeParameters.size(); i++) {
+            if (!TypeRecognize.isSameType(
+                typeArguments.get(i).type,
+                typeParameters.get(i).bound,
+                scope
+            ))
+                return false;
+        }
+
+        return true;
     }
 
     public static boolean compareParameterTypes(

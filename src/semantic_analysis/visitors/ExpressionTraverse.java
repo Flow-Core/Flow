@@ -22,8 +22,7 @@ import semantic_analysis.scopes.TypeRecognize;
 
 import java.util.List;
 
-import static semantic_analysis.visitors.ParameterTraverse.findConstructor;
-import static semantic_analysis.visitors.ParameterTraverse.findMethodWithParameters;
+import static semantic_analysis.visitors.ParameterTraverse.*;
 
 public class ExpressionTraverse {
     public FlowType traverse(ExpressionBaseNode root, Scope scope, boolean keepCompileTime) {
@@ -331,6 +330,11 @@ public class ExpressionTraverse {
 
             if (findConstructor(scope, baseClass.constructors, objectNode.arguments) == null) {
                 LoggerFacade.error("No matching constructor found for the specified arguments", root);
+                return null;
+            }
+
+            if (!compareTypeParameters(scope, baseType.typeParameters, objectNode.type.typeArguments)) {
+                LoggerFacade.error("Type arguments does not match type parameters, actual: '" + objectNode.type + "', expected: '" + baseType.typeParameters + "'", root);
                 return null;
             }
 
