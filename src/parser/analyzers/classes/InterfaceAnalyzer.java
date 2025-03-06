@@ -1,12 +1,13 @@
 package parser.analyzers.classes;
 
-import lexer.token.Token;
 import lexer.token.TokenType;
+import parser.analyzers.inline.FlowTypeAnalyzer;
 import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
 import parser.analyzers.top.BlockAnalyzer;
+import parser.nodes.FlowType;
 import parser.nodes.classes.BaseInterfaceNode;
 import parser.nodes.classes.InterfaceNode;
 import parser.nodes.components.BlockNode;
@@ -53,8 +54,8 @@ public class InterfaceAnalyzer extends TopAnalyzer {
         if (parser.check(TokenType.COLON_OPERATOR)) {
             parser.consume(TokenType.COLON_OPERATOR);
             do {
-                final Token interfaceName = parser.consume(TokenType.IDENTIFIER);
-                implementedInterfaces.add(new BaseInterfaceNode(interfaceName.value()));
+                final FlowType interfaceName = FlowTypeAnalyzer.analyze(parser);
+                implementedInterfaces.add(new BaseInterfaceNode(interfaceName));
             } while (parser.check(TokenType.COMMA));
         }
 

@@ -69,7 +69,7 @@ public class StatementGenerator {
     }
 
     private static void generateReturnStatement(ReturnStatementNode returnStatementNode, MethodVisitor mv, VariableManager vm, FileWrapper file, Scope currentScope) {
-        if (returnStatementNode.returnValue.expression instanceof ObjectNode objectNode && objectNode.className.equals("Void")) {
+        if (returnStatementNode.returnValue.expression instanceof ObjectNode objectNode && objectNode.type.name.equals("Void")) {
             mv.visitInsn(Opcodes.RETURN);
             return;
         }

@@ -101,9 +101,9 @@ public class ImportLoader {
 
                 if (!optionalClass.get().baseClasses.isEmpty()) {
                     final BaseClassNode baseClassNode = optionalClass.get().baseClasses.get(0);
-                    ClassDeclarationNode classDeclarationNode = importedSymbols.getClass(baseClassNode.name);
+                    ClassDeclarationNode classDeclarationNode = importedSymbols.getClass(baseClassNode.type.name);
                     if (classDeclarationNode == null) {
-                        classDeclarationNode = data.getClass(baseClassNode.name);
+                        classDeclarationNode = data.getClass(baseClassNode.type.name);
                     }
 
                     data.classes().add(classDeclarationNode);
@@ -111,9 +111,9 @@ public class ImportLoader {
                 }
 
                 for (final BaseInterfaceNode baseInterfaceNode : optionalClass.get().implementedInterfaces) {
-                    InterfaceNode interfaceNode = importedSymbols.getInterface(baseInterfaceNode.name);
+                    InterfaceNode interfaceNode = importedSymbols.getInterface(baseInterfaceNode.type.name);
                     if (interfaceNode == null) {
-                        interfaceNode = data.getInterface(baseInterfaceNode.name);
+                        interfaceNode = data.getInterface(baseInterfaceNode.type.name);
                     }
 
                     data.interfaces().add(interfaceNode);
@@ -132,7 +132,7 @@ public class ImportLoader {
                 data.bindingContext().put(optionalInterface.get(), importNode.module);
 
                 for (final BaseInterfaceNode baseInterfaceNode : optionalInterface.get().implementedInterfaces) {
-                    final InterfaceNode interfaceNode = importedSymbols.getInterface(baseInterfaceNode.name);
+                    final InterfaceNode interfaceNode = importedSymbols.getInterface(baseInterfaceNode.type.name);
                     data.interfaces().add(interfaceNode);
                 }
 

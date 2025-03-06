@@ -117,13 +117,13 @@ public final class TypeRecognize {
 
         final ClassDeclarationNode classDeclarationNode = getClass(type.name, scope);
         if (classDeclarationNode != null) {
-            if (!classDeclarationNode.baseClasses.isEmpty() && classDeclarationNode.baseClasses.get(0).name.equals(superType.name)) {
+            if (!classDeclarationNode.baseClasses.isEmpty() && classDeclarationNode.baseClasses.get(0).type.name.equals(superType.name)) {
                 return true;
             }
             if (!classDeclarationNode.baseClasses.isEmpty() &&
                 isSameType(
                     new FlowType(
-                        classDeclarationNode.baseClasses.get(0).name,
+                        classDeclarationNode.baseClasses.get(0).type.name,
                         type.isNullable,
                         type.isPrimitive
                     ),
@@ -144,10 +144,10 @@ public final class TypeRecognize {
             }
 
             for (final BaseInterfaceNode baseInterfaceNode : getTypeDeclaration(type.name, scope).implementedInterfaces) {
-                if (baseInterfaceNode.name.equals(superType.name) ||
+                if (baseInterfaceNode.type.name.equals(superType.name) ||
                     isSameType(
                         new FlowType(
-                            baseInterfaceNode.name,
+                            baseInterfaceNode.type.name,
                             type.isNullable,
                             type.isPrimitive
                         ),

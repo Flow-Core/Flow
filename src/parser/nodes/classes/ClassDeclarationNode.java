@@ -62,7 +62,7 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
                 ).toList());
 
             if (!caller.baseClasses.isEmpty())
-                caller = TypeRecognize.getClass(caller.baseClasses.get(0).name, scope);
+                caller = TypeRecognize.getClass(caller.baseClasses.get(0).type.name, scope);
             else
                 break;
         }
@@ -86,7 +86,7 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
                 parameterTypes
             );
 
-            caller = TypeRecognize.getClass(caller.baseClasses.get(0).name, scope);
+            caller = TypeRecognize.getClass(caller.baseClasses.get(0).type.name, scope);
         }
         return function;
     }
@@ -116,7 +116,7 @@ public class ClassDeclarationNode extends TypeDeclarationNode {
         while (field == null && caller != null && !caller.baseClasses.isEmpty()) {
             field = findField(caller.fields, name);
 
-            caller = TypeRecognize.getClass(caller.baseClasses.get(0).name, scope);
+            caller = TypeRecognize.getClass(caller.baseClasses.get(0).type.name, scope);
         }
 
         return field;

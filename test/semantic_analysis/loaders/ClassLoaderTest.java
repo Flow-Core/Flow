@@ -91,7 +91,7 @@ class ClassLoaderTest {
 
         ClassDeclarationNode childClass = ClassNodeGenerator.builder()
             .name("ChildClass")
-            .baseClasses(List.of(new BaseClassNode("AbstractClass", List.of())))
+            .baseClasses(List.of(new BaseClassNode(new FlowType("AbstractClass", false, false), List.of())))
             .build();
 
         testScope.symbols().classes().add(abstractClass);
@@ -110,7 +110,7 @@ class ClassLoaderTest {
 
         ClassDeclarationNode childClass = ClassNodeGenerator.builder()
             .name("ChildClass")
-            .baseClasses(List.of(new BaseClassNode("FinalClass", List.of())))
+            .baseClasses(List.of(new BaseClassNode(new FlowType("FinalClass", false, false), List.of())))
             .build();
 
         testScope.symbols().classes().add(finalClass);
@@ -123,12 +123,12 @@ class ClassLoaderTest {
     void testDetectsCircularInheritance() {
         ClassDeclarationNode classA = ClassNodeGenerator.builder()
             .name("A")
-            .baseClasses(List.of(new BaseClassNode("B", List.of())))
+            .baseClasses(List.of(new BaseClassNode(new FlowType("B", false, false), List.of())))
             .build();
 
         ClassDeclarationNode classB = ClassNodeGenerator.builder()
             .name("B")
-            .baseClasses(List.of(new BaseClassNode("A", List.of())))
+            .baseClasses(List.of(new BaseClassNode(new FlowType("A", false, false), List.of())))
             .build();
 
         testScope.symbols().classes().add(classA);

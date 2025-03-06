@@ -21,7 +21,7 @@ public abstract class TypeDeclarationNode implements ASTNode {
         final List<FunctionDeclarationNode> methods = new ArrayList<>(this.methods);
 
         if (this instanceof ClassDeclarationNode classDeclarationNode && !classDeclarationNode.baseClasses.isEmpty()) {
-            final String baseClassName = classDeclarationNode.baseClasses.get(0).name;
+            final String baseClassName = classDeclarationNode.baseClasses.get(0).type.name;
             final ClassDeclarationNode baseClass = scope.getClass(baseClassName);
             if (baseClass == null) {
                 throw new IllegalArgumentException("Base class '" + baseClassName + "' not found in scope");
@@ -31,9 +31,9 @@ public abstract class TypeDeclarationNode implements ASTNode {
         }
 
         for (final BaseInterfaceNode baseInterfaceNode : implementedInterfaces) {
-            final InterfaceNode interfaceNode = scope.getInterface(baseInterfaceNode.name);
+            final InterfaceNode interfaceNode = scope.getInterface(baseInterfaceNode.type.name);
             if (interfaceNode == null) {
-                throw new IllegalArgumentException("Interface '" + baseInterfaceNode.name + "' not found in scope");
+                throw new IllegalArgumentException("Interface '" + baseInterfaceNode.type.name + "' not found in scope");
             }
 
             methods.addAll(interfaceNode.getAllMethods(scope));
@@ -47,7 +47,7 @@ public abstract class TypeDeclarationNode implements ASTNode {
 
         if (this instanceof ClassDeclarationNode classDeclaration) {
             if (!classDeclaration.baseClasses.isEmpty()) {
-                final ClassDeclarationNode baseClass = scope.getClass(classDeclaration.baseClasses.get(0).name);
+                final ClassDeclarationNode baseClass = scope.getClass(classDeclaration.baseClasses.get(0).type.name);
                 if (baseClass == null) {
                     throw new IllegalArgumentException("Base class not found");
                 }
@@ -57,7 +57,7 @@ public abstract class TypeDeclarationNode implements ASTNode {
         }
 
         for (final BaseInterfaceNode baseInterfaceNode : implementedInterfaces) {
-            final InterfaceNode baseInterface = scope.getInterface(baseInterfaceNode.name);
+            final InterfaceNode baseInterface = scope.getInterface(baseInterfaceNode.type.name);
             if (baseInterface == null) {
                 throw new IllegalArgumentException("Base interface not found");
             }

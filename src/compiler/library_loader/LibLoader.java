@@ -155,10 +155,10 @@ public class LibLoader {
 
         List<BaseClassNode> baseClasses = (classNode.superName == null)
             ? List.of()
-            : List.of(new BaseClassNode(trimPackageName(classNode.superName.replace("/", ".")), List.of()));
+            : List.of(new BaseClassNode(new FlowType(classNode.superName.replace("/", "."), false, false), List.of()));
 
         List<BaseInterfaceNode> interfaces = classNode.interfaces.stream()
-            .map(baseInterface -> new BaseInterfaceNode(trimPackageName(baseInterface.replace("/", "."))))
+            .map(baseInterface -> new BaseInterfaceNode(new FlowType(baseInterface.replace("/", "."), false, false)))
             .toList();
 
         final ClassDeclarationNode flowClass = new ClassDeclarationNode(
@@ -183,7 +183,7 @@ public class LibLoader {
         String interfaceName = trimPackageName(classNode.name.replace("/", "."));
 
         List<BaseInterfaceNode> implementedInterfaces = classNode.interfaces.stream()
-            .map(baseInterface -> new BaseInterfaceNode(trimPackageName(baseInterface.replace("/", "."))))
+            .map(baseInterface -> new BaseInterfaceNode(new FlowType(trimPackageName(baseInterface.replace("/", ".")), false, false)))
             .toList();
 
         List<FunctionDeclarationNode> methods = new ArrayList<>();

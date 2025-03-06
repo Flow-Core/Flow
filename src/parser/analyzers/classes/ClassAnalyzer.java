@@ -5,6 +5,7 @@ import logger.LoggerFacade;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
+import parser.analyzers.inline.FlowTypeAnalyzer;
 import parser.analyzers.top.BlockAnalyzer;
 import parser.analyzers.top.FieldAnalyzer;
 import parser.nodes.ASTMetaDataStore;
@@ -96,13 +97,13 @@ public class ClassAnalyzer extends TopAnalyzer {
         if (parser.check(TokenType.COLON_OPERATOR)) {
             do {
                 parser.advance();
-                final String name = parser.consume(TokenType.IDENTIFIER).value();
+                final FlowType className = FlowTypeAnalyzer.analyze(parser);
                 if (parser.check(TokenType.OPEN_PARENTHESES)) {
                     parser.advance();
-                    supertypes.implementedClasses.add((BaseClassNode) ASTMetaDataStore.getInstance().addMetadata(new BaseClassNode(name, parseArguments(parser)), line, parser.file));
+                    supertypes.implementedClasses.add((BaseClassNode) ASTMetaDataStore.getInstance().addMetadata(new BaseClassNode(className, parseArguments(parser)), line, parser.file));
                     parser.consume(TokenType.CLOSE_PARENTHESES);
                 } else {
-                    supertypes.implementedInterfaces.add((BaseInterfaceNode) ASTMetaDataStore.getInstance().addMetadata(new BaseInterfaceNode(name), line, parser.file));
+                    supertypes.implementedInterfaces.add((BaseInterfaceNode) ASTMetaDataStore.getInstance().addMetadata(new BaseInterfaceNode(className), line, parser.file));
                 }
             } while (parser.check(TokenType.COMMA));
         }

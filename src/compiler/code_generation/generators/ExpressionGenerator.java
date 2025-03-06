@@ -151,15 +151,15 @@ public class ExpressionGenerator {
     }
 
     public static FlowType generateConstructorCall(ObjectNode objNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv) {
-        if (objNode.className.equals("Void")) {
+        if (objNode.type.name.equals("Void")) {
             return new FlowType("Void", false, true);
         }
 
-        final String fqObjectName = FQNameMapper.getFQName(objNode.className, scope);
+        final String fqObjectName = FQNameMapper.getFQName(objNode.type.name, scope);
 
-        final ClassDeclarationNode objClass = TypeRecognize.getClass(objNode.className, scope);
+        final ClassDeclarationNode objClass = TypeRecognize.getClass(objNode.type.name, scope);
         if (objClass == null) {
-            throw new RuntimeException("Class " + objNode.className + " was not found");
+            throw new RuntimeException("Class " + objNode.type.name + " was not found");
         }
 
         ConstructorNode constructorNode = null;
@@ -170,7 +170,7 @@ public class ExpressionGenerator {
         }
 
         if (constructorNode == null) {
-            throw new RuntimeException("Constructor " + objNode.className + " was not found");
+            throw new RuntimeException("Constructor " + objNode.type.name + " was not found");
         }
 
         final String constructorDescriptor = FunctionGenerator.getDescriptor(
@@ -185,11 +185,11 @@ public class ExpressionGenerator {
 
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, fqObjectName, "<init>", constructorDescriptor, false);
 
-        return new FlowType(objNode.className, false, false);
+        return new FlowType(objNode.type.name, false, false);
     }
 
     private static FlowType generateObjectInstantiation(ObjectNode objNode, Scope scope, FileWrapper file, VariableManager vm, MethodVisitor mv, StackTracker tracker) {
-        final String fqObjectName = FQNameMapper.getFQName(objNode.className, scope);
+        final String fqObjectName = FQNameMapper.getFQName(objNode.type.name, scope);
         mv.visitTypeInsn(Opcodes.NEW, fqObjectName);
         mv.visitInsn(Opcodes.DUP);
 

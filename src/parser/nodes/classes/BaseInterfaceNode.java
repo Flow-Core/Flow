@@ -1,33 +1,27 @@
 package parser.nodes.classes;
 
 import parser.nodes.ASTNode;
+import parser.nodes.FlowType;
 
 import java.util.Objects;
 
 public class BaseInterfaceNode implements ASTNode {
-    public String name;
+    public FlowType type;
 
-    public BaseInterfaceNode(String name) {
-        this.name = name;
+    public BaseInterfaceNode(FlowType type) {
+        this.type = type;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
         BaseInterfaceNode that = (BaseInterfaceNode) o;
-
-        return Objects.equals(name, that.name);
+        return Objects.equals(type, that.type);
     }
 
     @Override
     public int hashCode() {
-        return name != null ? name.hashCode() : 0;
-    }
-
-    @Override
-    public String toString() {
-        return name;
+        return Objects.hashCode(type);
     }
 }

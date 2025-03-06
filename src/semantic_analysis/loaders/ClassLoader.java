@@ -127,17 +127,17 @@ public class ClassLoader implements ASTVisitor<Scope> {
             }
 
             final BaseClassNode baseClassNode = classDeclaration.baseClasses.get(0);
-            final ClassDeclarationNode baseClass = scope.getClass(baseClassNode.name);
+            final ClassDeclarationNode baseClass = scope.getClass(baseClassNode.type.name);
             if (baseClass == null) {
-                LoggerFacade.error("Base class '" + baseClassNode.name + "' for class '" + classDeclaration.name + "' was not found", classDeclaration);
+                LoggerFacade.error("Base class '" + baseClassNode.type.name + "' for class '" + classDeclaration.name + "' was not found", classDeclaration);
                 return;
             }
 
             if (!baseClass.modifiers.contains("open") && !baseClass.modifiers.contains("abstract")) {
-                LoggerFacade.error("'" + baseClassNode.name + "' is final, so it cannot be extended", classDeclaration);
+                LoggerFacade.error("'" + baseClassNode.type.name + "' is final, so it cannot be extended", classDeclaration);
             }
 
-            if (classDeclaration.name.equals(baseClassNode.name)) {
+            if (classDeclaration.name.equals(baseClassNode.type.name)) {
                 throw LoggerFacade.getLogger().panic(
                     "Class cannot extend itself: " + classDeclaration.name,
                     ASTMetaDataStore.getInstance().getLine(classDeclaration),
@@ -177,7 +177,7 @@ public class ClassLoader implements ASTVisitor<Scope> {
         visited.add(currentClass.name);
 
         for (BaseClassNode base : currentClass.baseClasses) {
-            ClassDeclarationNode nextBase = TypeRecognize.getClass(base.name, scope);
+            ClassDeclarationNode nextBase = TypeRecognize.getClass(base.type.name, scope);
             if (nextBase != null) {
                 checkCircularInheritance(originalClass, nextBase, new HashSet<>(visited), scope);
             }
@@ -186,9 +186,9 @@ public class ClassLoader implements ASTVisitor<Scope> {
 
     private void validateInterfaces(List<BaseInterfaceNode> interfaces, Scope scope) {
         for (final BaseInterfaceNode interfaceNode : interfaces) {
-            final InterfaceNode baseInterface = scope.getInterface(interfaceNode.name);
+            final InterfaceNode baseInterface = scope.getInterface(interfaceNode.type.name);
             if (baseInterface == null) {
-                LoggerFacade.error("Interface '" + interfaceNode.name + "' was not found", interfaceNode);
+                LoggerFacade.error("Interface '" + interfaceNode.type.name + "' was not found", interfaceNode);
                 return;
             }
 
@@ -210,7 +210,7 @@ public class ClassLoader implements ASTVisitor<Scope> {
         visited.add(currentInterface.name);
 
         for (BaseInterfaceNode base : currentInterface.implementedInterfaces) {
-            InterfaceNode nextInterface = scope.getInterface(base.name);
+            InterfaceNode nextInterface = scope.getInterface(base.type.name);
             if (nextInterface != null) {
                 checkCircularInterfaceInheritance(currentInterface.name, nextInterface, new HashSet<>(visited), scope);
             }
@@ -219,13 +219,13 @@ public class ClassLoader implements ASTVisitor<Scope> {
 
     private void validateInterfaces(InterfaceNode interfaceNode, Scope scope) {
         for (final BaseInterfaceNode currentInterface : interfaceNode.implementedInterfaces) {
-            final InterfaceNode baseInterface = scope.getInterface(currentInterface.name);
+            final InterfaceNode baseInterface = scope.getInterface(currentInterface.type.name);
             if (baseInterface == null) {
-                LoggerFacade.error("Interface '" + currentInterface.name + "' was not found", currentInterface);
+                LoggerFacade.error("Interface '" + currentInterface.type.name + "' was not found", currentInterface);
                 return;
             }
 
-            if (currentInterface.name.equals(interfaceNode.name)) {
+            if (currentInterface.type.name.equals(interfaceNode.name)) {
                 LoggerFacade.error("Interface cannot extend itself: " + interfaceNode.name, currentInterface);
                 return;
             }
@@ -277,7 +277,7 @@ public class ClassLoader implements ASTVisitor<Scope> {
 
         if (typeDeclarationNode instanceof ClassDeclarationNode classDeclarationNode) {
             if (!classDeclarationNode.baseClasses.isEmpty()) {
-                final String baseClassName = classDeclarationNode.baseClasses.get(0).name;
+                final String baseClassName = classDeclarationNode.baseClasses.get(0).type.name;
 
                 final ClassDeclarationNode baseClass = scope.getClass(baseClassName);
                 if (baseClass == null) {
@@ -291,9 +291,9 @@ public class ClassLoader implements ASTVisitor<Scope> {
 
         if (modifier.equals("abstract")) {
             for (final BaseInterfaceNode baseInterfaceNode : typeDeclarationNode.implementedInterfaces) {
-                final InterfaceNode interfaceNode = scope.getInterface(baseInterfaceNode.name);
+                final InterfaceNode interfaceNode = scope.getInterface(baseInterfaceNode.type.name);
                 if (interfaceNode == null) {
-                    LoggerFacade.error("Interface '" + baseInterfaceNode.name + "' was not found", baseInterfaceNode);
+                    LoggerFacade.error("Interface '" + baseInterfaceNode.type.name + "' was not found", baseInterfaceNode);
                     return new ArrayList<>();
                 }
 
