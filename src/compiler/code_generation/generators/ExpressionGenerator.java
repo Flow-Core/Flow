@@ -3,6 +3,7 @@ package compiler.code_generation.generators;
 import compiler.code_generation.manager.VariableManager;
 import compiler.code_generation.mappers.BoxMapper;
 import compiler.code_generation.mappers.FQNameMapper;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import parser.nodes.FlowType;
@@ -104,6 +105,7 @@ public class ExpressionGenerator {
             final String descriptor = FunctionGenerator.getDescriptor(declaration, scope, caller.typeParameters);
             final boolean isStatic = declaration.modifiers.contains("static");
 
+            final Label endLabel = new Label();
             if (!isStatic) {
                 ExpressionGenerator.generate(
                     funcCallNode.caller,
@@ -116,6 +118,19 @@ public class ExpressionGenerator {
                         false
                     )
                 );
+
+                if (funcCallNode.isSafeCall) {
+                    final Label notNullLabel = new Label();
+
+                    mv.visitInsn(Opcodes.DUP);
+                    mv.visitJumpInsn(Opcodes.IFNONNULL, notNullLabel);
+
+                    mv.visitInsn(Opcodes.POP);
+                    mv.visitInsn(Opcodes.ACONST_NULL);
+                    mv.visitJumpInsn(Opcodes.GOTO, endLabel);
+
+                    mv.visitLabel(notNullLabel);
+                }
             }
 
             processFunctionArguments(
@@ -134,6 +149,7 @@ public class ExpressionGenerator {
 
             BoxMapper.boxIfNeeded(declaration.returnType, expectedType, mv);
 
+            mv.visitLabel(endLabel);
             return tracker.hang(declaration.returnType);
         }
     }
@@ -207,7 +223,7 @@ public class ExpressionGenerator {
 
     private static FlowType generateUnary(UnaryOperatorNode unaryExpression, Scope scope, FileWrapper file, MethodVisitor mv, VariableManager vm, StackTracker tracker, FlowType expectedType) {
         if (unaryExpression.operator.equals("!!"))
-            return generateDoubleBang(unaryExpression, file, mv, vm, tracker, expectedType);
+            return generate(unaryExpression.operand, mv, vm, file, expectedType);
 
         final FlowType actualType = generate(unaryExpression.operand, mv, vm, file, null);
         if (actualType == null) {
@@ -345,16 +361,6 @@ public class ExpressionGenerator {
         BoxMapper.boxIfNeeded(actualType, expectedType, mv);
 
         return tracker.hang(actualType);
-    }
-
-    private static FlowType generateDoubleBang(UnaryOperatorNode unaryExpression, FileWrapper file, MethodVisitor mv, VariableManager vm, StackTracker tracker, FlowType expectedType) {
-        FlowType type = generate(unaryExpression.operand, mv, vm, file, expectedType);
-
-        if (expectedType.isPrimitive) return type;
-
-        // TODO: if null throw
-
-        return type;
     }
 
     private static FlowType generateLiteral(LiteralNode literalNode, MethodVisitor mv, StackTracker tracker, FlowType expectedType) {
