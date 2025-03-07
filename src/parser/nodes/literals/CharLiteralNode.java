@@ -34,6 +34,6 @@ public class CharLiteralNode implements LiteralNode {
 
     @Override
     public String toString() {
-        return Character.toString(value);
+        return "'" + value + "'";
     }
 }

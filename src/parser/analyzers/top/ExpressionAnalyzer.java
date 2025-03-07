@@ -51,7 +51,7 @@ public class ExpressionAnalyzer extends TopAnalyzer {
 
             if (parser.check(TokenType.DOT_OPERATOR, TokenType.SAFE_CALL)) {
                 parser.advance();
-                parser.advance();
+                parser.advance(); // IdentifierReferenceAnalyzer uses peek(-1)
                 rhs = new IdentifierReferenceAnalyzer().parse(parser);
             } else if (parser.check(TokenType.OPEN_BRACKETS)) {
                 rhs = parseBrackets(parser);

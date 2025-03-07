@@ -88,4 +88,8 @@ public class Parser {
 
         currentToken = checkpoints.pop();
     }
+
+    public void clearCheckpoint() {
+        checkpoints.pop();
+    }
 }

@@ -19,17 +19,7 @@ public class FlowTypeAnalyzer {
         name = parseModulePath(parser);
 
         if (parser.peek().value().equals("<")) {
-            parser.advance();
-            while (!parser.peek().value().equals(">")) {
-                typeArguments.add(
-                    new TypeArgument(analyze(parser))
-                );
-
-                if (!parser.peek().value().equals(">")) {
-                    parser.consume(TokenType.COMMA);
-                }
-            }
-            parser.advance();
+            typeArguments = parseTypeArguments(parser);
         }
 
         if (parser.check(TokenType.NULLABLE)) {
@@ -38,5 +28,23 @@ public class FlowTypeAnalyzer {
         }
 
         return new FlowType(name, isNullable, false, typeArguments);
+    }
+
+    public static List<TypeArgument> parseTypeArguments(Parser parser) {
+        List<TypeArgument> typeArguments = new ArrayList<>();
+
+        parser.advance();
+        while (!parser.peek().value().equals(">")) {
+            typeArguments.add(
+                new TypeArgument(analyze(parser))
+            );
+
+            if (!parser.peek().value().equals(">")) {
+                parser.consume(TokenType.COMMA);
+            }
+        }
+        parser.advance();
+
+        return typeArguments;
     }
 }

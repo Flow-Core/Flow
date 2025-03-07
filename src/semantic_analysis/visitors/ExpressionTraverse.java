@@ -29,12 +29,7 @@ public class ExpressionTraverse {
         if (!keepCompileTime)
             root.expression = transformValue(root, root.expression, scope);
 
-        TypeWrapper type = determineType(root, root.expression, scope);
-        if (type == null || type.isTypeReference) {
-            return null;
-        }
-
-        return type.type;
+        return determineType(root, root.expression, scope);
     }
 
     public FlowType traverse(ExpressionBaseNode root, Scope scope) {
@@ -53,21 +48,21 @@ public class ExpressionTraverse {
         if (expression instanceof BinaryExpressionNode binaryExpression) {
             binaryExpression.left = transformValue(root, binaryExpression.left, scope);
 
-            TypeWrapper leftType = determineType(root, binaryExpression.left, scope);
-            if (leftType == null || leftType.type == null) {
+            FlowType leftType = determineType(root, binaryExpression.left, scope);
+            if (leftType == null) {
                 return null;
             }
 
-            TypeDeclarationNode leftTypeNode = TypeRecognize.getTypeDeclaration(leftType.type.name, scope);
+            TypeDeclarationNode leftTypeNode = TypeRecognize.getTypeDeclaration(leftType.name, scope);
 
             if (leftTypeNode == null) {
-                LoggerFacade.error("Unresolved symbol: '" + leftType.type + "'", root);
+                LoggerFacade.error("Unresolved symbol: '" + leftType + "'", root);
                 return null;
             }
 
             if (binaryExpression.operator.equals(".") || binaryExpression.operator.equals("?.")) {
-                if (binaryExpression.operator.equals(".") && leftType.type.isNullable) {
-                    LoggerFacade.error("Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type '" + leftType.type + "'", root);
+                if (binaryExpression.operator.equals(".") && leftType.isNullable) {
+                    LoggerFacade.error("Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type '" + leftType + "'", root);
                 }
 
                 if (binaryExpression.right instanceof VariableReferenceNode reference) {
@@ -83,12 +78,12 @@ public class ExpressionTraverse {
                         );
 
                         if (field == null) {
-                            LoggerFacade.error("Unresolved symbol: '" + leftType.type.name + "." + reference.variable + "'", root);
+                            LoggerFacade.error("Unresolved symbol: '" + leftType.name + "." + reference.variable + "'", root);
                             return null;
                         }
 
                         return new FieldReferenceNode(
-                            leftType.type,
+                            leftType,
                             reference.variable,
                             binaryExpression.left,
                             field.initialization.declaration.type,
@@ -112,23 +107,23 @@ public class ExpressionTraverse {
                         functions,
                         call.name,
                         call.arguments,
-                        leftType.type
+                        leftType
                     );
 
                     if (function == null) {
                         if (functions.isEmpty()) {
-                            LoggerFacade.error("Unresolved symbol: '" + leftType.type + "." + call.name + "'", root);
+                            LoggerFacade.error("Unresolved symbol: '" + leftType + "." + call.name + "'", root);
                         } else {
                             LoggerFacade.error("None of the overrides for '" +
-                                leftType.type + "." + call.name +
+                                leftType + "." + call.name +
                                 "' match the argument list", root);
                         }
                         return null;
                     }
 
                     return new FunctionCallNode(
-                        leftType.type,
-                        binaryExpression.left,
+                        leftType,
+                        binaryExpression.left instanceof TypeReferenceNode ? null : binaryExpression.left,
                         binaryExpression.operator.equals("?."),
                         call.name,
                         call.arguments
@@ -139,16 +134,16 @@ public class ExpressionTraverse {
                 }
             }
 
-            if (leftType.isTypeReference) {
+            if (binaryExpression.left instanceof TypeReferenceNode) {
                 LoggerFacade.error("Expression expected", root);
                 return null;
             }
 
             binaryExpression.right = transformValue(root, binaryExpression.right, scope);
 
-            TypeWrapper rightType = determineType(root, binaryExpression.right, scope);
+            FlowType rightType = determineType(root, binaryExpression.right, scope);
 
-            if (rightType == null || rightType.isTypeReference) {
+            if (rightType == null || binaryExpression.right instanceof TypeReferenceNode) {
                 LoggerFacade.error("Expression expected", root);
                 return null;
             }
@@ -170,15 +165,15 @@ public class ExpressionTraverse {
                             new ExpressionBaseNode(
                                 binaryExpression.right
                             ),
-                            rightType.type
+                            rightType
                         )
                     ),
-                    leftType.type
+                    leftType
                 )).findFirst().orElse(null);
 
             if (functionDecl != null) {
                 return new FunctionCallNode(
-                    leftType.type,
+                    leftType,
                     binaryExpression.left,
                     false,
                     operatorName,
@@ -192,17 +187,17 @@ public class ExpressionTraverse {
         } else if (expression instanceof UnaryOperatorNode unaryExpression) {
             unaryExpression.operand = transformValue(root, unaryExpression.operand, scope);
 
-            TypeWrapper operandType = determineType(root, unaryExpression.operand, scope);
+            FlowType operandType = determineType(root, unaryExpression.operand, scope);
 
-            if (operandType == null || operandType.isTypeReference) {
+            if (operandType == null || unaryExpression.operand instanceof TypeReferenceNode) {
                 LoggerFacade.error("Expression expected", root);
                 return null;
             }
 
             unaryExpression.operandType = new FlowType(
-                operandType.type.name,
-                operandType.type.isNullable,
-                operandType.type.isPrimitive
+                operandType.name,
+                operandType.isNullable,
+                operandType.isPrimitive
             );
 
             if (getUnaryOperatorType(unaryExpression.operator) != UnaryOperatorType.FUNCTION) {
@@ -224,10 +219,10 @@ public class ExpressionTraverse {
                 return unaryExpression;
             }
 
-            ClassDeclarationNode operandTypeNode = TypeRecognize.getClass(operandType.type.name, scope);
+            ClassDeclarationNode operandTypeNode = TypeRecognize.getClass(operandType.name, scope);
 
             if (operandTypeNode == null) {
-                LoggerFacade.error("Unresolved symbol: '" + operandType.type + "'", root);
+                LoggerFacade.error("Unresolved symbol: '" + operandType + "'", root);
                 return null;
             }
 
@@ -243,12 +238,12 @@ public class ExpressionTraverse {
                     scope,
                     method.parameters,
                     List.of(),
-                    operandType.type
+                    operandType
                 )).findFirst().orElse(null);
 
             if (functionDecl != null) {
                 return new FunctionCallNode(
-                    operandType.type,
+                    operandType,
                     unaryExpression.operand,
                     false,
                     operatorName,
@@ -263,11 +258,17 @@ public class ExpressionTraverse {
     }
 
     private static ExpressionNode transformVariableReference(ExpressionBaseNode root, VariableReferenceNode referenceNode, Scope scope) {
-        if (
-            scope.type() == Scope.Type.FUNCTION && scope.findLocalVariable(referenceNode.variable) ||
-                TypeRecognize.findTypeDeclaration(referenceNode.variable, scope)
-        ) {
+        if (scope.type() == Scope.Type.FUNCTION && scope.findLocalVariable(referenceNode.variable))
             return referenceNode;
+
+        if (TypeRecognize.findTypeDeclaration(referenceNode.variable, scope)) {
+            return new TypeReferenceNode(
+                new FlowType(
+                    referenceNode.variable,
+                    false,
+                    false
+                )
+            );
         }
 
         TypeDeclarationNode containingType = scope.getContainingType();
@@ -287,9 +288,12 @@ public class ExpressionTraverse {
         return null;
     }
 
-    private static TypeWrapper determineType(ExpressionBaseNode root, ExpressionNode expression, Scope scope) {
+    private static FlowType determineType(ExpressionBaseNode root, ExpressionNode expression, Scope scope) {
         if (expression == null) {
             return null;
+        }
+        if (expression instanceof TypeReferenceNode typeReference) {
+            return typeReference.type;
         }
         if (expression instanceof ObjectNode objectNode) {
             if (objectNode.type.isNullable) {
@@ -309,7 +313,7 @@ public class ExpressionTraverse {
                 return null;
             }
 
-            ClassDeclarationNode baseClass = (ClassDeclarationNode)baseType;
+            ClassDeclarationNode baseClass = (ClassDeclarationNode) baseType;
 
             for (final ArgumentNode argNode : objectNode.arguments) {
                 argNode.type = new ExpressionTraverse().traverse(argNode.value, scope, true);
@@ -325,10 +329,7 @@ public class ExpressionTraverse {
                 return null;
             }
 
-            return new TypeWrapper(
-                objectNode.type,
-                false
-            );
+            return objectNode.type;
         }
         if (expression instanceof BaseClassNode baseClassNode) {
             if (baseClassNode.type.isNullable) {
@@ -348,7 +349,7 @@ public class ExpressionTraverse {
                 return null;
             }
 
-            ClassDeclarationNode baseClass = (ClassDeclarationNode)baseType;
+            ClassDeclarationNode baseClass = (ClassDeclarationNode) baseType;
 
             for (final ArgumentNode argNode : baseClassNode.arguments) {
                 argNode.type = new ExpressionTraverse().traverse(argNode.value, scope, true);
@@ -359,30 +360,21 @@ public class ExpressionTraverse {
                 return null;
             }
 
-            return new TypeWrapper(
-                baseClassNode.type,
-                false
-            );
+            return baseClassNode.type;
         }
         if (expression instanceof VariableReferenceNode variable) {
             if (scope.findTypeDeclaration(variable.variable)) {
-                return new TypeWrapper(
-                    new FlowType(
-                        variable.variable,
-                        false,
-                        false
-                    ),
-                    true
+                return new FlowType(
+                    variable.variable,
+                    false,
+                    false
                 );
             }
 
             FieldNode field = TypeRecognize.getField(variable.variable, scope);
 
             if (field != null) {
-                return new TypeWrapper(
-                    field.initialization.declaration.type,
-                    false
-                );
+                return field.initialization.declaration.type;
             }
 
             LoggerFacade.error("Unresolved symbol: '" + variable.variable + "'", root);
@@ -447,7 +439,7 @@ public class ExpressionTraverse {
                 return null;
             }
 
-            return new TypeWrapper(function.returnType, false);
+            return function.returnType;
         }
         if (expression instanceof FieldReferenceNode field) {
             FieldNode actualField;
@@ -486,10 +478,7 @@ public class ExpressionTraverse {
                     return null;
                 }
 
-            return new TypeWrapper(
-                actualField.initialization.declaration.type,
-                false
-            );
+            return actualField.initialization.declaration.type;
         }
         if (expression instanceof UnaryOperatorNode unaryExpression) {
             if (getUnaryOperatorType(unaryExpression.operator) == UnaryOperatorType.MUTATING) {
@@ -515,44 +504,25 @@ public class ExpressionTraverse {
                 }
             }
 
-            return new TypeWrapper(
-                unaryExpression.operandType,
-                false
-            );
+            return unaryExpression.operandType;
         }
         if (expression instanceof LiteralNode literalNode) {
-            return new TypeWrapper(
-                new FlowType(
-                    literalNode.getClassName(),
-                    false,
-                    true
-                ),
-                false
+            return new FlowType(
+                literalNode.getClassName(),
+                false,
+                true
             );
         }
         if (expression instanceof NullLiteral) {
-            return new TypeWrapper(
-                new FlowType(
-                    "null",
-                    true,
-                    false
-                ),
+            return new FlowType(
+                "null",
+                true,
                 false
             );
         }
 
         LoggerFacade.error("Could not resolve type: '" + expression + "'", root);
         return null;
-    }
-
-    public record TypeWrapper(
-        FlowType type,
-        boolean isTypeReference
-    ) {
-        @Override
-        public String toString() {
-            return type.toString();
-        }
     }
 
     private static String getOperatorName(String operator) {

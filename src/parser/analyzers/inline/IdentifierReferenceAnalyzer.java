@@ -2,22 +2,46 @@ package parser.analyzers.inline;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
-import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.top.ExpressionAnalyzer;
+import parser.nodes.ASTMetaDataStore;
+import parser.nodes.FlowType;
+import parser.nodes.classes.TypeReferenceNode;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.functions.FunctionCallNode;
+import parser.nodes.generics.TypeArgument;
 import parser.nodes.variable.VariableReferenceNode;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static parser.analyzers.inline.FlowTypeAnalyzer.parseTypeArguments;
+
 public class IdentifierReferenceAnalyzer {
     public ExpressionNode parse(final Parser parser) {
         final Token identifierToken = parser.peek(-1);
         final int line = identifierToken.line();
+
+        if (parser.peek().value().equals("<")) {
+            parser.checkpoint();
+            try {
+                List<TypeArgument> typeArguments = parseTypeArguments(parser);
+                parser.clearCheckpoint();
+
+                return new TypeReferenceNode(
+                    new FlowType(
+                        identifierToken.value(),
+                        false,
+                        false,
+                        typeArguments
+                    )
+                );
+            } catch (RuntimeException e) {
+                parser.rollback();
+            }
+        }
 
         if (parser.check(TokenType.OPEN_PARENTHESES)) {
             parser.advance();
