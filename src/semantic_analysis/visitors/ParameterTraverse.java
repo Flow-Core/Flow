@@ -3,6 +3,7 @@ package semantic_analysis.visitors;
 import logger.LoggerFacade;
 import parser.nodes.FlowType;
 import parser.nodes.classes.ConstructorNode;
+import parser.nodes.classes.TypeDeclarationNode;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
@@ -12,7 +13,9 @@ import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.TypeRecognize;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ParameterTraverse {
     public static FunctionDeclarationNode findMethodWithParameters(
@@ -31,33 +34,36 @@ public class ParameterTraverse {
         Scope scope,
         List<FunctionDeclarationNode> methods,
         String name,
-        List<ArgumentNode> arguments
+        List<ArgumentNode> arguments,
+        FlowType callerType
     ) {
         return methods.stream()
             .filter(method -> method.name.equals(name))
-            .filter(method -> compareParametersWithArguments(scope, method.parameters, arguments))
+            .filter(method -> compareParametersWithArguments(scope, method.parameters, arguments, callerType))
             .findFirst().orElse(null);
     }
 
     public static ConstructorNode findConstructor(
         Scope scope,
         List<ConstructorNode> constructors,
-        List<ArgumentNode> arguments
+        List<ArgumentNode> arguments,
+        FlowType callerType
     ) {
         return constructors.stream()
-            .filter(method -> compareParametersWithArguments(scope, method.parameters, arguments))
+            .filter(method -> compareParametersWithArguments(scope, method.parameters, arguments, callerType))
             .findFirst().orElse(null);
     }
 
     public static FunctionDeclarationNode findMethodByArguments(
         Scope scope,
         String name,
-        List<ArgumentNode> arguments
+        List<ArgumentNode> arguments,
+        FlowType callerType
     ) {
         FunctionDeclarationNode declaration = null;
 
         while (declaration == null && scope != null && scope.parent() != null) {
-            declaration = findMethodByArguments(scope, scope.symbols().functions(), name, arguments);
+            declaration = findMethodByArguments(scope, scope.symbols().functions(), name, arguments, callerType);
 
             scope = scope.parent();
         }
@@ -122,12 +128,21 @@ public class ParameterTraverse {
     public static boolean compareParametersWithArguments(
         Scope scope,
         List<ParameterNode> parameters,
-        List<ArgumentNode> arguments
+        List<ArgumentNode> arguments,
+        FlowType callerType
     ) {
+        Map<String, FlowType> typeArgumentMapping = new HashMap<>();
+
+        if (callerType != null && !callerType.typeArguments.isEmpty()) {
+            TypeDeclarationNode typeDeclarationNode = TypeRecognize.getTypeDeclaration(callerType.name, scope);
+            for (int i = 0; i < typeDeclarationNode.typeParameters.size(); i++) {
+                typeArgumentMapping.put(typeDeclarationNode.typeParameters.get(i).name, callerType.typeArguments.get(i).type);
+            }
+        }
+
         if (parameters.size() < arguments.size()) return false;
 
         boolean foundNamed = false;
-
         List<ParameterNode> passedArgument = new ArrayList<>();
 
         for (int i = 0; i < arguments.size(); i++) {
@@ -154,9 +169,14 @@ public class ParameterTraverse {
 
             passedArgument.add(parameterNode);
 
+            FlowType paramType = parameterNode.type;
+            if (typeArgumentMapping.containsKey(paramType.name)) {
+                paramType = typeArgumentMapping.get(paramType.name);
+            }
+
             if (!TypeRecognize.isSameType(
                 argumentNode.type,
-                parameterNode.type,
+                paramType,
                 scope
             ))
                 return false;

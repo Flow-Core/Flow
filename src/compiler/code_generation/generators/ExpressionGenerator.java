@@ -21,6 +21,7 @@ import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.TypeRecognize;
 import semantic_analysis.visitors.ParameterTraverse;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ExpressionGenerator {
@@ -61,14 +62,15 @@ public class ExpressionGenerator {
             final FunctionDeclarationNode declaration = ParameterTraverse.findMethodByArguments(
                 scope,
                 funcCallNode.name,
-                funcCallNode.arguments
+                funcCallNode.arguments,
+                null
             );
             if (declaration == null) {
                 throw new IllegalArgumentException("Function " + funcCallNode.name + " was not found in the scope");
             }
 
             final String fqTopLevelName = FQNameMapper.getFQName(declaration, scope);
-            final String descriptor = FunctionGenerator.getDescriptor(declaration, scope);
+            final String descriptor = FunctionGenerator.getDescriptor(declaration, scope, new ArrayList<>());
 
             processFunctionArguments(
                 declaration.parameters,
@@ -83,7 +85,7 @@ public class ExpressionGenerator {
 
             return tracker.hang(declaration.returnType);
         } else {
-            final TypeDeclarationNode caller = TypeRecognize.getTypeDeclaration(funcCallNode.callerType, scope);
+            final TypeDeclarationNode caller = TypeRecognize.getTypeDeclaration(funcCallNode.callerType.name, scope);
             if (caller == null) {
                 throw new RuntimeException("Caller not found in scope: " + funcCallNode.callerType);
             }
@@ -96,9 +98,10 @@ public class ExpressionGenerator {
                 scope,
                 methods,
                 funcCallNode.name,
-                funcCallNode.arguments
+                funcCallNode.arguments,
+                funcCallNode.callerType
             );
-            final String descriptor = FunctionGenerator.getDescriptor(declaration, scope);
+            final String descriptor = FunctionGenerator.getDescriptor(declaration, scope, caller.typeParameters);
             final boolean isStatic = declaration.modifiers.contains("static");
 
             if (!isStatic) {
@@ -107,7 +110,7 @@ public class ExpressionGenerator {
                     mv,
                     vm,
                     file,
-                    new FlowType(funcCallNode.callerType, false, false)
+                    expectedType
                 );
             }
 
@@ -121,7 +124,7 @@ public class ExpressionGenerator {
 
             final int callType = isInterface ? Opcodes.INVOKEINTERFACE
                 : isStatic ? Opcodes.INVOKESTATIC : Opcodes.INVOKEVIRTUAL;
-            final String fqCallerName = FQNameMapper.getFQName(funcCallNode.callerType, scope);
+            final String fqCallerName = FQNameMapper.getFQName(funcCallNode.callerType.name, scope);
 
             mv.visitMethodInsn(callType, fqCallerName, funcCallNode.name, descriptor, isInterface);
 
@@ -133,7 +136,8 @@ public class ExpressionGenerator {
 
     private static FlowType generateFieldReference(FieldReferenceNode refNode, Scope scope, FileWrapper file, MethodVisitor mv, VariableManager vm, StackTracker tracker, FlowType expectedType) {
         final String holderFQName = FQNameMapper.getFQName(refNode.holderType.name, scope);
-        final String descriptor = FQNameMapper.getJVMName(refNode.type, scope);
+        final TypeDeclarationNode containingClass = TypeRecognize.getTypeDeclaration(refNode.holderType.name, scope);
+        final String descriptor = FQNameMapper.getJVMName(refNode.type, scope, containingClass.typeParameters);
 
         if (refNode.type.shouldBePrimitive()) refNode.type.isPrimitive = true;
 
@@ -164,7 +168,7 @@ public class ExpressionGenerator {
 
         ConstructorNode constructorNode = null;
         for (final ConstructorNode currentConstructor : objClass.constructors) {
-            if (ParameterTraverse.compareParametersWithArguments(scope, currentConstructor.parameters, objNode.arguments)) {
+            if (ParameterTraverse.compareParametersWithArguments(scope, currentConstructor.parameters, objNode.arguments, objNode.type)) {
                 constructorNode = currentConstructor;
             }
         }
@@ -176,7 +180,8 @@ public class ExpressionGenerator {
         final String constructorDescriptor = FunctionGenerator.getDescriptor(
             constructorNode.parameters,
             new FlowType("Void", false, true),
-            scope
+            scope,
+            objClass.typeParameters
         );
 
         for (ArgumentNode arg : objNode.arguments) {
@@ -270,7 +275,8 @@ public class ExpressionGenerator {
         } else if (unaryExpression.operand instanceof FieldReferenceNode fieldReferenceNode) {
             boolean isStatic = fieldReferenceNode.holder == null;
             final String fieldOwner = FQNameMapper.getFQName(fieldReferenceNode.holderType.name, file.scope());
-            final String fieldDescriptor = FQNameMapper.getJVMName(fieldReferenceNode.type, file.scope());
+            final TypeDeclarationNode containingClass = TypeRecognize.getTypeDeclaration(fieldReferenceNode.holderType.name, scope);
+            final String fieldDescriptor = FQNameMapper.getJVMName(fieldReferenceNode.type, file.scope(), containingClass.typeParameters);
 
             if (!isStatic) {
                 generate(fieldReferenceNode.holder, mv, vm, file, expectedType);

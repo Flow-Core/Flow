@@ -8,6 +8,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import parser.nodes.FlowType;
 import parser.nodes.classes.FieldNode;
+import parser.nodes.classes.TypeDeclarationNode;
 import parser.nodes.literals.LiteralNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import semantic_analysis.files.FileWrapper;
@@ -35,12 +36,13 @@ public class VariableDeclarationGenerator {
     public static void generateField(
         FieldNode fieldNode,
         ClassWriter cw,
-        FileWrapper file
+        FileWrapper file,
+        TypeDeclarationNode containingType
     ) {
         cw.visitField(
             ModifierMapper.map(fieldNode.modifiers),
             fieldNode.initialization.declaration.name,
-            FQNameMapper.getJVMName(fieldNode.initialization.declaration.type, file.scope()),
+            FQNameMapper.getJVMName(fieldNode.initialization.declaration.type, file.scope(), containingType.typeParameters),
             null,
             fieldNode.initialization.declaration.modifier.equals("const")
                 ? ((LiteralNode) fieldNode.initialization.assignment.value.expression).getValue()

@@ -53,13 +53,9 @@ class ExpressionTraverseTest {
         FunctionDeclarationNode plusFunction = FunctionNodeGenerator
             .builder()
             .name("plus")
-            .returnType(new FlowType("Int", false, true)) // Use FlowType properly
+            .returnType(new FlowType("Int", false, true))
             .parameters(
                 List.of(
-                    ParameterNodeGenerator.builder()
-                        .type(new FlowType("Int", false, true))
-                        .name("this")
-                        .build(),
                     ParameterNodeGenerator.builder()
                         .type(new FlowType("Int", false, true))
                         .name("other")
@@ -80,7 +76,7 @@ class ExpressionTraverseTest {
             ExpressionBaseNodeGenerator.builder().expression(new IntegerLiteralNode(10)).build(),
             scope
         );
-        Assertions.assertEquals(new FlowType("Int", false, true).toString(), type.toString(), "Integer literal should be recognized as Int");
+        Assertions.assertEquals(new FlowType("Int", false, true), type, "Integer literal should be recognized as Int");
     }
 
     @Test
@@ -98,7 +94,7 @@ class ExpressionTraverseTest {
             scope
         );
 
-        Assertions.assertEquals(new FlowType("Int", false, true).toString(), type.toString(), "Variable reference should return declared type");
+        Assertions.assertEquals(new FlowType("Int", false, true), type, "Variable reference should return declared type");
     }
 
     @Test
@@ -108,7 +104,7 @@ class ExpressionTraverseTest {
             scope
         );
 
-        Assertions.assertEquals(new FlowType("null", true, false).toString(), type.toString(), "Null literal should return 'null' type");
+        Assertions.assertEquals(new FlowType("null", true, false), type, "Null literal should return 'null' type");
     }
 
     @Test
@@ -122,7 +118,7 @@ class ExpressionTraverseTest {
 
         FlowType type = new ExpressionTraverse().traverse(binaryExpression, scope);
 
-        Assertions.assertEquals(new FlowType("Int", false, true).toString(), type.toString(), "Binary expression should return correct inferred type");
+        Assertions.assertEquals(new FlowType("Int", false, true), type, "Binary expression should return correct inferred type");
     }
 
     @Test
@@ -135,14 +131,14 @@ class ExpressionTraverseTest {
 
         symbolTable.classes().add(ClassNodeGenerator.builder().name("MyClass").methods(List.of(function)).build());
 
-        FunctionCallNode functionCall = FunctionCallNodeGenerator.builder().callerType("MyClass").name("getNumber").build();
+        FunctionCallNode functionCall = FunctionCallNodeGenerator.builder().callerType(new FlowType("MyClass", false, false)).name("getNumber").build();
 
         FlowType type = new ExpressionTraverse().traverse(
             new ExpressionBaseNode(functionCall),
             scope
         );
 
-        Assertions.assertEquals(new FlowType("Int", false, true).toString(), type.toString(), "Function call should return correct return type");
+        Assertions.assertEquals(new FlowType("Int", false, true), type, "Function call should return correct return type");
     }
 
     @Test
@@ -157,7 +153,7 @@ class ExpressionTraverseTest {
         symbolTable.classes().add(ClassNodeGenerator.builder().name("Person").methods(List.of(function)).build());
 
         FunctionCallNode functionCall = FunctionCallNodeGenerator.builder()
-            .callerType("Person")
+            .callerType(new FlowType("Person", false, false))
             .name("createInstance")
             .build();
 
@@ -166,7 +162,7 @@ class ExpressionTraverseTest {
             scope
         );
 
-        Assertions.assertEquals(new FlowType("Person", false, false).toString(), type.toString(), "Static method call should return correct type");
+        Assertions.assertEquals(new FlowType("Person", false, false), type, "Static method call should return correct type");
     }
 
     @Test
@@ -180,7 +176,7 @@ class ExpressionTraverseTest {
 
         symbolTable.classes().add(ClassNodeGenerator.builder().name("Person").methods(List.of(function)).build());
 
-        FunctionCallNode functionCall = FunctionCallNodeGenerator.builder().callerType("Person").name("internalMethod").build();
+        FunctionCallNode functionCall = FunctionCallNodeGenerator.builder().callerType(new FlowType("Person", false, false)).name("internalMethod").build();
 
         new ExpressionTraverse().traverse(new ExpressionBaseNode(functionCall), scope);
         Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Calling a private method should throw an error");

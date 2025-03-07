@@ -9,12 +9,27 @@ import parser.nodes.generics.TypeParameterNode;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.TypeRecognize;
 
+import java.util.HashSet;
 import java.util.List;
 
 public class FQNameMapper {
-    public static String getJVMName(FlowType type, Scope scope) {
+    public static String getJVMName(FlowType type, Scope scope, List<TypeParameterNode> typeParameters) {
+        return getJVMName(type, scope, typeParameters, false);
+    }
+
+    public static String getJVMName(FlowType type, Scope scope, List<TypeParameterNode> typeParameters, boolean forSignature) {
+        final TypeParameterNode typeParameterNode = getTypeParameter(type.name, typeParameters);
+        if (typeParameterNode != null) {
+            if (forSignature) {
+                return "T" + typeParameterNode.name + ";";
+            } else {
+                FlowType effectiveBound = TypeRecognize.getEffectiveType(typeParameterNode.bound, scope, new HashSet<>());
+                return getJVMName(effectiveBound, scope, typeParameters, false);
+            }
+        }
+
         if (!type.isPrimitive && !type.shouldBePrimitive() && !type.name.equals("Void")) {
-            return parseTypeArgumentSignature(type, scope);
+            return parseTypeArgumentSignature(type, scope, typeParameters, forSignature);
         }
 
         return switch (type.name) {
@@ -27,18 +42,18 @@ public class FQNameMapper {
             case "Byte" -> "B";
             case "Char" -> "C";
             case "Short" -> "S";
-            default -> "L" + FQNameMapper.getFQName(type.name, scope) + ";";
+            default -> "L" + getFQName(type.name, scope) + ";";
         };
     }
 
-    private static String parseTypeArgumentSignature(FlowType type, Scope scope) {
-        StringBuilder jvmName = new StringBuilder("L");
-        jvmName.append(FQNameMapper.getFQName(type.name, scope));
+    private static String parseTypeArgumentSignature(FlowType type, Scope scope, List<TypeParameterNode> typeParameters, boolean forSignature) {
+        StringBuilder jvmName = new StringBuilder();
+        jvmName.append("L").append(getFQName(type.name, scope));
 
-        if (!type.typeArguments.isEmpty()) {
+        if (!type.typeArguments.isEmpty() && forSignature) {
             jvmName.append("<");
-            for (final TypeArgument arg : type.typeArguments) {
-                jvmName.append(parseTypeArgumentSignature(arg.type, scope));
+            for (TypeArgument arg : type.typeArguments) {
+                jvmName.append(getJVMName(arg.type, scope, typeParameters, true));
             }
             jvmName.append(">");
         }
@@ -48,16 +63,13 @@ public class FQNameMapper {
     }
 
     public static String parseTypeParameterSignature(List<TypeParameterNode> typeParameters, Scope scope) {
-        if (typeParameters.isEmpty()) {
-            return null;
-        }
+        if (typeParameters.isEmpty()) return null;
 
         StringBuilder sb = new StringBuilder("<");
         for (TypeParameterNode parameter : typeParameters) {
-            sb.append(parameter.name);
-            sb.append(":");
+            sb.append(parameter.name).append(":");
             if (parameter.bound != null) {
-                sb.append(getJVMName(parameter.bound, scope));
+                sb.append(getJVMName(parameter.bound, scope, typeParameters, true));
             } else {
                 sb.append("L").append(CodeGenerationConstant.baseObjectFQName).append(";");
             }
@@ -67,11 +79,14 @@ public class FQNameMapper {
     }
 
     public static String getFQName(ASTNode node, Scope scope) {
+        if (node instanceof TypeParameterNode typeParameterNode) {
+            return map(TypeRecognize.getEffectiveType(typeParameterNode.bound, scope, new HashSet<>()).name);
+        }
+
         String fqName = scope.getFQName(node);
         if (fqName == null) {
             throw new IllegalArgumentException("Class should be loaded in the binding context");
         }
-
         return map(fqName);
     }
 
@@ -85,14 +100,14 @@ public class FQNameMapper {
             throw new IllegalArgumentException("Class should be loaded in the current scope");
         }
 
-        if (node instanceof TypeParameterNode typeParameterNode) {
-            return "T" + typeParameterNode.name;
-        }
-
         return getFQName(node, scope);
     }
 
     private static String map(String name) {
         return name.replace('.', '/');
+    }
+
+    private static TypeParameterNode getTypeParameter(String name, List<TypeParameterNode> typeParameters) {
+        return typeParameters.stream().filter(param -> param.name.equals(name)).findFirst().orElse(null);
     }
 }

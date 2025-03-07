@@ -42,7 +42,7 @@ public class VariableAssignmentGenerator {
 
             int opcode = Opcodes.PUTFIELD;
             final String holderFQName = FQNameMapper.getFQName(fieldReferenceNode.holderType.name, scope);
-            final String descriptor = FQNameMapper.getJVMName(fieldReferenceNode.type, file.scope());
+            final String descriptor = FQNameMapper.getJVMName(fieldReferenceNode.type, file.scope(), holder.typeParameters);
 
             if (fieldReferenceNode.holder == null) {
                 opcode = Opcodes.PUTSTATIC;

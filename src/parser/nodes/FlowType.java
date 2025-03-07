@@ -28,7 +28,7 @@ public class FlowType {
     }
 
     public boolean shouldBePrimitive() {
-        return !isPrimitive && !isNullable && isPrimitiveType() && typeArguments.isEmpty();
+        return !isPrimitive && !isNullable && isPrimitiveType();
     }
 
     public boolean isPrimitiveType() {

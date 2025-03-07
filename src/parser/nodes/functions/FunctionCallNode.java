@@ -1,6 +1,7 @@
 package parser.nodes.functions;
 
 import parser.nodes.ASTVisitor;
+import parser.nodes.FlowType;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.expressions.ExpressionNode;
 
@@ -8,7 +9,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class FunctionCallNode implements ExpressionNode {
-    public String callerType;
+    public FlowType callerType;
     public ExpressionNode caller;
     public boolean isSafeCall;
     public String name;
@@ -22,7 +23,7 @@ public class FunctionCallNode implements ExpressionNode {
         this.isSafeCall = false;
     }
 
-    public FunctionCallNode(String callerType, ExpressionNode caller, boolean isSafeCall, String name, List<ArgumentNode> arguments) {
+    public FunctionCallNode(FlowType callerType, ExpressionNode caller, boolean isSafeCall, String name, List<ArgumentNode> arguments) {
         this.callerType = callerType;
         this.caller = caller;
         this.isSafeCall = isSafeCall;

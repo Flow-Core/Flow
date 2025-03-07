@@ -12,6 +12,7 @@ import parser.nodes.classes.ObjectNode;
 import parser.nodes.classes.TypeDeclarationNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeParameterNode;
 import semantic_analysis.files.FileWrapper;
 import semantic_analysis.scopes.Scope;
 
@@ -30,8 +31,8 @@ public class FunctionGenerator {
         final MethodVisitor mv = cw.visitMethod(
             ModifierMapper.map(functionDeclarationNode.modifiers) | (isAbstract ? (Opcodes.ACC_ABSTRACT | Opcodes.ACC_PUBLIC) : 0),
             functionDeclarationNode.name,
-            getDescriptor(functionDeclarationNode, file.scope()),
-            getFunctionSignature(functionDeclarationNode, file.scope()),
+            getDescriptor(functionDeclarationNode, file.scope(), containingType.typeParameters),
+            getFunctionSignature(functionDeclarationNode, file.scope(), containingType.typeParameters),
             null
         );
 
@@ -80,7 +81,8 @@ public class FunctionGenerator {
             getDescriptor(
                 functionDeclarationNode.parameters,
                 functionDeclarationNode.returnType,
-                file.scope()
+                file.scope(),
+                containingType.typeParameters
             ),
             null,
             null
@@ -142,42 +144,45 @@ public class FunctionGenerator {
     public static String getDescriptor(
         List<ParameterNode> parameters,
         FlowType returnType,
-        Scope scope
+        Scope scope,
+        List<TypeParameterNode> typeParameters
     ) {
         final StringBuilder sb = new StringBuilder("(");
 
         for (final ParameterNode parameterNode : parameters) {
-            sb.append(FQNameMapper.getJVMName(parameterNode.type, scope));
+            sb.append(FQNameMapper.getJVMName(parameterNode.type, scope, typeParameters));
         }
 
-        sb.append(")").append(FQNameMapper.getJVMName(returnType, scope));
+        sb.append(")").append(FQNameMapper.getJVMName(returnType, scope, typeParameters));
 
         return sb.toString();
     }
 
     public static String getDescriptor(
         FunctionDeclarationNode functionDeclarationNode,
-        Scope scope
+        Scope scope,
+        List<TypeParameterNode> typeParameters
     ) {
         final StringBuilder sb = new StringBuilder("(");
 
         for (int i = 0; i < functionDeclarationNode.parameters.size(); i++) {
             final ParameterNode parameterNode = functionDeclarationNode.parameters.get(i);
 
-            sb.append(FQNameMapper.getJVMName(parameterNode.type, scope));
+            sb.append(FQNameMapper.getJVMName(parameterNode.type, scope, typeParameters));
         }
 
         sb.append(")").append(
             FQNameMapper.getJVMName(
                 functionDeclarationNode.returnType,
-                scope
+                scope,
+                typeParameters
             )
         );
 
         return sb.toString();
     }
 
-    public static String getFunctionSignature(FunctionDeclarationNode function, Scope scope) {
+    public static String getFunctionSignature(FunctionDeclarationNode function, Scope scope, List<TypeParameterNode> typeParameters) {
         StringBuilder signature = new StringBuilder();
 
         String typeParametersSignature = FQNameMapper.parseTypeParameterSignature(function.typeParameters, scope);
@@ -187,11 +192,11 @@ public class FunctionGenerator {
 
         signature.append("(");
         for (ParameterNode parameter : function.parameters) {
-            signature.append(FQNameMapper.getJVMName(parameter.type, scope));
+            signature.append(FQNameMapper.getJVMName(parameter.type, scope, typeParameters, true));
         }
         signature.append(")");
 
-        signature.append(FQNameMapper.getJVMName(function.returnType, scope));
+        signature.append(FQNameMapper.getJVMName(function.returnType, scope, typeParameters, true));
 
         return signature.toString();
     }

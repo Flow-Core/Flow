@@ -111,7 +111,8 @@ public class ExpressionTraverse {
                         scope,
                         functions,
                         call.name,
-                        call.arguments
+                        call.arguments,
+                        leftType.type
                     );
 
                     if (function == null) {
@@ -126,7 +127,7 @@ public class ExpressionTraverse {
                     }
 
                     return new FunctionCallNode(
-                        leftType.type.name,
+                        leftType.type,
                         binaryExpression.left,
                         binaryExpression.operator.equals("?."),
                         call.name,
@@ -171,12 +172,13 @@ public class ExpressionTraverse {
                             ),
                             rightType.type
                         )
-                    )
+                    ),
+                    leftType.type
                 )).findFirst().orElse(null);
 
             if (functionDecl != null) {
                 return new FunctionCallNode(
-                    leftType.type.name,
+                    leftType.type,
                     binaryExpression.left,
                     false,
                     operatorName,
@@ -240,12 +242,13 @@ public class ExpressionTraverse {
                 .filter(method -> ParameterTraverse.compareParametersWithArguments(
                     scope,
                     method.parameters,
-                    List.of()
+                    List.of(),
+                    operandType.type
                 )).findFirst().orElse(null);
 
             if (functionDecl != null) {
                 return new FunctionCallNode(
-                    operandType.type.name,
+                    operandType.type,
                     unaryExpression.operand,
                     false,
                     operatorName,
@@ -312,7 +315,7 @@ public class ExpressionTraverse {
                 argNode.type = new ExpressionTraverse().traverse(argNode.value, scope, true);
             }
 
-            if (findConstructor(scope, baseClass.constructors, objectNode.arguments) == null) {
+            if (findConstructor(scope, baseClass.constructors, objectNode.arguments, objectNode.type) == null) {
                 LoggerFacade.error("No matching constructor found for the specified arguments", root);
                 return null;
             }
@@ -351,7 +354,7 @@ public class ExpressionTraverse {
                 argNode.type = new ExpressionTraverse().traverse(argNode.value, scope, true);
             }
 
-            if (findConstructor(scope, baseClass.constructors, baseClassNode.arguments) == null) {
+            if (findConstructor(scope, baseClass.constructors, baseClassNode.arguments, baseClassNode.type) == null) {
                 LoggerFacade.error("No matching constructor found for the specified arguments", root);
                 return null;
             }
@@ -393,7 +396,7 @@ public class ExpressionTraverse {
             }
 
             if (functionCall.callerType != null) {
-                final TypeDeclarationNode caller = TypeRecognize.getTypeDeclaration(functionCall.callerType, scope);
+                final TypeDeclarationNode caller = TypeRecognize.getTypeDeclaration(functionCall.callerType.name, scope);
 
                 if (caller == null) {
                     LoggerFacade.error("Unresolved symbol: '" + functionCall.callerType + "'", root);
@@ -409,13 +412,15 @@ public class ExpressionTraverse {
                     .filter(method -> ParameterTraverse.compareParametersWithArguments(
                         scope,
                         method.parameters,
-                        functionCall.arguments
+                        functionCall.arguments,
+                        functionCall.callerType
                     )).findFirst().orElse(null);
             } else {
                 function = ParameterTraverse.findMethodByArguments(
                     scope,
                     functionCall.name,
-                    functionCall.arguments
+                    functionCall.arguments,
+                    null
                 );
             }
 
@@ -427,18 +432,14 @@ public class ExpressionTraverse {
             final TypeDeclarationNode containingType = scope.getContainingType();
             final String modifier = ModifierLoader.getAccessModifier(function.modifiers);
 
-            if (modifier.equals("private") && (containingType == null || !containingType.name.equals(functionCall.callerType)) ||
+            if (modifier.equals("private") && (containingType == null || !containingType.name.equals(functionCall.callerType.name)) ||
                 modifier.equals("protected") && (containingType == null || !TypeRecognize.isSameType(
                     new FlowType(
                         containingType.name,
                         false,
                         false
                     ),
-                    new FlowType(
-                        functionCall.callerType,
-                        false,
-                        false
-                    ),
+                    functionCall.callerType,
                     scope
                 ))
             ) {

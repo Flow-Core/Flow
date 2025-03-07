@@ -13,7 +13,7 @@ public class TypeParameterNode extends TypeDeclarationNode {
 
     public TypeParameterNode(String name) {
         this.name = name;
-        bound = new FlowType("Thing", false, false);
+        bound = new FlowType("flow.Thing", false, false);
     }
 
     public void updateBound(TypeDeclarationNode bound) {

@@ -83,7 +83,7 @@ public class FunctionDeclarationNode implements ASTNode {
             sb.append(modifier).append(" ");
         }
 
-        sb.append(name);
+        sb.append("func ").append(name);
 
         if (!typeParameters.isEmpty()) {
             sb.append("<");

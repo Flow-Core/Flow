@@ -1,5 +1,6 @@
 package generators.ast.functions;
 
+import parser.nodes.FlowType;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.functions.FunctionCallNode;
@@ -8,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FunctionCallNodeGenerator {
-    private String callerType = null;
+    private FlowType callerType = null;
     private ExpressionNode caller = null;
     private boolean isSafeCall = false;
     private String name;
@@ -18,7 +19,7 @@ public class FunctionCallNodeGenerator {
         return new FunctionCallNodeGenerator();
     }
 
-    public FunctionCallNodeGenerator callerType(String callerType) {
+    public FunctionCallNodeGenerator callerType(FlowType callerType) {
         this.callerType = callerType;
         return this;
     }

@@ -1,13 +1,16 @@
 package semantic_analysis.scopes;
 
+import logger.LoggerFacade;
 import parser.nodes.FlowType;
 import parser.nodes.classes.*;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.generics.TypeParameterNode;
 import semantic_analysis.files.PackageWrapper;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public final class TypeRecognize {
     private static Map<String, PackageWrapper> packages;
@@ -136,8 +139,25 @@ public final class TypeRecognize {
         }
 
         final TypeDeclarationNode typeDeclarationNode = getTypeDeclaration(type.name, scope);
+
+        if (typeDeclarationNode instanceof TypeParameterNode) {
+            return isSameType(
+                getEffectiveType(type, scope, new HashSet<>()),
+                superType,
+                scope
+            );
+        }
+
         if (typeDeclarationNode != null) {
             final TypeDeclarationNode superTypeDeclaration = getTypeDeclaration(superType.name, scope);
+
+            if (superTypeDeclaration instanceof TypeParameterNode) {
+                return isSameType(
+                    type,
+                    getEffectiveType(superType, scope, new HashSet<>()),
+                    scope
+                );
+            }
 
             if (typeDeclarationNode.equals(superTypeDeclaration)) {
                 return true;
@@ -161,6 +181,20 @@ public final class TypeRecognize {
         }
 
         return false;
+    }
+
+    public static FlowType getEffectiveType(FlowType type, Scope scope, Set<String> visited) {
+        if (!visited.add(type.name)) {
+            throw LoggerFacade.getLogger().panic("Circular parameter type found for: '" + type + "'");
+        }
+
+        final TypeDeclarationNode param = getTypeDeclaration(type.name, scope);
+
+        if (param instanceof TypeParameterNode typeParameterNode) {
+            return getEffectiveType(typeParameterNode.bound, scope, visited);
+        }
+
+        return type;
     }
 
     private static String trimPackageName(String name) {

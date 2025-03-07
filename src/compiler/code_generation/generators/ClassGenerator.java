@@ -46,7 +46,7 @@ public class ClassGenerator {
         }
 
         for (final FieldNode fieldNode : classDeclarationNode.fields) {
-            VariableDeclarationGenerator.generateField(fieldNode, cw, file);
+            VariableDeclarationGenerator.generateField(fieldNode, cw, file, classDeclarationNode);
         }
 
         for (final ConstructorNode constructorNode : classDeclarationNode.constructors) {
