@@ -79,7 +79,7 @@ public enum TokenType {
     CHAR("'(\\\\.|[^'\\\\])'"),
 
     // Operators
-    ARROW_OPERATOR("~+>+|-+>+|=+>+|-+=+>+|~+=+>+|0=+[}:::+>+|\\|+>+|>>>>+"),
+    ARROW_OPERATOR("~+>+|-+>+|=+>+|-+=+>+|~+=+>+|0=+\\[}:::+>+|\\|+>+|>>>>+"),
     ASSIGNMENT_OPERATOR("\\+=|-=|\\*=|/=|%=|&=|\\|=|\\^=|<<=|>>="),
     UNARY_OPERATOR("!!|!|\\+\\+|--"),
     POLARITY_OPERATOR("\\+|-"),
