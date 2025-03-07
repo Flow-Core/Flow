@@ -46,6 +46,6 @@ public class BinaryExpressionNode implements ExpressionNode {
     @Override
     public String toString() {
         if (operator.equals("[]")) return left + "[" + right + "]";
-        return left + operator + right;
+        return left + " " + operator + " " + right;
     }
 }
