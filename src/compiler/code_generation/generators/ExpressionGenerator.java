@@ -110,7 +110,11 @@ public class ExpressionGenerator {
                     mv,
                     vm,
                     file,
-                    expectedType
+                    new FlowType(
+                        "java.lang.Object",
+                        false,
+                        false
+                    )
                 );
             }
 
