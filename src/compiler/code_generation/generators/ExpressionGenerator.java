@@ -126,7 +126,9 @@ public class ExpressionGenerator {
                     mv.visitJumpInsn(Opcodes.IFNONNULL, notNullLabel);
 
                     mv.visitInsn(Opcodes.POP);
-                    mv.visitInsn(Opcodes.ACONST_NULL);
+                    if (!declaration.returnType.name.equals("Void")) {
+                        mv.visitInsn(Opcodes.ACONST_NULL);
+                    }
                     mv.visitJumpInsn(Opcodes.GOTO, endLabel);
 
                     mv.visitLabel(notNullLabel);
@@ -149,10 +151,15 @@ public class ExpressionGenerator {
 
             BoxMapper.boxIfNeeded(declaration.returnType, expectedType, mv);
 
-            mv.visitLabel(endLabel);
+            if (funcCallNode.isSafeCall) {
+                mv.visitLabel(endLabel);
+                return tracker.hang(expectedType);
+            }
+
             return tracker.hang(declaration.returnType);
         }
     }
+
 
     private static FlowType generateFieldReference(FieldReferenceNode refNode, Scope scope, FileWrapper file, MethodVisitor mv, VariableManager vm, StackTracker tracker, FlowType expectedType) {
         final String holderFQName = FQNameMapper.getFQName(refNode.holderType.name, scope);

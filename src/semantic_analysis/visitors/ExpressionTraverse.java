@@ -439,7 +439,7 @@ public class ExpressionTraverse {
                 return null;
             }
 
-            return function.returnType;
+            return !functionCall.isSafeCall ? function.returnType : new FlowType(function.returnType.name, true, false);
         }
         if (expression instanceof FieldReferenceNode field) {
             FieldNode actualField;
