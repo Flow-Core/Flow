@@ -2,6 +2,7 @@ package parser.analyzers.top;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
+import parser.analyzers.inline.FlowTypeAnalyzer;
 import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
@@ -13,9 +14,12 @@ import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.components.BlockNode;
+import parser.nodes.generics.TypeParameterNode;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static parser.analyzers.classes.ClassAnalyzer.parseTypeParameters;
 
 public class FunctionDeclarationAnalyzer extends TopAnalyzer {
     @Override
@@ -30,7 +34,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
 
             parser.consume(TokenType.CLOSE_BRACES);
 
-            functionDeclaration.block = new BodyNode(block);
+            functionDeclaration.body = new BodyNode(block);
         }
 
         return new AnalyzerResult(
@@ -55,6 +59,8 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
 
         Token funcName = parser.consume(TokenType.IDENTIFIER);
 
+        final List<TypeParameterNode> typeParameters = parseTypeParameters(parser);
+
         List<ParameterNode> parameters = parseParameters(parser);
 
         FlowType returnType = new FlowType("Void", false, true);
@@ -74,6 +80,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
             returnType,
             modifiers,
             parameters,
+            typeParameters,
             null
         );
     }
@@ -85,12 +92,8 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
         while (!parser.check(TokenType.CLOSE_PARENTHESES)) {
             String name = parser.consume(TokenType.IDENTIFIER).value();
             parser.consume(TokenType.COLON_OPERATOR);
-            String type = parser.consume(TokenType.IDENTIFIER).value();
-            boolean isNullable = false;
-            if (parser.check(TokenType.NULLABLE)) {
-                isNullable = true;
-                parser.advance();
-            }
+
+            final FlowType type = FlowTypeAnalyzer.analyze(parser);
 
             int line = parser.peek().line();
 
@@ -101,7 +104,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
             }
 
             ParameterNode arg = (ParameterNode) ASTMetaDataStore.getInstance().addMetadata(new ParameterNode(
-                new FlowType(type, isNullable, false),
+                type,
                 name,
                 new ExpressionBaseNode(defaultValue, line, parser.file)
             ), line, parser.file);

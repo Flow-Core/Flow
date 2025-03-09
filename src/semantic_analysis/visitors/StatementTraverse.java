@@ -11,6 +11,7 @@ import parser.nodes.variable.VariableDeclarationNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
+import semantic_analysis.scopes.TypeRecognize;
 
 import java.util.ArrayList;
 
@@ -106,7 +107,7 @@ public class StatementTraverse {
             if (caseType == null)
                 continue;
 
-            if (!scope.isSameType(caseType, switchType)) {
+            if (!TypeRecognize.isSameType(caseType, switchType, scope)) {
                 LoggerFacade.error("Switch case type mismatch: Expected '" + switchType + "' but found '" + caseType + "'", caseNode);
             }
 
@@ -138,9 +139,10 @@ public class StatementTraverse {
             if (!functionDeclarationNode.returnType.isNullable) {
                 LoggerFacade.error("Null cannot be a value of a non-null type '" + functionDeclarationNode.returnType + "'", returnStatementNode);
             }
-        } else if (!scope.isSameType(
+        } else if (!TypeRecognize.isSameType(
             returnType,
-            functionDeclarationNode.returnType
+            functionDeclarationNode.returnType,
+            scope
         )) {
             LoggerFacade.error("Type mismatch: expected '"  + functionDeclarationNode.returnType + "' but received '" + returnType + "'", returnStatementNode);
         }

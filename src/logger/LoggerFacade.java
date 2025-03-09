@@ -9,11 +9,34 @@ public final class LoggerFacade {
     private LoggerFacade() {}
 
     public static void error(String message, ASTNode node) {
+        log(Logger.Severity.ERROR, message, node);
+    }
+
+    public static void error(String message) {
+        log(Logger.Severity.ERROR, message);
+    }
+
+    public static void warning(String message, ASTNode node) {
+        log(Logger.Severity.WARNING, message, node);
+    }
+
+    public static void warning(String message) {
+        log(Logger.Severity.WARNING, message);
+    }
+
+    public static void log(Logger.Severity severity, String message, ASTNode node) {
         LoggerFacade.getLogger().log(
-            Logger.Severity.ERROR,
+            severity,
             message,
             ASTMetaDataStore.getInstance().getLine(node),
             ASTMetaDataStore.getInstance().getFile(node)
+        );
+    }
+
+    public static void log(Logger.Severity severity, String message) {
+        LoggerFacade.getLogger().log(
+            severity,
+            message
         );
     }
 

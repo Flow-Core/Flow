@@ -1,22 +1,26 @@
 package parser.analyzers.classes;
 
 import lexer.token.TokenType;
-import parser.nodes.ASTMetaDataStore;
+import logger.LoggerFacade;
 import parser.Parser;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
+import parser.analyzers.inline.FlowTypeAnalyzer;
 import parser.analyzers.top.BlockAnalyzer;
 import parser.analyzers.top.FieldAnalyzer;
-import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.ASTMetaDataStore;
+import parser.nodes.FlowType;
 import parser.nodes.classes.*;
 import parser.nodes.components.BlockNode;
+import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeParameterNode;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static parser.analyzers.top.FunctionDeclarationAnalyzer.parseModifiers;
 import static parser.analyzers.inline.IdentifierReferenceAnalyzer.parseArguments;
+import static parser.analyzers.top.FunctionDeclarationAnalyzer.parseModifiers;
 
 public class ClassAnalyzer extends TopAnalyzer {
     @Override
@@ -26,6 +30,8 @@ public class ClassAnalyzer extends TopAnalyzer {
 
         TopAnalyzer.testFor(parser, TokenType.CLASS);
         final String name = parser.consume(TokenType.IDENTIFIER).value();
+
+        final List<TypeParameterNode> typeParameters = parseTypeParameters(parser);
 
         final List<FieldNode> classArgs = new ArrayList<>();
         if (parser.check(TokenType.OPEN_PARENTHESES)) {
@@ -47,6 +53,7 @@ public class ClassAnalyzer extends TopAnalyzer {
                 new ClassDeclarationNode(
                     name,
                     modifiers,
+                    typeParameters,
                     classArgs,
                     supertypes.implementedClasses,
                     supertypes.implementedInterfaces,
@@ -90,19 +97,52 @@ public class ClassAnalyzer extends TopAnalyzer {
         if (parser.check(TokenType.COLON_OPERATOR)) {
             do {
                 parser.advance();
-                final String name = parser.consume(TokenType.IDENTIFIER).value();
+                final FlowType className = FlowTypeAnalyzer.analyze(parser);
                 if (parser.check(TokenType.OPEN_PARENTHESES)) {
                     parser.advance();
-                    supertypes.implementedClasses.add((BaseClassNode) ASTMetaDataStore.getInstance().addMetadata(new BaseClassNode(name, parseArguments(parser)), line, parser.file));
+                    supertypes.implementedClasses.add((BaseClassNode) ASTMetaDataStore.getInstance().addMetadata(new BaseClassNode(className, parseArguments(parser)), line, parser.file));
                     parser.consume(TokenType.CLOSE_PARENTHESES);
                 } else {
-                    supertypes.implementedInterfaces.add((BaseInterfaceNode) ASTMetaDataStore.getInstance().addMetadata(new BaseInterfaceNode(name), line, parser.file));
+                    supertypes.implementedInterfaces.add((BaseInterfaceNode) ASTMetaDataStore.getInstance().addMetadata(new BaseInterfaceNode(className), line, parser.file));
                 }
             } while (parser.check(TokenType.COMMA));
         }
 
         return supertypes;
     }
+
+    public static List<TypeParameterNode> parseTypeParameters(final Parser parser) {
+        List<TypeParameterNode> genericParameters = new ArrayList<>();
+
+        if (parser.peek().value().equals("<")) {
+            do {
+                parser.advance();
+                String typeName = parser.consume(TokenType.IDENTIFIER).value();
+                FlowType bound = null;
+
+                if (parser.check(TokenType.COLON_OPERATOR)) {
+                    parser.advance();
+                    bound = new FlowType(parser.consume(TokenType.IDENTIFIER).value(), false, false);
+                }
+
+                TypeParameterNode typeParameter;
+                if (bound != null) {
+                    typeParameter = new TypeParameterNode(typeName, bound);
+                } else {
+                    typeParameter = new TypeParameterNode(typeName);
+                }
+                genericParameters.add(typeParameter);
+            } while (parser.check(TokenType.COMMA));
+
+            if (!parser.peek().value().equals(">")) {
+                throw LoggerFacade.getLogger().panic("Unexpected token", parser.peek().line(), parser.file);
+            }
+            parser.advance();
+        }
+
+        return genericParameters;
+    }
+
 
     private static class Supertypes {
         public final List<BaseClassNode> implementedClasses = new ArrayList<>();

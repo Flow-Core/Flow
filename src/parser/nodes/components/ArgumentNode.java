@@ -51,9 +51,12 @@ public class ArgumentNode implements ASTNode {
 
     @Override
     public String toString() {
-        return "ArgumentNode{" +
-            "name='" + name + '\'' +
-            ", value=" + value +
-            '}';
+        if (type != null) {
+            return name + ": " + type + " = " + value;
+        } else if (name != null) {
+            return name + " = " + value;
+        } else {
+            return value.toString();
+        }
     }
 }

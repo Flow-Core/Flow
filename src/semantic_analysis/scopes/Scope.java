@@ -1,12 +1,12 @@
 package semantic_analysis.scopes;
 
 import parser.nodes.ASTNode;
-import parser.nodes.FlowType;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.FieldNode;
 import parser.nodes.classes.InterfaceNode;
 import parser.nodes.classes.TypeDeclarationNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeParameterNode;
 
 public record Scope (
     Scope parent,
@@ -46,6 +46,14 @@ public record Scope (
             parent != null ? parent.getInterface(symbol) : null;
     }
 
+    public TypeParameterNode getTypeParameter(String symbol) {
+        TypeParameterNode declaration = symbols.getTypeParameter(symbol);
+
+        return declaration != null ?
+            declaration :
+            parent != null ? parent.getTypeParameter(symbol) : null;
+    }
+
     public TypeDeclarationNode getTypeDeclaration(String symbol) {
         TypeDeclarationNode declaration = symbols.getTypeDeclaration(symbol);
 
@@ -70,10 +78,6 @@ public record Scope (
             parent != null ? parent.getField(symbol) : null;
     }
 
-    public boolean isSameType(FlowType type, FlowType superType) {
-        return symbols().isSameType(type, superType) || parent != null && parent.isSameType(type, superType);
-    }
-
     public boolean findClass(String symbol) {
         return symbols.findClass(symbol) || (parent != null && parent().findClass(symbol));
     }
@@ -83,7 +87,7 @@ public record Scope (
     }
 
     public boolean findTypeDeclaration(String symbol) {
-        return findClass(symbol) || findInterface(symbol);
+        return symbols.findTypeDeclaration(symbol) || (parent != null && parent().findTypeDeclaration(symbol));
     }
 
     public boolean findFunction(String symbol) {

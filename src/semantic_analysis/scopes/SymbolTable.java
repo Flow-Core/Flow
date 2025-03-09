@@ -1,75 +1,35 @@
 package semantic_analysis.scopes;
 
 import parser.nodes.ASTNode;
-import parser.nodes.FlowType;
-import parser.nodes.classes.*;
+import parser.nodes.classes.ClassDeclarationNode;
+import parser.nodes.classes.FieldNode;
+import parser.nodes.classes.InterfaceNode;
+import parser.nodes.classes.TypeDeclarationNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeParameterNode;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
 
 public record SymbolTable(
     List<InterfaceNode> interfaces,
     List<ClassDeclarationNode> classes,
     List<FunctionDeclarationNode> functions,
     List<FieldNode> fields,
+    List<TypeParameterNode> typeParameters,
     Map<ASTNode, String> bindingContext
 ) {
     public static SymbolTable getEmptySymbolTable() {
-        return new SymbolTable(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new IdentityHashMap<>());
-    }
-
-    public boolean isSameType(FlowType type, FlowType superType) {
-        if (!superType.isNullable && type.isNullable)
-            return false;
-
-        if (Objects.equals(type.name, superType.name)) {
-            return true;
-        }
-
-        final ClassDeclarationNode classDeclarationNode = getClass(type.name);
-        if (classDeclarationNode != null) {
-            if (!classDeclarationNode.baseClasses.isEmpty() && classDeclarationNode.baseClasses.get(0).name.equals(superType.name)) {
-                return true;
-            }
-            if (!classDeclarationNode.baseClasses.isEmpty() &&
-                isSameType(
-                    new FlowType(
-                        classDeclarationNode.baseClasses.get(0).name,
-                        type.isNullable,
-                        type.isPrimitive
-                    ),
-                    superType
-                )
-            ) {
-                return true;
-            }
-        }
-
-        final TypeDeclarationNode typeDeclarationNode = getTypeDeclaration(type.name);
-        if (typeDeclarationNode != null) {
-            final TypeDeclarationNode superTypeDeclaration = getTypeDeclaration(superType.name);
-
-            if (typeDeclarationNode.equals(superTypeDeclaration)) {
-                return true;
-            }
-
-            for (final BaseInterfaceNode baseInterfaceNode : getTypeDeclaration(type.name).implementedInterfaces) {
-                if (baseInterfaceNode.name.equals(superType.name) ||
-                    isSameType(
-                        new FlowType(
-                            baseInterfaceNode.name,
-                            type.isNullable,
-                            type.isPrimitive
-                        ),
-                        superType
-                    )
-                ) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return new SymbolTable(
+            new ArrayList<>(),
+            new ArrayList<>(),
+            new ArrayList<>(),
+            new ArrayList<>(),
+            new ArrayList<>(),
+            new IdentityHashMap<>()
+        );
     }
 
     public void recognizeSymbolTable(SymbolTable other) {
@@ -77,6 +37,8 @@ public record SymbolTable(
         interfaces().addAll(other.interfaces());
         functions().addAll(other.functions());
         fields().addAll(other.fields());
+        typeParameters().addAll(other.typeParameters());
+
         bindingContext.putAll(other.bindingContext);
     }
 
@@ -84,7 +46,6 @@ public record SymbolTable(
         other.classes().forEach(classDeclarationNode -> bindingContext.put(classDeclarationNode, other.bindingContext.get(classDeclarationNode)));
         other.interfaces().forEach(interfaceNode -> bindingContext.put(interfaceNode, other.bindingContext.get(interfaceNode)));
         other.functions().forEach(functionDeclarationNode -> bindingContext.put(functionDeclarationNode, other.bindingContext.get(functionDeclarationNode)));
-        other.fields().forEach(fieldNode -> bindingContext.put(fieldNode, other.bindingContext.get(fieldNode)));
     }
 
     public static String getFlowPathName(String path, String fileName) {
@@ -107,35 +68,21 @@ public record SymbolTable(
     }
 
     public ClassDeclarationNode getClass(String symbol) {
-        if (symbol.contains(".")) {
-            return (ClassDeclarationNode) getTypeFromFQName(symbol);
-        }
-
         return classes().stream().filter(
             classDeclarationNode -> classDeclarationNode.name.equals(symbol)
         ).findFirst().orElse(null);
     }
 
     public InterfaceNode getInterface(String symbol) {
-        if (symbol.contains(".")) {
-            return (InterfaceNode) getTypeFromFQName(symbol);
-        }
-
         return interfaces().stream().filter(
             interfaceNode -> interfaceNode.name.equals(symbol)
         ).findFirst().orElse(null);
     }
 
-    private TypeDeclarationNode getTypeFromFQName(String symbol) {
-        var type = bindingContext.entrySet().stream().filter(
-            entry -> entry.getValue().equals(symbol)
+    public TypeParameterNode getTypeParameter(String symbol) {
+        return typeParameters().stream().filter(
+            typeParameter -> typeParameter.name.equals(symbol)
         ).findFirst().orElse(null);
-
-        if (type == null) {
-            return null;
-        }
-
-        return (TypeDeclarationNode) type.getKey();
     }
 
     private TypeDeclarationNode getTypeFromSimpleName(String symbol) {
@@ -166,6 +113,10 @@ public record SymbolTable(
         }
 
         if (type == null) {
+            type = getTypeParameter(symbol);
+        }
+
+        if (type == null) {
             type = getTypeFromSimpleName(symbol);
         }
 
@@ -180,7 +131,7 @@ public record SymbolTable(
 
     public FieldNode getField(String symbol) {
         return fields().stream().filter(
-            interfaceNode -> interfaceNode.initialization.declaration.name.equals(symbol)
+            field -> field.initialization.declaration.name.equals(symbol)
         ).findFirst().orElse(null);
     }
 
@@ -196,8 +147,14 @@ public record SymbolTable(
         );
     }
 
+    public boolean findParameterType(String symbol) {
+        return typeParameters().stream().anyMatch(
+            typeParameter -> typeParameter.name.equals(symbol)
+        );
+    }
+
     public boolean findTypeDeclaration(String symbol) {
-        return findClass(symbol) || findInterface(symbol);
+        return findClass(symbol) || findInterface(symbol) || findParameterType(symbol);
     }
 
     public boolean findFunction(String symbol) {
@@ -211,6 +168,4 @@ public record SymbolTable(
             existingField -> existingField.initialization.declaration.name.equals(symbol)
         );
     }
-
-
 }

@@ -5,7 +5,6 @@ import lexer.token.TokenType;
 import logger.LoggerFacade;
 import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.top.BlockAnalyzer;
-import parser.nodes.ASTNode;
 import parser.nodes.components.BlockNode;
 
 import java.util.Arrays;
@@ -78,10 +77,6 @@ public class Parser {
         return advance();
     }
 
-    public static void printTree(final ASTNode root) {
-        System.out.println(root.toString());
-    }
-
     public void checkpoint() {
         checkpoints.push(currentToken);
     }
@@ -92,5 +87,9 @@ public class Parser {
         }
 
         currentToken = checkpoints.pop();
+    }
+
+    public void clearCheckpoint() {
+        checkpoints.pop();
     }
 }

@@ -5,7 +5,7 @@ import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.variable.FieldReferenceNode;
 
 public class FieldReferenceNodeGenerator {
-    private String holderType;
+    private FlowType holderType;
     private String name;
     private ExpressionNode holder;
     private FlowType type;
@@ -15,7 +15,7 @@ public class FieldReferenceNodeGenerator {
         return new FieldReferenceNodeGenerator();
     }
 
-    public FieldReferenceNodeGenerator holderType(String holderType) {
+    public FieldReferenceNodeGenerator holderType(FlowType holderType) {
         this.holderType = holderType;
         return this;
     }

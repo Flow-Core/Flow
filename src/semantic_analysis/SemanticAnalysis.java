@@ -12,6 +12,7 @@ import semantic_analysis.loaders.ClassLoader;
 import semantic_analysis.loaders.*;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
+import semantic_analysis.scopes.TypeRecognize;
 import semantic_analysis.transformers.TopLevelTransformer;
 import semantic_analysis.visitors.ClassTraverse;
 
@@ -44,13 +45,15 @@ public class SemanticAnalysis {
                 packagesWithLibs.putAll(packages);
                 packagesWithLibs.putAll(libs);
 
+                TypeRecognize.init(packagesWithLibs);
+
                 new ImportLoader().load(file, file.scope().symbols(), packagesWithLibs);
             }
         }
 
         for (final PackageWrapper currentPackageWrapper : packages.values()) {
             for (final FileWrapper file : currentPackageWrapper.files()) {
-                file.root().accept(new ClassLoader(currentPackageWrapper.scope().symbols()), file.scope().symbols());
+                file.root().accept(new ClassLoader(), file.scope());
             }
         }
 

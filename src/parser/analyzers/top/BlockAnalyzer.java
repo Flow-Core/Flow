@@ -38,6 +38,8 @@ public class BlockAnalyzer {
                         parser.rollback();
                         continue;
                     }
+
+                    parser.clearCheckpoint();
                 } catch (PARSE_WrongAnalyzer exception) {
                     parser.rollback();
                     continue;

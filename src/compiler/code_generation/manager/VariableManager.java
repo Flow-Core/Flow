@@ -26,6 +26,10 @@ public class VariableManager {
         storeVariable(name, expectedType);
     }
 
+    public int getVariableIndex(String name) {
+        return variables.get(name).index;
+    }
+
     public FlowType loadVariable(String name, FlowType expectedType) {
         if (!variables.containsKey(name)) {
             throw new IllegalArgumentException("Variable '" + name + "' does not exist");

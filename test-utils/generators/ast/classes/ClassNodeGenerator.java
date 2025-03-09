@@ -3,6 +3,7 @@ package generators.ast.classes;
 import parser.nodes.classes.*;
 import parser.nodes.components.BlockNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeParameterNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.List;
 public class ClassNodeGenerator {
     private String name = "TestClass";
     private List<String> modifiers = new ArrayList<>();
+    private List<TypeParameterNode> typeParameters = new ArrayList<>();
     private List<FieldNode> primaryConstructor = new ArrayList<>();
     private List<BaseClassNode> baseClasses = new ArrayList<>();
     private List<BaseInterfaceNode> implementedInterfaces = new ArrayList<>();
@@ -30,6 +32,11 @@ public class ClassNodeGenerator {
 
     public ClassNodeGenerator modifiers(List<String> modifiers) {
         this.modifiers = modifiers;
+        return this;
+    }
+
+    public ClassNodeGenerator typeParameters(List<TypeParameterNode> typeParameters) {
+        this.typeParameters = typeParameters;
         return this;
     }
 
@@ -75,7 +82,7 @@ public class ClassNodeGenerator {
 
     public ClassDeclarationNode build() {
         return new ClassDeclarationNode(
-            name, modifiers, primaryConstructor, baseClasses,
+            name, modifiers, typeParameters, primaryConstructor, baseClasses,
             implementedInterfaces, fields, methods, constructors, initBlock, classBlock
         );
     }

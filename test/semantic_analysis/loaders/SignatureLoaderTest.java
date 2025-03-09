@@ -88,7 +88,7 @@ class SignatureLoaderTest {
         SymbolTable fileSymbolTable = SymbolTable.getEmptySymbolTable();
         PackageWrapper packageWrapper = new PackageWrapper("main", new ArrayList<>(), new Scope(null, SymbolTable.getEmptySymbolTable(), null, Scope.Type.TOP));
 
-        InterfaceNode interfaceNode = new InterfaceNode("MyInterface", List.of("public"), new ArrayList<>(), new ArrayList<>(), new BlockNode(new ArrayList<>()));
+        InterfaceNode interfaceNode = new InterfaceNode("MyInterface", List.of("public"), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new BlockNode(new ArrayList<>()));
 
         SignatureLoader.load(new FileWrapper(new BlockNode(List.of(interfaceNode)), null, "Test"), fileSymbolTable, packageWrapper);
 

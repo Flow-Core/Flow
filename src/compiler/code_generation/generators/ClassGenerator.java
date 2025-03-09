@@ -34,7 +34,7 @@ public class ClassGenerator {
             CodeGenerationConstant.byteCodeVersion,
             ModifierMapper.map(classDeclarationNode.modifiers),
             FQNameMapper.getFQName(classDeclarationNode, file.scope()),
-            null,
+            FQNameMapper.parseTypeParameterSignature(classDeclarationNode.typeParameters, file.scope()),
             baseClassName,
             baseInterfaceNames
         );
@@ -42,11 +42,11 @@ public class ClassGenerator {
         final List<CodeGeneration.ClassFile> classes = BlockGenerator.generateClassBlock(classDeclarationNode.classBlock, file);
 
         for (final FunctionDeclarationNode functionDeclarationNode : classDeclarationNode.methods) {
-            FunctionGenerator.generate(functionDeclarationNode, file, cw, false);
+            FunctionGenerator.generate(functionDeclarationNode, classDeclarationNode, file, cw, functionDeclarationNode.modifiers.contains("abstract"));
         }
 
         for (final FieldNode fieldNode : classDeclarationNode.fields) {
-            VariableDeclarationGenerator.generateField(fieldNode, cw, file);
+            VariableDeclarationGenerator.generateField(fieldNode, cw, file, classDeclarationNode);
         }
 
         for (final ConstructorNode constructorNode : classDeclarationNode.constructors) {
@@ -55,13 +55,14 @@ public class ClassGenerator {
                 new FlowType("Void", false, true),
                 List.of(constructorNode.accessModifier),
                 constructorNode.parameters,
+                List.of(),
                 constructorNode.body
             );
 
             if (classDeclarationNode.initBlock != null)
                 constructorNode.body.blockNode.children.addAll(classDeclarationNode.initBlock.children);
 
-            FunctionGenerator.generateConstructor(baseClassNode, function, file, cw);
+            FunctionGenerator.generateConstructor(baseClassNode, function, classDeclarationNode, file, cw);
         }
 
         if (classDeclarationNode.name.equals(file.name() + "Fl")) {

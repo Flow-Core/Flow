@@ -6,9 +6,11 @@ import parser.nodes.classes.FieldNode;
 import parser.nodes.expressions.BinaryExpressionNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.literals.LiteralNode;
+import parser.nodes.variable.FieldReferenceNode;
 import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.scopes.Scope;
+import semantic_analysis.scopes.TypeRecognize;
 import semantic_analysis.visitors.ExpressionTraverse;
 
 import java.util.Objects;
@@ -61,7 +63,7 @@ public class VariableLoader {
         }
 
         if (varType != null) {
-            if (varType.name == null || !scope.findTypeDeclaration(varType.name)) {
+            if (varType.name == null || !TypeRecognize.findTypeDeclaration(varType.name, scope)) {
                 LoggerFacade.error("Unresolved symbol: '" + varType + "'", fieldNode);
                 return;
             }
@@ -75,20 +77,25 @@ public class VariableLoader {
                 if (!fieldNode.initialization.declaration.type.isNullable) {
                     LoggerFacade.error("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'", fieldNode);
                 }
-            } else if (!scope.isSameType(actualType, varType)) {
+            } else if (!TypeRecognize.isSameType(actualType, varType, scope)) {
                 LoggerFacade.error("Type mismatch: expected '"  + varType + "' but received '" + actualType + "'", fieldNode);
             }
         } else {
-            if (actualType != null)
+            if (actualType != null) {
                 if (actualType.name.equals("null")) {
                     LoggerFacade.error("Cannot infer variable type from 'null'", fieldNode);
                 } else {
                     fieldNode.initialization.declaration.type = actualType;
                 }
+            }
         }
 
         if (scope.type() == Scope.Type.TOP && !fieldNode.modifiers.contains("static")) {
             fieldNode.modifiers.add("static");
+        }
+
+        if (fieldNode.initialization.declaration.type != null && fieldNode.initialization.declaration.type.shouldBePrimitive()) {
+            fieldNode.initialization.declaration.type.isPrimitive = true;
         }
 
         scope.symbols().fields().add(fieldNode);
@@ -122,15 +129,36 @@ public class VariableLoader {
             if (!fieldNode.initialization.declaration.type.isNullable) {
                 LoggerFacade.error("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'", fieldNode);
             }
-        } else if (!scope.isSameType(actualType, varType)) {
+        } else if (!TypeRecognize.isSameType(actualType, varType, scope)) {
             LoggerFacade.error("Type mismatch: expected '"  + varType + "' but received '" + actualType + "'", fieldNode);
         }
     }
 
     private static FieldNode getFieldNode(VariableAssignmentNode variableAssignment, Scope scope) {
-        final FieldNode fieldNode = scope.getField(((VariableReferenceNode) variableAssignment.variable.expression).variable);
-        if (fieldNode == null) {
-            LoggerFacade.error("Unresolved symbol: '" + ((VariableReferenceNode) variableAssignment.variable.expression).variable + "'", variableAssignment);
+        new ExpressionTraverse().traverse(variableAssignment.variable, scope);
+
+        final FieldNode fieldNode;
+
+        if (variableAssignment.variable.expression instanceof VariableReferenceNode variableReference) {
+            fieldNode = TypeRecognize.getField(variableReference.variable, scope);
+
+            if (fieldNode == null) {
+                LoggerFacade.error("Unresolved symbol: '" + variableReference.variable + "'", variableAssignment);
+                return null;
+            }
+
+            if (scope.type() == Scope.Type.FUNCTION && !fieldNode.modifiers.isEmpty()) {
+                LoggerFacade.error("Modifiers are not applicable to 'local variable'", variableAssignment);
+            }
+        } else if (variableAssignment.variable.expression instanceof FieldReferenceNode fieldReference) {
+            fieldNode = TypeRecognize.getField(fieldReference.name, scope);
+
+            if (fieldNode == null) {
+                LoggerFacade.error("Unresolved symbol: '" + fieldReference.name + "'", variableAssignment);
+                return null;
+            }
+        } else {
+            LoggerFacade.error("'" + variableAssignment.variable.expression + "' is not assignable");
             return null;
         }
 
@@ -139,10 +167,6 @@ public class VariableLoader {
                 || fieldNode.initialization.declaration.modifier.equals("val") && fieldNode.isInitialized
         ) {
             LoggerFacade.error(fieldNode.initialization.declaration.modifier + " cannot be reassigned", variableAssignment);
-        }
-
-        if (scope.type() == Scope.Type.FUNCTION && !fieldNode.modifiers.isEmpty()) {
-            LoggerFacade.error("Modifier are not applicable to 'local variable'", variableAssignment);
         }
 
         return fieldNode;

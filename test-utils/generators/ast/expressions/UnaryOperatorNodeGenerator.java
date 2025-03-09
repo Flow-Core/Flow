@@ -6,6 +6,7 @@ import parser.nodes.expressions.UnaryOperatorNode;
 public class UnaryOperatorNodeGenerator {
     private ExpressionNode operand;
     private String operator = "!";
+    private boolean isPostfix;
 
     public static UnaryOperatorNodeGenerator builder() {
         return new UnaryOperatorNodeGenerator();
@@ -21,7 +22,12 @@ public class UnaryOperatorNodeGenerator {
         return this;
     }
 
+    public UnaryOperatorNodeGenerator isPostfix(boolean isPostfix) {
+        this.isPostfix = isPostfix;
+        return this;
+    }
+
     public UnaryOperatorNode build() {
-        return new UnaryOperatorNode(operand, operator);
+        return new UnaryOperatorNode(operand, operator, isPostfix);
     }
 }

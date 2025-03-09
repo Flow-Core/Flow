@@ -1,6 +1,7 @@
 package parser.nodes.functions;
 
 import parser.nodes.ASTVisitor;
+import parser.nodes.FlowType;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.expressions.ExpressionNode;
 
@@ -8,18 +9,24 @@ import java.util.List;
 import java.util.Objects;
 
 public class FunctionCallNode implements ExpressionNode {
-    public String callerType;
+    public FlowType callerType;
+    public ExpressionNode caller;
+    public boolean isSafeCall;
     public String name;
     public List<ArgumentNode> arguments;
 
     public FunctionCallNode(String name, List<ArgumentNode> arguments) {
         this.name = name;
         this.arguments = arguments;
+        this.caller = null;
         this.callerType = null;
+        this.isSafeCall = false;
     }
 
-    public FunctionCallNode(String callerType, String name, List<ArgumentNode> arguments) {
+    public FunctionCallNode(FlowType callerType, ExpressionNode caller, boolean isSafeCall, String name, List<ArgumentNode> arguments) {
         this.callerType = callerType;
+        this.caller = caller;
+        this.isSafeCall = isSafeCall;
         this.name = name;
         this.arguments = arguments;
     }
@@ -56,9 +63,23 @@ public class FunctionCallNode implements ExpressionNode {
 
     @Override
     public String toString() {
-        return "FunctionCallNode{" +
-            "name='" + name + '\'' +
-            ", arguments=" + arguments +
-            '}';
+        StringBuilder sb = new StringBuilder();
+
+        if (callerType != null) {
+            sb.append(callerType).append(".");
+        }
+
+        sb.append(name).append("(");
+
+        for (ArgumentNode argumentNode : arguments) {
+            sb.append(argumentNode).append(", ");
+        }
+
+        if (!arguments.isEmpty()) {
+            sb.delete(sb.length() - 2, sb.length());
+        }
+        sb.append(")");
+
+        return sb.toString();
     }
 }

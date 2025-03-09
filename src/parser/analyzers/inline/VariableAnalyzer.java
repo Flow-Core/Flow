@@ -14,8 +14,6 @@ import parser.nodes.variable.VariableAssignmentNode;
 import parser.nodes.variable.VariableDeclarationNode;
 import parser.nodes.variable.VariableReferenceNode;
 
-import static parser.analyzers.top.PackageAnalyzer.parseModulePath;
-
 public class VariableAnalyzer {
     public static InitializedVariableNode parseInitialization(final Parser parser) {
         final Token modifier = TopAnalyzer.testFor(parser, TokenType.VAR, TokenType.VAL, TokenType.CONST);
@@ -36,17 +34,11 @@ public class VariableAnalyzer {
             return (InitializedVariableNode) ASTMetaDataStore.getInstance().addMetadata(new InitializedVariableNode(declaration, assignment), line, parser.file);
         } else if (parser.check(TokenType.COLON_OPERATOR)) {
             parser.advance();
-            final String type = parseModulePath(parser);
-
-            boolean isNullable = false;
-            if (parser.check(TokenType.NULLABLE)) {
-                isNullable = true;
-                parser.advance();
-            }
+            final FlowType type = FlowTypeAnalyzer.analyze(parser);
 
             VariableDeclarationNode variableDeclarationNode = new VariableDeclarationNode(
                 modifier.value(),
-                new FlowType(type, isNullable, false),
+                type,
                 name.value()
             );
             if (parser.peek().type() != TokenType.EQUAL_OPERATOR) {

@@ -36,8 +36,6 @@ public class StringLiteralNode implements LiteralNode {
 
     @Override
     public String toString() {
-        return "StringLiteralNode{" +
-            "value='" + value + '\'' +
-            '}';
+        return "\"" + value + "\"";
     }
 }

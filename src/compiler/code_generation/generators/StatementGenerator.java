@@ -1,7 +1,6 @@
 package compiler.code_generation.generators;
 
 import compiler.code_generation.manager.VariableManager;
-import compiler.code_generation.mappers.BoxMapper;
 import compiler.code_generation.mappers.FQNameMapper;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -70,16 +69,14 @@ public class StatementGenerator {
     }
 
     private static void generateReturnStatement(ReturnStatementNode returnStatementNode, MethodVisitor mv, VariableManager vm, FileWrapper file, Scope currentScope) {
-        if (returnStatementNode.returnValue.expression instanceof ObjectNode objectNode && objectNode.className.equals("Void")) {
+        if (returnStatementNode.returnValue.expression instanceof ObjectNode objectNode && objectNode.type.name.equals("Void")) {
             mv.visitInsn(Opcodes.RETURN);
             return;
         }
 
         FunctionDeclarationNode functionDeclarationNode = (FunctionDeclarationNode) currentScope.currentParent();
         FlowType expectedReturnType = functionDeclarationNode.returnType;
-        FlowType actualReturnType = ExpressionGenerator.generate(returnStatementNode.returnValue.expression, mv, vm, file, expectedReturnType);
-
-        BoxMapper.boxIfNeeded(actualReturnType, expectedReturnType, mv);
+        ExpressionGenerator.generate(returnStatementNode.returnValue.expression, mv, vm, file, expectedReturnType);
 
         mv.visitInsn(getReturnOpcode(expectedReturnType));
     }

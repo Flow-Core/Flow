@@ -10,4 +10,9 @@ public class VoidLiteralNode implements LiteralNode {
     public Object getValue() {
         return null;
     }
+
+    @Override
+    public String toString() {
+        return "Void";
+    }
 }

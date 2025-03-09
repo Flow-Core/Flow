@@ -35,8 +35,9 @@ public class BuildSystem {
 
     public BuildSystem(final String srcPath, final LibLoader.LibOutput libOutput, final String projectPath) {
         this.dirPath = Path.of(projectPath + srcPath);
+
         this.libOutput = libOutput;
-        buildPath = projectPath + "/build";
+        buildPath = projectPath + "build";
 
         this.fileNames = new ArrayList<>();
         this.fileRoots = new ArrayList<>();
@@ -46,6 +47,9 @@ public class BuildSystem {
         walk();
 
         final Map<String, PackageWrapper> files = PackageMapper.map(fileRoots, fileNames);
+        if (files.isEmpty()) {
+            throw LoggerFacade.getLogger().panic("Couldn't find src directory");
+        }
 
         final SemanticAnalysis semanticAnalysis = new SemanticAnalysis(
             files,
@@ -53,16 +57,9 @@ public class BuildSystem {
         );
         final Map<String, PackageWrapper> packages = semanticAnalysis.analyze();
 
+        LoggerFacade.getLogger().dump();
         if (LoggerFacade.getLogger().hasErrors()) {
-            LoggerFacade.getLogger().dump();
             return false;
-        }
-
-        File buildDir = new File(buildPath);
-        if (buildDir.exists()) {
-            if (!deleteDirectory(buildDir)) {
-                System.err.println("Could not clear build directory");
-            }
         }
 
         for (final var packageWrapper : packages.entrySet()) {
@@ -70,11 +67,10 @@ public class BuildSystem {
                 final CodeGeneration codeGeneration = new CodeGeneration(file);
                 final List<CodeGeneration.ClassFile> bytes = codeGeneration.generate();
 
-                buildDir = new File(buildPath + "/" + packageWrapper.getKey().replace(".", "/"));
+                File buildDir = new File(buildPath + "/" + packageWrapper.getKey().replace(".", "/"));
                 if (!buildDir.exists()) {
                     if (!buildDir.mkdirs()) {
-                        System.err.println("Couldn't make build dir");
-                        return false;
+                        throw LoggerFacade.getLogger().panic("Couldn't make build dir");
                     }
                 }
 
@@ -83,8 +79,7 @@ public class BuildSystem {
                     try (FileOutputStream fos = new FileOutputStream(outputFile)) {
                         fos.write(classFile.content());
                     } catch (IOException e) {
-                        System.err.println("Failed to write class file");
-                        return false;
+                        throw LoggerFacade.getLogger().panic("Failed to write class file");
                     }
                 }
             }
@@ -103,7 +98,7 @@ public class BuildSystem {
                 }
             });
         } catch (IOException e) {
-            System.err.println(e.getMessage());
+            throw LoggerFacade.getLogger().panic("src dir not found: " + dirPath);
         }
     }
 
@@ -115,47 +110,13 @@ public class BuildSystem {
         try {
             fileContent = Files.readString(path);
         } catch (IOException e) {
-            System.err.println(e.getMessage());
-            return;
+            throw LoggerFacade.getLogger().panic("Could not build file: " + e.getMessage());
         }
 
         final BlockNode root = getFileAST(fileContent, fileName);
 
         fileNames.add(fileName);
         fileRoots.add(root);
-    }
-
-    private static boolean deleteDirectory(File directory) {
-        Path path = directory.toPath();
-        if (Files.isSymbolicLink(path)) {
-            return directory.delete();
-        }
-
-        if (directory.exists()) {
-            File[] files = directory.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    Path filePath = file.toPath();
-                    if (Files.isSymbolicLink(filePath)) {
-                        if (!file.delete()) {
-                            System.err.println("Failed to delete symlink: " + file.getAbsolutePath());
-                            return false;
-                        }
-                    } else if (file.isDirectory()) {
-                        if (!deleteDirectory(file)) {
-                            return false;
-                        }
-                    } else {
-                        if (!file.delete()) {
-                            System.err.println("Failed to delete file: " + file.getAbsolutePath());
-                            return false;
-                        }
-                    }
-                }
-            }
-        }
-
-        return directory.delete();
     }
 
     private static BlockNode getFileAST(final String file, final String fileName) {

@@ -23,6 +23,7 @@ public class TopLevelTransformer {
             new ArrayList<>(),
             new ArrayList<>(),
             new ArrayList<>(),
+            new ArrayList<>(),
             null,
             new BlockNode(new ArrayList<>())
         );

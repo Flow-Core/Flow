@@ -38,10 +38,6 @@ public class VariableDeclarationNode implements ASTNode {
 
     @Override
     public String toString() {
-        return "VariableDeclarationNode{" +
-            "modifier='" + modifier + '\'' +
-            ", type=" + type +
-            ", name='" + name + '\'' +
-            '}';
+        return modifier + " " + name + ": " + type;
     }
 }

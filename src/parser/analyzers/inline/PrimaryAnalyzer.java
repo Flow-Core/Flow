@@ -2,9 +2,10 @@ package parser.analyzers.inline;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
-import parser.nodes.ASTMetaDataStore;
 import parser.Parser;
 import parser.analyzers.top.ExpressionAnalyzer;
+import parser.nodes.ASTMetaDataStore;
+import parser.nodes.FlowType;
 import parser.nodes.classes.ObjectNode;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.expressions.ExpressionNode;
@@ -27,6 +28,7 @@ public class PrimaryAnalyzer {
             case IPV4 -> new Ipv4LiteralNode(token.value());
             case FLOAT -> new FloatLiteralNode(Float.parseFloat(token.value()));
             case DOUBLE -> new DoubleLiteralNode(Double.parseDouble(token.value()));
+            case LONG -> new LongLiteralNode(Long.parseLong(token.value()));
             case INT -> {
                 try {
                     yield new IntegerLiteralNode(Integer.parseInt(token.value()));
@@ -39,13 +41,13 @@ public class PrimaryAnalyzer {
             case BOOLEAN -> new BooleanLiteralNode(Boolean.parseBoolean(token.value()));
             case IDENTIFIER -> new IdentifierReferenceAnalyzer().parse(parser);
             case NEW -> {
-                final Token identifier = parser.consume(TokenType.IDENTIFIER);
+                final FlowType type = FlowTypeAnalyzer.analyze(parser);
 
                 parser.consume(TokenType.OPEN_PARENTHESES);
                 final List<ArgumentNode> args = parseArguments(parser);
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
-                yield (ExpressionNode) ASTMetaDataStore.getInstance().addMetadata(new ObjectNode(identifier.value(), args), line, parser.file);
+                yield (ExpressionNode) ASTMetaDataStore.getInstance().addMetadata(new ObjectNode(type, args), line, parser.file);
             }
             case OPEN_PARENTHESES -> {
                 ExpressionNode expr = ExpressionAnalyzer.parseExpression(parser);

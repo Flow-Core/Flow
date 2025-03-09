@@ -49,10 +49,10 @@ public class ParameterNode implements ASTNode {
 
     @Override
     public String toString() {
-        return "ParameterNode{" +
-            "type=" + type +
-            ", name='" + name + '\'' +
-            ", defaultValue=" + defaultValue +
-            '}';
+        if (defaultValue != null) {
+            return name + ": " + type + " = " + defaultValue;
+        } else {
+            return name + ": " + type;
+        }
     }
 }

@@ -39,8 +39,9 @@ public class ExpressionAnalyzer extends TopAnalyzer {
             ExpressionNode lhs
     ) {
         while (true) {
-            Token operator = parser.peek();
-            int opPrecedence = getPrecedence(operator.value());
+            final Token operator = parser.peek();
+            final int opPrecedence = getPrecedence(operator.value());
+            String operatorSign = operator.value();
 
             if (opPrecedence < precedence)
                 return lhs;
@@ -50,8 +51,11 @@ public class ExpressionAnalyzer extends TopAnalyzer {
 
             if (parser.check(TokenType.DOT_OPERATOR, TokenType.SAFE_CALL)) {
                 parser.advance();
-                parser.advance();
+                parser.advance(); // IdentifierReferenceAnalyzer uses peek(-1)
                 rhs = new IdentifierReferenceAnalyzer().parse(parser);
+            } else if (parser.check(TokenType.OPEN_BRACKETS)) {
+                rhs = parseBrackets(parser);
+                operatorSign = "[]";
             } else {
                 parser.consume(TokenType.BINARY_OPERATOR, TokenType.POLARITY_OPERATOR);
 
@@ -69,7 +73,7 @@ public class ExpressionAnalyzer extends TopAnalyzer {
                 if (rhs == null) return null;
             }
 
-            lhs = new BinaryExpressionNode(lhs, rhs, operator.value());
+            lhs = new BinaryExpressionNode(lhs, rhs, operatorSign);
         }
     }
 
@@ -85,12 +89,22 @@ public class ExpressionAnalyzer extends TopAnalyzer {
             postfix = parser.advance();
 
         if (postfix != null)
-            value = new UnaryOperatorNode(value, postfix.value());
+            value = new UnaryOperatorNode(value, postfix.value(), true);
 
         if (prefix != null)
-            value = new UnaryOperatorNode(value, prefix.value());
+            value = new UnaryOperatorNode(value, prefix.value(), false);
 
         return value;
+    }
+
+    private static ExpressionNode parseBrackets(Parser parser) {
+        parser.consume(TokenType.OPEN_BRACKETS);
+
+        ExpressionNode subscript = parseExpression(parser);
+
+        parser.consume(TokenType.CLOSE_BRACKETS);
+
+        return subscript;
     }
 
     private static int getPrecedence(String operator) {
@@ -109,6 +123,7 @@ public class ExpressionAnalyzer extends TopAnalyzer {
         precedenceValues.put("*", 40);
         precedenceValues.put("/", 40);
         precedenceValues.put("%", 40);
+        precedenceValues.put("[", 100);
         precedenceValues.put(".", 10000);
         precedenceValues.put("?.", 10000);
         //</editor-fold>

@@ -33,6 +33,20 @@ public class ImportLoader {
             globalPackages
         );
 
+        validateImport(
+            (ImportNode) ASTMetaDataStore.getInstance().addMetadata(
+                new ImportNode(
+                    "java.lang.Object",
+                    "Object",
+                    false
+                ),
+                0,
+                file.name()
+            ),
+            data,
+            globalPackages
+        );
+
         for (int i = 0; i < file.root().children.size(); i++) {
             final ASTNode node = file.root().children.get(i);
             if (node instanceof ImportNode importNode) {
@@ -41,8 +55,10 @@ public class ImportLoader {
                 }
 
                 validateImport(importNode, data, globalPackages);
-            } else if (i != 0 && node instanceof PackageNode) {
-                LoggerFacade.error("Package must be on top of the file", node);
+            } else if (node instanceof PackageNode) {
+                if (i != 0) {
+                    LoggerFacade.error("Package must be on top of the file", node);
+                }
             } else {
                 finishedImports = true;
             }
@@ -85,14 +101,20 @@ public class ImportLoader {
 
                 if (!optionalClass.get().baseClasses.isEmpty()) {
                     final BaseClassNode baseClassNode = optionalClass.get().baseClasses.get(0);
-                    final ClassDeclarationNode classDeclarationNode = importedSymbols.getClass(baseClassNode.name);
+                    ClassDeclarationNode classDeclarationNode = importedSymbols.getClass(baseClassNode.type.name);
+                    if (classDeclarationNode == null) {
+                        classDeclarationNode = data.getClass(baseClassNode.type.name);
+                    }
 
                     data.classes().add(classDeclarationNode);
                     data.bindingContext().put(baseClassNode, importedSymbols.bindingContext().get(classDeclarationNode));
                 }
 
                 for (final BaseInterfaceNode baseInterfaceNode : optionalClass.get().implementedInterfaces) {
-                    final InterfaceNode interfaceNode = importedSymbols.getInterface(baseInterfaceNode.name);
+                    InterfaceNode interfaceNode = importedSymbols.getInterface(baseInterfaceNode.type.name);
+                    if (interfaceNode == null) {
+                        interfaceNode = data.getInterface(baseInterfaceNode.type.name);
+                    }
 
                     data.interfaces().add(interfaceNode);
                     data.bindingContext().put(baseInterfaceNode, importedSymbols.bindingContext().get(interfaceNode));
@@ -110,7 +132,7 @@ public class ImportLoader {
                 data.bindingContext().put(optionalInterface.get(), importNode.module);
 
                 for (final BaseInterfaceNode baseInterfaceNode : optionalInterface.get().implementedInterfaces) {
-                    final InterfaceNode interfaceNode = importedSymbols.getInterface(baseInterfaceNode.name);
+                    final InterfaceNode interfaceNode = importedSymbols.getInterface(baseInterfaceNode.type.name);
                     data.interfaces().add(interfaceNode);
                 }
 

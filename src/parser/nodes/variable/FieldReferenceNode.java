@@ -6,14 +6,14 @@ import parser.nodes.expressions.ExpressionNode;
 import java.util.Objects;
 
 public class FieldReferenceNode implements ExpressionNode {
-    public String holderType;
+    public FlowType holderType;
     public String name;
     public ExpressionNode holder;
     public FlowType type;
     public boolean isStatic;
 
     public FieldReferenceNode(
-        String holderType,
+        FlowType holderType,
         String name,
         ExpressionNode holder,
         FlowType type,
@@ -52,10 +52,6 @@ public class FieldReferenceNode implements ExpressionNode {
 
     @Override
     public String toString() {
-        return "FieldReferenceNode{" +
-            "holderType='" + holderType + '\'' +
-            ", name='" + name + '\'' +
-            ", holder=" + holder +
-            '}';
+        return holderType + (isStatic ? "()" : "") + "." + name + ": " + type;
     }
 }

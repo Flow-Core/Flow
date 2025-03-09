@@ -7,11 +7,6 @@ import parser.nodes.FlowType;
 public class BoxMapper {
     public static void boxIfNeeded(FlowType type, FlowType expectedType, MethodVisitor mv) {
         if (expectedType != null) {
-            if (expectedType.shouldBePrimitive()) {
-                unbox(expectedType, mv);
-                return;
-            }
-
             if (needUnboxing(type, expectedType)) {
                 unbox(type, mv);
             } else if (needBoxing(type, expectedType)) {
@@ -52,6 +47,7 @@ public class BoxMapper {
             case "Byte" -> mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Byte", "value", "B");
             case "Char" -> mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Char", "value", "C");
             case "Short" -> mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Short", "value", "S");
+            default -> throw new IllegalArgumentException("Cannot box unknown type: " + type);
         }
     }
 }
