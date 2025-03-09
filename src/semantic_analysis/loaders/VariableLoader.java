@@ -25,6 +25,10 @@ public class VariableLoader {
             return;
         }
 
+        if (scope.symbols().findField(fieldNode.initialization.declaration.name)) {
+            LoggerFacade.error("Symbol '" + fieldNode.initialization.declaration.name + "' redefined", fieldNode);
+        }
+
         final boolean isConst = fieldNode.initialization.declaration.modifier.equals("const");
         if (scope.type() == Scope.Type.FUNCTION) {
             if (isConst) {
