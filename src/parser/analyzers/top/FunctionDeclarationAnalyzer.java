@@ -81,7 +81,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
             modifiers,
             parameters,
             typeParameters,
-            null
+            new BodyNode(null)
         );
     }
 
