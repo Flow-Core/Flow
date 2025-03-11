@@ -67,6 +67,10 @@ public class SignatureLoader {
         List<ParameterNode> primaryParameters = new ArrayList<>();
         List<ASTNode> assignments = new ArrayList<>();
 
+        if (classDeclaration.primaryConstructor.isEmpty() && !classDeclaration.constructors.isEmpty()) {
+            return;
+        }
+
         for (FieldNode field : classDeclaration.primaryConstructor) {
             primaryParameters.add(
                 new ParameterNode(
