@@ -133,8 +133,13 @@ public class ParameterTraverse {
     ) {
         Map<String, FlowType> typeArgumentMapping = new HashMap<>();
 
-        if (callerType != null && !callerType.typeArguments.isEmpty()) {
+        if (callerType != null) {
             TypeDeclarationNode typeDeclarationNode = TypeRecognize.getTypeDeclaration(callerType.name, scope);
+
+            if (typeDeclarationNode.typeParameters.size() != callerType.typeArguments.size()) {
+                return false;
+            }
+
             for (int i = 0; i < typeDeclarationNode.typeParameters.size(); i++) {
                 typeArgumentMapping.put(typeDeclarationNode.typeParameters.get(i).name, callerType.typeArguments.get(i).type);
             }

@@ -11,7 +11,9 @@ import parser.nodes.packages.ImportNode;
 import parser.nodes.packages.PackageNode;
 import semantic_analysis.files.FileWrapper;
 import semantic_analysis.files.PackageWrapper;
+import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
+import semantic_analysis.scopes.TypeRecognize;
 
 import java.util.Map;
 
@@ -99,21 +101,38 @@ public class ImportLoader {
                 data.classes().add(optionalClass.get());
                 data.bindingContext().put(optionalClass.get(), importNode.module);
 
+                final Scope combinedSymbols = new Scope(
+                    new Scope(
+                        null,
+                        importedSymbols,
+                        null,
+                        Scope.Type.TOP
+                    ),
+                    data,
+                    null,
+                    Scope.Type.TOP
+                );
+
                 if (!optionalClass.get().baseClasses.isEmpty()) {
                     final BaseClassNode baseClassNode = optionalClass.get().baseClasses.get(0);
-                    ClassDeclarationNode classDeclarationNode = importedSymbols.getClass(baseClassNode.type.name);
-                    if (classDeclarationNode == null) {
-                        classDeclarationNode = data.getClass(baseClassNode.type.name);
-                    }
+                    ClassDeclarationNode classDeclarationNode = TypeRecognize.getClass(
+                        baseClassNode.type.name,
+                        combinedSymbols
+                    );
 
                     data.classes().add(classDeclarationNode);
                     data.bindingContext().put(baseClassNode, importedSymbols.bindingContext().get(classDeclarationNode));
                 }
 
                 for (final BaseInterfaceNode baseInterfaceNode : optionalClass.get().implementedInterfaces) {
-                    InterfaceNode interfaceNode = importedSymbols.getInterface(baseInterfaceNode.type.name);
+                    InterfaceNode interfaceNode = TypeRecognize.getInterface(
+                        baseInterfaceNode.type.name,
+                        combinedSymbols
+                    );
+
                     if (interfaceNode == null) {
-                        interfaceNode = data.getInterface(baseInterfaceNode.type.name);
+                        LoggerFacade.error("Unresolved interface: '" + baseInterfaceNode.type.name + "' in type '" + optionalClass.get().name + "'");
+                        continue;
                     }
 
                     data.interfaces().add(interfaceNode);

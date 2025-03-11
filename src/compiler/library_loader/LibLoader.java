@@ -232,6 +232,8 @@ public class LibLoader {
             public void visitEnd() {
                 if (currentName != null) {
                     typeParameters.add(new TypeParameterNode(currentName, currentBound));
+                    currentName = null;
+                    currentBound = null;
                 }
             }
         });
