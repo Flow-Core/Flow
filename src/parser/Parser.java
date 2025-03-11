@@ -50,6 +50,14 @@ public class Parser {
         return tokens.get(currentToken + token);
     }
 
+    public boolean checkIgnoreNewLine(final TokenType type) {
+        if (peek().type() == TokenType.NEW_LINE) {
+            advance();
+        }
+
+        return peek().type() == type;
+    }
+
     public boolean check(final TokenType type) {
         return peek().type() == type;
     }

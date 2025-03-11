@@ -83,15 +83,15 @@ public class SignatureLoader {
             classDeclaration.fields.add(0, field);
             assignments.add(
                 new VariableAssignmentNode(
-                    new ExpressionBaseNode(new VariableReferenceNode(field.initialization.declaration.name)),
-                    "=",
                     new ExpressionBaseNode(
                         new BinaryExpressionNode(
                             new VariableReferenceNode("this"),
                             new VariableReferenceNode(field.initialization.declaration.name),
                             "."
                         )
-                    )
+                    ),
+                    "=",
+                    new ExpressionBaseNode(new VariableReferenceNode(field.initialization.declaration.name))
                 )
             );
         }

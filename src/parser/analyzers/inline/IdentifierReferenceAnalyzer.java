@@ -58,12 +58,8 @@ public class IdentifierReferenceAnalyzer {
         final List<ArgumentNode> args = new ArrayList<>();
 
         while (!parser.check(TokenType.CLOSE_PARENTHESES)) {
-            if (parser.check(TokenType.NEW_LINE)) {
-                parser.advance();
-            }
-
             // Parse named parameter
-            if (parser.peek().type() == TokenType.IDENTIFIER && parser.peek(1).type() == TokenType.EQUAL_OPERATOR) {
+            if (parser.checkIgnoreNewLine(TokenType.IDENTIFIER) && parser.peek(1).type() == TokenType.EQUAL_OPERATOR) {
                 final Token argumentName = parser.consume(TokenType.IDENTIFIER);
                 parser.consume(TokenType.EQUAL_OPERATOR);
                 final ExpressionNode value = ExpressionAnalyzer.parseExpression(parser);
@@ -74,12 +70,8 @@ public class IdentifierReferenceAnalyzer {
                 args.add((ArgumentNode) ASTMetaDataStore.getInstance().addMetadata(new ArgumentNode(null, new ExpressionBaseNode(value, parser.peek().line(), parser.file)), parser.peek().line(), parser.file));
             }
 
-            if (!parser.check(TokenType.CLOSE_PARENTHESES)) {
-                if (parser.check(TokenType.NEW_LINE)) {
-                    parser.advance();
-                } else {
-                    parser.consume(TokenType.COMMA);
-                }
+            if (!parser.checkIgnoreNewLine(TokenType.CLOSE_PARENTHESES)) {
+                parser.consume(TokenType.COMMA);
             }
         }
 

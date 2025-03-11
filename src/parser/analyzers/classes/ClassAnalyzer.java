@@ -34,10 +34,14 @@ public class ClassAnalyzer extends TopAnalyzer {
         final List<TypeParameterNode> typeParameters = parseTypeParameters(parser);
 
         final List<FieldNode> classArgs = new ArrayList<>();
-        if (parser.check(TokenType.OPEN_PARENTHESES)) {
+        if (parser.checkIgnoreNewLine(TokenType.OPEN_PARENTHESES)) {
             parser.advance();
             while (!parser.check(TokenType.CLOSE_PARENTHESES)) {
                 classArgs.add((FieldNode) new FieldAnalyzer().parse(parser).node());
+
+                if (!parser.check(TokenType.CLOSE_PARENTHESES)) {
+                    parser.consume(TokenType.COMMA);
+                }
             }
             parser.advance();
         }

@@ -32,12 +32,8 @@ public class StatementAnalyzer extends TopAnalyzer {
 
                 final BlockNode trueBranch = getBlock(parser);
 
-                if (parser.check(TokenType.NEW_LINE) && parser.peek(1).type() == TokenType.ELSE) {
-                    parser.advance();
-                }
-
                 BlockNode falseBranch = null;
-                if (parser.check(TokenType.ELSE)) {
+                if (parser.checkIgnoreNewLine(TokenType.ELSE)) {
                     parser.advance();
                     falseBranch = getBlock(parser);
                 }
@@ -255,11 +251,7 @@ public class StatementAnalyzer extends TopAnalyzer {
     private BlockNode getBlock(final Parser parser) {
         final BlockNode block;
 
-        if (parser.check(TokenType.NEW_LINE)) {
-            parser.advance();
-        }
-
-        if (parser.check(TokenType.OPEN_BRACES)) {
+        if (parser.checkIgnoreNewLine(TokenType.OPEN_BRACES)) {
             parser.advance();
             block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getStatementScope(), TokenType.CLOSE_BRACES);
             parser.consume(TokenType.CLOSE_BRACES);
