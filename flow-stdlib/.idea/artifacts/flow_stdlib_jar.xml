@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="flow-stdlib:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/flow_stdlib_jar</output-path>
+    <root id="archive" name="flow-stdlib.jar">
+      <element id="module-output" name="flow-stdlib" />
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/META-INF/MANIFEST.MF" />
+      </element>
+    </root>
+  </artifact>
+</component>
