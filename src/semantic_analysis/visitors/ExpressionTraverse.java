@@ -67,7 +67,7 @@ public class ExpressionTraverse {
 
                 if (binaryExpression.right instanceof VariableReferenceNode reference) {
                     if (leftTypeNode instanceof ClassDeclarationNode leftTypeClass) {
-                        if (scope.findTypeDeclaration(reference.variable)) {
+                        if (TypeRecognize.findTypeDeclaration(reference.variable, scope)) {
                             LoggerFacade.error("Cannot access nested types", root);
                             return null;
                         }
@@ -363,14 +363,6 @@ public class ExpressionTraverse {
             return baseClassNode.type;
         }
         if (expression instanceof VariableReferenceNode variable) {
-            if (scope.findTypeDeclaration(variable.variable)) {
-                return new FlowType(
-                    variable.variable,
-                    false,
-                    false
-                );
-            }
-
             FieldNode field = TypeRecognize.getField(variable.variable, scope);
 
             if (field != null) {

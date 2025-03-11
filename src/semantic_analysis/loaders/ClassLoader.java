@@ -4,6 +4,7 @@ import logger.LoggerFacade;
 import parser.nodes.ASTMetaDataStore;
 import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
+import parser.nodes.FlowType;
 import parser.nodes.classes.*;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.functions.FunctionDeclarationNode;
@@ -31,7 +32,12 @@ public class ClassLoader implements ASTVisitor<Scope> {
     private void handleClass(final ClassDeclarationNode classDeclaration, final Scope scope) {
         ModifierLoader.load(classDeclaration, classDeclaration.modifiers, ModifierLoader.ModifierType.CLASS);
 
-        validateBaseClass(classDeclaration, scope);
+        if (classDeclaration.baseClasses.isEmpty()) {
+            classDeclaration.baseClasses.add(new BaseClassNode(new FlowType("flow.Thing", false, false), new ArrayList<>()));
+        } else {
+            validateBaseClass(classDeclaration, scope);
+        }
+
         validateInterfaces(classDeclaration.implementedInterfaces, scope);
 
         loadTypeParameters(classDeclaration, scope);
@@ -127,7 +133,7 @@ public class ClassLoader implements ASTVisitor<Scope> {
             }
 
             final BaseClassNode baseClassNode = classDeclaration.baseClasses.get(0);
-            final ClassDeclarationNode baseClass = scope.getClass(baseClassNode.type.name);
+            final ClassDeclarationNode baseClass = TypeRecognize.getClass(baseClassNode.type.name, scope);
             if (baseClass == null) {
                 LoggerFacade.error("Base class '" + baseClassNode.type.name + "' for class '" + classDeclaration.name + "' was not found", classDeclaration);
                 return;
@@ -186,7 +192,7 @@ public class ClassLoader implements ASTVisitor<Scope> {
 
     private void validateInterfaces(List<BaseInterfaceNode> interfaces, Scope scope) {
         for (final BaseInterfaceNode interfaceNode : interfaces) {
-            final InterfaceNode baseInterface = scope.getInterface(interfaceNode.type.name);
+            final InterfaceNode baseInterface = TypeRecognize.getInterface(interfaceNode.type.name, scope);
             if (baseInterface == null) {
                 LoggerFacade.error("Interface '" + interfaceNode.type.name + "' was not found", interfaceNode);
                 return;
@@ -210,7 +216,7 @@ public class ClassLoader implements ASTVisitor<Scope> {
         visited.add(currentInterface.name);
 
         for (BaseInterfaceNode base : currentInterface.implementedInterfaces) {
-            InterfaceNode nextInterface = scope.getInterface(base.type.name);
+            InterfaceNode nextInterface = TypeRecognize.getInterface(base.type.name, scope);
             if (nextInterface != null) {
                 checkCircularInterfaceInheritance(currentInterface.name, nextInterface, new HashSet<>(visited), scope);
             }
@@ -219,7 +225,7 @@ public class ClassLoader implements ASTVisitor<Scope> {
 
     private void validateInterfaces(InterfaceNode interfaceNode, Scope scope) {
         for (final BaseInterfaceNode currentInterface : interfaceNode.implementedInterfaces) {
-            final InterfaceNode baseInterface = scope.getInterface(currentInterface.type.name);
+            final InterfaceNode baseInterface = TypeRecognize.getInterface(currentInterface.type.name, scope);
             if (baseInterface == null) {
                 LoggerFacade.error("Interface '" + currentInterface.type.name + "' was not found", currentInterface);
                 return;
@@ -279,7 +285,7 @@ public class ClassLoader implements ASTVisitor<Scope> {
             if (!classDeclarationNode.baseClasses.isEmpty()) {
                 final String baseClassName = classDeclarationNode.baseClasses.get(0).type.name;
 
-                final ClassDeclarationNode baseClass = scope.getClass(baseClassName);
+                final ClassDeclarationNode baseClass = TypeRecognize.getClass(baseClassName, scope);
                 if (baseClass == null) {
                     LoggerFacade.error("Base class '" + baseClassName + "' for class '" + classDeclarationNode.name + "' was not found", classDeclarationNode);
                     return new ArrayList<>();
@@ -291,7 +297,7 @@ public class ClassLoader implements ASTVisitor<Scope> {
 
         if (modifier.equals("abstract")) {
             for (final BaseInterfaceNode baseInterfaceNode : typeDeclarationNode.implementedInterfaces) {
-                final InterfaceNode interfaceNode = scope.getInterface(baseInterfaceNode.type.name);
+                final InterfaceNode interfaceNode = TypeRecognize.getInterface(baseInterfaceNode.type.name, scope);
                 if (interfaceNode == null) {
                     LoggerFacade.error("Interface '" + baseInterfaceNode.type.name + "' was not found", baseInterfaceNode);
                     return new ArrayList<>();

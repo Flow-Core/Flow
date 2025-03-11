@@ -1,10 +1,7 @@
 package semantic_analysis.scopes;
 
 import parser.nodes.ASTNode;
-import parser.nodes.classes.ClassDeclarationNode;
-import parser.nodes.classes.FieldNode;
-import parser.nodes.classes.InterfaceNode;
-import parser.nodes.classes.TypeDeclarationNode;
+import parser.nodes.classes.*;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.generics.TypeParameterNode;
 
@@ -15,6 +12,12 @@ public record Scope (
     Type type
 ) {
     public String getFQName(ASTNode node) {
+        if (node instanceof BaseClassNode baseClassNode && baseClassNode.type.name.contains(".")) {
+            return baseClassNode.type.name;
+        } else if (node instanceof BaseInterfaceNode baseInterfaceNode && baseInterfaceNode.type.name.contains(".")) {
+            return baseInterfaceNode.type.name;
+        }
+
         if (symbols.bindingContext().containsKey(node)) {
             return symbols.bindingContext().get(node);
         }

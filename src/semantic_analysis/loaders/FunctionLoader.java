@@ -37,7 +37,7 @@ public class FunctionLoader {
 
         loadTypeParameters(functionDeclarationNode, scope);
 
-        if (!functionScope.findTypeDeclaration(functionDeclarationNode.returnType.name)) {
+        if (!TypeRecognize.findTypeDeclaration(functionDeclarationNode.returnType.name, scope)) {
             LoggerFacade.error("Unresolved symbol: '" + functionDeclarationNode.returnType + "'", functionDeclarationNode);
         }
 
@@ -94,7 +94,7 @@ public class FunctionLoader {
 
     public static void checkParameters(final List<ParameterNode> parameters, final Scope scope)  {
         for (final ParameterNode parameter : parameters) {
-            if (!scope.findTypeDeclaration(parameter.type.name)) {
+            if (!TypeRecognize.findTypeDeclaration(parameter.type.name, scope)) {
                 LoggerFacade.error("Unresolved symbol: '" + parameter.type + "'", parameter);
             }
         }
