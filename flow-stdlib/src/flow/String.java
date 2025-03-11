@@ -82,7 +82,7 @@ public final class String extends Thing {
     }
 
     @Override
-    public Thing copy() {
+    public String copy() {
         return new String(value);
     }
 }
