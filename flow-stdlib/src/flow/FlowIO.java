@@ -15,12 +15,16 @@ public final class FlowIO {
         System.out.println(message);
     }
 
-    public static void print(String message) {
-        System.out.print(message.value);
+    public static void println(Object message) {
+        System.out.println(message);
     }
 
     public static void print(Thing message) {
         System.out.println(message);
+    }
+
+    public static void print(Object message) {
+        System.out.print(message);
     }
 
     public static String input() {
