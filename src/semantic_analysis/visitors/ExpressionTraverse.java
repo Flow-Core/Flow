@@ -25,15 +25,10 @@ import java.util.List;
 import static semantic_analysis.visitors.ParameterTraverse.*;
 
 public class ExpressionTraverse {
-    public FlowType traverse(ExpressionBaseNode root, Scope scope, boolean keepCompileTime) {
-        if (!keepCompileTime)
-            root.expression = transformValue(root, root.expression, scope);
+    public FlowType traverse(ExpressionBaseNode root, Scope scope) {
+        root.expression = transformValue(root, root.expression, scope);
 
         return determineType(root, root.expression, scope);
-    }
-
-    public FlowType traverse(ExpressionBaseNode root, Scope scope) {
-        return traverse(root, scope, false);
     }
 
     private static ExpressionNode transformValue(ExpressionBaseNode root, ExpressionNode expression, Scope scope) {
@@ -316,7 +311,7 @@ public class ExpressionTraverse {
             ClassDeclarationNode baseClass = (ClassDeclarationNode) baseType;
 
             for (final ArgumentNode argNode : objectNode.arguments) {
-                argNode.type = new ExpressionTraverse().traverse(argNode.value, scope, true);
+                argNode.type = new ExpressionTraverse().traverse(argNode.value, scope);
             }
 
             if (findConstructor(scope, baseClass.constructors, objectNode.arguments, objectNode.type) == null) {
@@ -352,7 +347,7 @@ public class ExpressionTraverse {
             ClassDeclarationNode baseClass = (ClassDeclarationNode) baseType;
 
             for (final ArgumentNode argNode : baseClassNode.arguments) {
-                argNode.type = new ExpressionTraverse().traverse(argNode.value, scope, true);
+                argNode.type = new ExpressionTraverse().traverse(argNode.value, scope);
             }
 
             if (findConstructor(scope, baseClass.constructors, baseClassNode.arguments, baseClassNode.type) == null) {

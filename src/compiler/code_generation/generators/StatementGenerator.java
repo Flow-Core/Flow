@@ -27,7 +27,7 @@ public class StatementGenerator {
         } else if (statementNode instanceof SwitchStatementNode switchStatementNode) {
             generateSwitchStatement(switchStatementNode, mv, vm, file);
         } else if (statementNode instanceof ThrowNode throwNode) {
-            ExpressionGenerator.generate(throwNode.throwValue.expression, mv, vm, file, new FlowType("Throwable", true, false));
+            ExpressionGenerator.generate(throwNode.throwValue.expression, mv, vm, file, new FlowType("Exception", true, false));
 
             mv.visitInsn(Opcodes.ATHROW);
         } else {
@@ -138,7 +138,7 @@ public class StatementGenerator {
 
             mv.visitLabel(catchLabel);
 
-            vm.declareVariable(catchNode.parameter.name, catchNode.parameter.type, new FlowType("Throwable", false, false));
+            vm.declareVariable(catchNode.parameter.name, catchNode.parameter.type, new FlowType("Exception", false, false));
 
             BlockGenerator.generateFunctionBlock(catchNode.body.scope, catchNode.body.blockNode, file, mv, vm);
 

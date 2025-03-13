@@ -53,7 +53,7 @@ public class VariableLoader {
         final FlowType varType = fieldNode.initialization.declaration.type;
         FlowType actualType = null;
         if (fieldNode.initialization.assignment != null) {
-            actualType = new ExpressionTraverse().traverse(fieldNode.initialization.assignment.value, scope, isConst);
+            actualType = new ExpressionTraverse().traverse(fieldNode.initialization.assignment.value, scope);
             if (isConst && !(fieldNode.initialization.assignment.value.expression instanceof LiteralNode)) {
                 LoggerFacade.error("Const must contain a literal", fieldNode);
             }

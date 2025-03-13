@@ -27,6 +27,8 @@ public class StatementTraverse {
             handleSwitchStatement(switchStatementNode, scope);
         } else if (statement instanceof ReturnStatementNode returnStatementNode) {
             handleReturnStatement(returnStatementNode, scope);
+        } else if (statement instanceof ThrowNode throwNode) {
+            handleThrowStatement(throwNode, scope);
         }
     }
 
@@ -145,6 +147,23 @@ public class StatementTraverse {
             scope
         )) {
             LoggerFacade.error("Type mismatch: expected '"  + functionDeclarationNode.returnType + "' but received '" + returnType + "'", returnStatementNode);
+        }
+    }
+
+    private static void handleThrowStatement(final ThrowNode throwNode, final Scope scope) {
+        final FlowType throwType = new ExpressionTraverse().traverse(throwNode.throwValue, scope);
+
+        if (throwType == null)
+            return;
+
+        final ASTNode currentParent = scope.currentParent();
+        if (!(currentParent instanceof FunctionDeclarationNode functionDeclarationNode)) {
+            LoggerFacade.error("Throw statement is not allowed here", throwNode);
+            return;
+        }
+
+        if (!TypeRecognize.isSameType(throwType, new FlowType("Exception", false, false), scope)) {
+            LoggerFacade.error("Type mismatch: expected 'Exception' but received '" + throwType + "'", throwNode);
         }
     }
 }
