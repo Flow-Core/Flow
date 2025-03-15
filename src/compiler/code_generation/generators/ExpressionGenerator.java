@@ -251,7 +251,6 @@ public class ExpressionGenerator {
 
                     if (isPostfix) {
                         mv.visitVarInsn(Opcodes.ILOAD, varIndex);
-                        mv.visitInsn(Opcodes.DUP);
                         mv.visitIincInsn(varIndex, delta);
                     } else {
                         mv.visitIincInsn(varIndex, delta);

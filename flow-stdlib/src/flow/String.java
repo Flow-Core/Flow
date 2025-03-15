@@ -35,6 +35,10 @@ public final class String extends Thing {
         return new String(value.substring(start.value, end.value));
     }
 
+    public int toInt() {
+        return Integer.parseInt(value);
+    }
+
     public static String fromPrimitive(java.lang.String value) {
         return new String(value);
     }
