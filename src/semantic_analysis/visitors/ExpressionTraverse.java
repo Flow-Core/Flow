@@ -41,215 +41,322 @@ public class ExpressionTraverse {
 
     private static ExpressionNode transformOperators(ExpressionBaseNode root, ExpressionNode expression, Scope scope) {
         if (expression instanceof BinaryExpressionNode binaryExpression) {
-            binaryExpression.left = transformValue(root, binaryExpression.left, scope);
-
-            FlowType leftType = determineType(root, binaryExpression.left, scope);
-            if (leftType == null) {
-                return null;
-            }
-
-            TypeDeclarationNode leftTypeNode = TypeRecognize.getTypeDeclaration(leftType.name, scope);
-
-            if (leftTypeNode == null) {
-                LoggerFacade.error("Unresolved symbol: '" + leftType + "'", root);
-                return null;
-            }
-
-            if (binaryExpression.operator.equals(".") || binaryExpression.operator.equals("?.")) {
-                if (binaryExpression.operator.equals(".") && leftType.isNullable) {
-                    LoggerFacade.error("Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type '" + leftType + "'", root);
-                }
-
-                if (binaryExpression.right instanceof VariableReferenceNode reference) {
-                    if (leftTypeNode instanceof ClassDeclarationNode leftTypeClass) {
-                        if (TypeRecognize.findTypeDeclaration(reference.variable, scope)) {
-                            LoggerFacade.error("Cannot access nested types", root);
-                            return null;
-                        }
-
-                        FieldNode field = leftTypeClass.findField(
-                            scope,
-                            reference.variable
-                        );
-
-                        if (field == null) {
-                            LoggerFacade.error("Unresolved symbol: '" + leftType.name + "." + reference.variable + "'", root);
-                            return null;
-                        }
-
-                        return new FieldReferenceNode(
-                            leftType,
-                            reference.variable,
-                            binaryExpression.left,
-                            field.initialization.declaration.type,
-                            field.modifiers.contains("static")
-                        );
-                    }
-
-                    LoggerFacade.error("Unresolved reference '" + binaryExpression.right + "'", root);
-                } else if (binaryExpression.right instanceof FunctionCallNode call) {
-                    List<FunctionDeclarationNode> functions = leftTypeNode.findMethodsWithName(
-                        scope,
-                        call.name
-                    );
-
-                    for (final ArgumentNode argNode : call.arguments) {
-                        argNode.type = new ExpressionTraverse().traverse(argNode.value, scope);
-                    }
-
-                    FunctionDeclarationNode function = findMethodByArguments(
-                        scope,
-                        functions,
-                        call.name,
-                        call.arguments,
-                        leftType
-                    );
-
-                    if (function == null) {
-                        if (functions.isEmpty()) {
-                            LoggerFacade.error("Unresolved symbol: '" + leftType + "." + call.name + "'", root);
-                        } else {
-                            LoggerFacade.error("None of the overrides for '" +
-                                leftType + "." + call.name +
-                                "' match the argument list", root);
-                        }
-                        return null;
-                    }
-
-                    return new FunctionCallNode(
-                        leftType,
-                        binaryExpression.left instanceof TypeReferenceNode ? null : binaryExpression.left,
-                        binaryExpression.operator.equals("?."),
-                        call.name,
-                        call.arguments
-                    );
-                } else {
-                    LoggerFacade.error("Expected field or function", root);
-                    return null;
-                }
-            }
-
-            if (binaryExpression.left instanceof TypeReferenceNode) {
-                LoggerFacade.error("Expression expected", root);
-                return null;
-            }
-
-            binaryExpression.right = transformValue(root, binaryExpression.right, scope);
-
-            FlowType rightType = determineType(root, binaryExpression.right, scope);
-
-            if (rightType == null || binaryExpression.right instanceof TypeReferenceNode) {
-                LoggerFacade.error("Expression expected", root);
-                return null;
-            }
-
-            String operatorName = getOperatorName(binaryExpression.operator);
-
-            final List<FunctionDeclarationNode> functions = leftTypeNode.findMethodsWithName(
-                scope,
-                operatorName
+            return transformBinaryOperator(
+                root,
+                binaryExpression,
+                scope
             );
-
-            FunctionDeclarationNode functionDecl = functions.stream()
-                .filter(method -> ParameterTraverse.compareParametersWithArguments(
-                    scope,
-                    method.parameters,
-                    List.of(
-                        new ArgumentNode(
-                            null,
-                            new ExpressionBaseNode(
-                                binaryExpression.right
-                            ),
-                            rightType
-                        )
-                    ),
-                    leftType
-                )).findFirst().orElse(null);
-
-            if (functionDecl != null) {
-                return new FunctionCallNode(
-                    leftType,
-                    binaryExpression.left,
-                    false,
-                    operatorName,
-                    List.of(
-                        new ArgumentNode(null, new ExpressionBaseNode(binaryExpression.right))
-                    )
-                );
-            }
-
-            LoggerFacade.error("Could not resolve operator '" + binaryExpression.operator + "' for '" + binaryExpression.left + "' and '" + binaryExpression.right + "'", root);
         } else if (expression instanceof UnaryOperatorNode unaryExpression) {
-            unaryExpression.operand = transformValue(root, unaryExpression.operand, scope);
-
-            FlowType operandType = determineType(root, unaryExpression.operand, scope);
-
-            if (operandType == null || unaryExpression.operand instanceof TypeReferenceNode) {
-                LoggerFacade.error("Expression expected", root);
-                return null;
-            }
-
-            unaryExpression.operandType = new FlowType(
-                operandType.name,
-                operandType.isNullable,
-                operandType.isPrimitive
+            return transformUnaryOperator(
+                root,
+                unaryExpression,
+                scope
             );
-
-            if (getUnaryOperatorType(unaryExpression.operator) != UnaryOperatorType.FUNCTION) {
-                return unaryExpression;
-            }
-
-            if (unaryExpression.operator.equals("!!")) {
-                if (!unaryExpression.operandType.isNullable) {
-                    LoggerFacade.getLogger().log(
-                        Logger.Severity.WARNING,
-                        "'!!' operator used on a non-nullable type",
-                        ASTMetaDataStore.getInstance().getLine(root),
-                        ASTMetaDataStore.getInstance().getFile(root)
-                    );
-                }
-
-                unaryExpression.operandType.isNullable = false;
-
-                return unaryExpression;
-            }
-
-            ClassDeclarationNode operandTypeNode = TypeRecognize.getClass(operandType.name, scope);
-
-            if (operandTypeNode == null) {
-                LoggerFacade.error("Unresolved symbol: '" + operandType + "'", root);
-                return null;
-            }
-
-            String operatorName = getUnaryOperatorName(unaryExpression.operator, unaryExpression.isPostfix);
-
-            final List<FunctionDeclarationNode> functions = operandTypeNode.findMethodsWithName(
-                scope,
-                operatorName
-            );
-
-            FunctionDeclarationNode functionDecl = functions.stream()
-                .filter(method -> ParameterTraverse.compareParametersWithArguments(
-                    scope,
-                    method.parameters,
-                    List.of(),
-                    operandType
-                )).findFirst().orElse(null);
-
-            if (functionDecl != null) {
-                return new FunctionCallNode(
-                    operandType,
-                    unaryExpression.operand,
-                    false,
-                    operatorName,
-                    List.of()
-                );
-            }
-
-            LoggerFacade.error("Could not resolve operator '" + unaryExpression.operator + "'", root);
         }
 
         return expression;
+    }
+
+    private static ExpressionNode transformBinaryOperator(
+        ExpressionBaseNode root,
+        BinaryExpressionNode binaryExpression,
+        Scope scope
+    ) {
+        binaryExpression.left = transformValue(root, binaryExpression.left, scope);
+
+        FlowType leftType = determineType(root, binaryExpression.left, scope);
+        if (leftType == null) {
+            return null;
+        }
+
+        TypeDeclarationNode leftTypeNode = TypeRecognize.getTypeDeclaration(leftType.name, scope);
+
+        if (leftTypeNode == null) {
+            LoggerFacade.error("Unresolved symbol: '" + leftType + "'", root);
+            return null;
+        }
+
+        if (binaryExpression.operator.equals(".") || binaryExpression.operator.equals("?.")) {
+            return transformDotOperator(
+                root,
+                binaryExpression.operator,
+                leftType,
+                leftTypeNode,
+                binaryExpression.left,
+                binaryExpression.right,
+                scope
+            );
+        }
+
+        if (binaryExpression.left instanceof TypeReferenceNode) {
+            LoggerFacade.error("Expression expected", root);
+            return null;
+        }
+
+        binaryExpression.right = transformValue(root, binaryExpression.right, scope);
+
+        FlowType rightType = determineType(root, binaryExpression.right, scope);
+
+        if (binaryExpression.operator.equals(":")) {
+            return transformAddress(
+                root,
+                binaryExpression.left,
+                leftType,
+                binaryExpression.right,
+                rightType,
+                scope
+            );
+        }
+
+        if (rightType == null || binaryExpression.right instanceof TypeReferenceNode) {
+            LoggerFacade.error("Expression expected", root);
+            return null;
+        }
+
+        String operatorName = getOperatorName(binaryExpression.operator);
+
+        final List<FunctionDeclarationNode> functions = leftTypeNode.findMethodsWithName(
+            scope,
+            operatorName
+        );
+
+        FunctionDeclarationNode functionDecl = functions.stream()
+            .filter(method -> ParameterTraverse.compareParametersWithArguments(
+                scope,
+                method.parameters,
+                List.of(
+                    new ArgumentNode(
+                        null,
+                        new ExpressionBaseNode(
+                            binaryExpression.right
+                        ),
+                        rightType
+                    )
+                ),
+                leftType
+            )).findFirst().orElse(null);
+
+        if (functionDecl != null) {
+            return new FunctionCallNode(
+                leftType,
+                binaryExpression.left,
+                false,
+                operatorName,
+                List.of(
+                    new ArgumentNode(null, new ExpressionBaseNode(binaryExpression.right))
+                )
+            );
+        }
+
+        LoggerFacade.error("Could not resolve operator '" + binaryExpression.operator + "' for '" + binaryExpression.left + "' and '" + binaryExpression.right + "'", root);
+        return null;
+    }
+
+    private static ExpressionNode transformUnaryOperator(
+        ExpressionBaseNode root,
+        UnaryOperatorNode unaryExpression,
+        Scope scope
+    ) {
+        unaryExpression.operand = transformValue(root, unaryExpression.operand, scope);
+
+        FlowType operandType = determineType(root, unaryExpression.operand, scope);
+
+        if (operandType == null || unaryExpression.operand instanceof TypeReferenceNode) {
+            LoggerFacade.error("Expression expected", root);
+            return null;
+        }
+
+        unaryExpression.operandType = new FlowType(
+            operandType.name,
+            operandType.isNullable,
+            operandType.isPrimitive
+        );
+
+        if (getUnaryOperatorType(unaryExpression.operator) != UnaryOperatorType.FUNCTION) {
+            return unaryExpression;
+        }
+
+        if (unaryExpression.operator.equals("!!")) {
+            if (!unaryExpression.operandType.isNullable) {
+                LoggerFacade.getLogger().log(
+                    Logger.Severity.WARNING,
+                    "'!!' operator used on a non-nullable type",
+                    ASTMetaDataStore.getInstance().getLine(root),
+                    ASTMetaDataStore.getInstance().getFile(root)
+                );
+            }
+
+            unaryExpression.operandType.isNullable = false;
+
+            return unaryExpression;
+        }
+
+        ClassDeclarationNode operandTypeNode = TypeRecognize.getClass(operandType.name, scope);
+
+        if (operandTypeNode == null) {
+            LoggerFacade.error("Unresolved symbol: '" + operandType + "'", root);
+            return null;
+        }
+
+        String operatorName = getUnaryOperatorName(unaryExpression.operator, unaryExpression.isPostfix);
+
+        final List<FunctionDeclarationNode> functions = operandTypeNode.findMethodsWithName(
+            scope,
+            operatorName
+        );
+
+        FunctionDeclarationNode functionDecl = functions.stream()
+            .filter(method -> ParameterTraverse.compareParametersWithArguments(
+                scope,
+                method.parameters,
+                List.of(),
+                operandType
+            )).findFirst().orElse(null);
+
+        if (functionDecl != null) {
+            return new FunctionCallNode(
+                operandType,
+                unaryExpression.operand,
+                false,
+                operatorName,
+                List.of()
+            );
+        }
+
+        LoggerFacade.error("Could not resolve operator '" + unaryExpression.operator + "'", root);
+        return null;
+    }
+
+    private static ExpressionNode transformDotOperator(
+        ExpressionBaseNode root,
+        String operator,
+        FlowType leftType,
+        TypeDeclarationNode leftTypeNode,
+        ExpressionNode leftExpr,
+        ExpressionNode rightExpr,
+        Scope scope
+    ) {
+        if (operator.equals(".") && leftType.isNullable) {
+            LoggerFacade.error("Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type '" + leftType + "'", root);
+        }
+
+        if (rightExpr instanceof VariableReferenceNode reference) {
+            if (leftTypeNode instanceof ClassDeclarationNode leftTypeClass) {
+                if (TypeRecognize.findTypeDeclaration(reference.variable, scope)) {
+                    LoggerFacade.error("Cannot access nested types", root);
+                    return null;
+                }
+
+                FieldNode field = leftTypeClass.findField(
+                    scope,
+                    reference.variable
+                );
+
+                if (field == null) {
+                    LoggerFacade.error("Unresolved symbol: '" + leftType.name + "." + reference.variable + "'", root);
+                    return null;
+                }
+
+                return new FieldReferenceNode(
+                    leftType,
+                    reference.variable,
+                    leftExpr,
+                    field.initialization.declaration.type,
+                    field.modifiers.contains("static")
+                );
+            }
+
+            LoggerFacade.error("Unresolved reference '" + rightExpr + "'", root);
+        } else if (rightExpr instanceof FunctionCallNode call) {
+            List<FunctionDeclarationNode> functions = leftTypeNode.findMethodsWithName(
+                scope,
+                call.name
+            );
+
+            for (final ArgumentNode argNode : call.arguments) {
+                argNode.type = new ExpressionTraverse().traverse(argNode.value, scope);
+            }
+
+            FunctionDeclarationNode function = findMethodByArguments(
+                scope,
+                functions,
+                call.name,
+                call.arguments,
+                leftType
+            );
+
+            if (function == null) {
+                if (functions.isEmpty()) {
+                    LoggerFacade.error("Unresolved symbol: '" + leftType + "." + call.name + "'", root);
+                } else {
+                    LoggerFacade.error("None of the overrides for '" +
+                        leftType + "." + call.name +
+                        "' match the argument list", root);
+                }
+                return null;
+            }
+
+            return new FunctionCallNode(
+                leftType,
+                leftExpr instanceof TypeReferenceNode ? null : leftExpr,
+                operator.equals("?."),
+                call.name,
+                call.arguments
+            );
+        }
+
+        LoggerFacade.error("Expected field or function", root);
+        return null;
+    }
+
+    private static ExpressionNode transformAddress(ExpressionBaseNode root, ExpressionNode ip, FlowType ipType, ExpressionNode port, FlowType portType, Scope scope) {
+        if (!TypeRecognize.isSameType(
+            ipType,
+            new FlowType(
+                "flow.Ip",
+                false,
+                false
+            ),
+            scope
+        )) {
+            LoggerFacade.error("Left side of an address declaration must be of type 'Ip'", root);
+            return null;
+        }
+
+        if (!TypeRecognize.isSameType(
+            portType,
+            new FlowType(
+                "flow.Int",
+                false,
+                true
+            ),
+            scope
+        )) {
+            LoggerFacade.error("Right side of an address declaration must be of type 'Int'", root);
+            return null;
+        }
+
+        return new ObjectNode(
+            new FlowType(
+                "flow.Address",
+                false,
+                false
+            ),
+            List.of(
+                new ArgumentNode(
+                    null,
+                    new ExpressionBaseNode(
+                        ip
+                    )
+                ),
+                new ArgumentNode(
+                    null,
+                    new ExpressionBaseNode(
+                        port
+                    )
+                )
+            )
+        );
     }
 
     private static ExpressionNode transformVariableReference(ExpressionBaseNode root, VariableReferenceNode referenceNode, Scope scope) {

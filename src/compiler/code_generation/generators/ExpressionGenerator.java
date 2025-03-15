@@ -15,6 +15,8 @@ import parser.nodes.expressions.UnaryOperatorNode;
 import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.literals.*;
+import parser.nodes.literals.ip.Ipv4LiteralNode;
+import parser.nodes.literals.ip.Ipv6LiteralNode;
 import parser.nodes.variable.FieldReferenceNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.files.FileWrapper;
@@ -211,8 +213,8 @@ public class ExpressionGenerator {
             objClass.typeParameters
         );
 
-        for (ArgumentNode arg : objNode.arguments) {
-            generate(arg.value.expression, mv, vm, file, arg.type);
+        for (int i = 0; i < objNode.arguments.size(); i++) {
+            generate(objNode.arguments.get(i).value.expression, mv, vm, file, constructorNode.parameters.get(i).type);
         }
 
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, fqObjectName, "<init>", constructorDescriptor, false);
@@ -449,6 +451,24 @@ public class ExpressionGenerator {
             mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "flow/String", "<init>", "(Ljava/lang/String;)V", false);
 
             return new FlowType("String", false, false);
+        } else if (literalNode instanceof Ipv4LiteralNode ipLiteral) {
+            mv.visitTypeInsn(Opcodes.NEW, "flow/IPv4");
+            mv.visitInsn(Opcodes.DUP);
+
+            mv.visitLdcInsn(ipLiteral.getValue());
+
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "flow/IPv4", "<init>", "(Ljava/lang/String;)V", false);
+
+            return new FlowType("IPv4", false, false);
+        } else if (literalNode instanceof Ipv6LiteralNode ipLiteral) {
+            mv.visitTypeInsn(Opcodes.NEW, "flow/IPv6");
+            mv.visitInsn(Opcodes.DUP);
+
+            mv.visitLdcInsn(ipLiteral.getValue());
+
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "flow/IPv6", "<init>", "(Ljava/lang/String;)V", false);
+
+            return new FlowType("IPv6", false, false);
         }
 
         mv.visitLdcInsn(literalNode.getValue());

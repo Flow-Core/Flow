@@ -85,6 +85,7 @@ public enum TokenType {
     POLARITY_OPERATOR("\\+|-"),
     BINARY_OPERATOR("==|!=|<=|>=|<|>|\\*|/|%|&&|\\|\\|"),
     EQUAL_OPERATOR("="),
+    CONNECTION_OPERATOR("~"),
     COLON_OPERATOR(":"),
     SAFE_CALL("\\?\\."),
     NOT_NULL_ASSERTION("!!"),

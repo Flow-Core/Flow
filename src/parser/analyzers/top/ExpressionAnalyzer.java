@@ -7,10 +7,7 @@ import parser.Parser;
 import parser.analyzers.TopAnalyzer;
 import parser.analyzers.inline.IdentifierReferenceAnalyzer;
 import parser.analyzers.inline.PrimaryAnalyzer;
-import parser.nodes.expressions.BinaryExpressionNode;
-import parser.nodes.expressions.ExpressionBaseNode;
-import parser.nodes.expressions.ExpressionNode;
-import parser.nodes.expressions.UnaryOperatorNode;
+import parser.nodes.expressions.*;
 
 import java.util.HashMap;
 
@@ -57,7 +54,7 @@ public class ExpressionAnalyzer extends TopAnalyzer {
                 rhs = parseBrackets(parser);
                 operatorSign = "[]";
             } else {
-                parser.consume(TokenType.BINARY_OPERATOR, TokenType.POLARITY_OPERATOR);
+                parser.consume(TokenType.BINARY_OPERATOR, TokenType.POLARITY_OPERATOR, TokenType.COLON_OPERATOR);
 
                 rhs = parseValue(parser);
             }
@@ -123,7 +120,9 @@ public class ExpressionAnalyzer extends TopAnalyzer {
         precedenceValues.put("*", 40);
         precedenceValues.put("/", 40);
         precedenceValues.put("%", 40);
+        precedenceValues.put("~", 50);
         precedenceValues.put("[", 100);
+        precedenceValues.put(":", 1000);
         precedenceValues.put(".", 10000);
         precedenceValues.put("?.", 10000);
         //</editor-fold>
