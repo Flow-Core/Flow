@@ -10,8 +10,10 @@ import parser.nodes.expressions.BinaryExpressionNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.expressions.UnaryOperatorNode;
+import parser.nodes.expressions.networking.ConnectionNode;
 import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeArgument;
 import parser.nodes.literals.LiteralNode;
 import parser.nodes.literals.NullLiteral;
 import parser.nodes.variable.FieldReferenceNode;
@@ -106,7 +108,7 @@ public class ExpressionTraverse {
                 rightType,
                 scope
             );
-        }
+        } else if (binaryExpression.operator.equals("~"))
 
         if (rightType == null || binaryExpression.right instanceof TypeReferenceNode) {
             LoggerFacade.error("Expression expected", root);
@@ -359,6 +361,44 @@ public class ExpressionTraverse {
         );
     }
 
+    private static ExpressionNode transformConnection(ExpressionBaseNode root, ExpressionNode address, FlowType addressType, ExpressionNode protocol, FlowType protocolType, Scope scope) {
+        if (!TypeRecognize.isSameType(
+            addressType,
+            new FlowType(
+                "flow.Address",
+                false,
+                false
+            ),
+            scope
+        )) {
+            LoggerFacade.error("Left side of a connection declaration must be of type 'Address'", root);
+            return null;
+        }
+
+        if (!(protocol instanceof TypeReferenceNode)) {
+            LoggerFacade.error("Right side of a connection declaration must be a type reference", root);
+            return null;
+        }
+
+        if (!TypeRecognize.isSameType(
+            protocolType,
+            new FlowType(
+                "flow.networking.Protocol",
+                false,
+                false
+            ),
+            scope
+        )) {
+            LoggerFacade.error("Protocol class must be a subtype of 'Protocol'", root);
+            return null;
+        }
+
+        return new ConnectionNode(
+            address,
+            (TypeReferenceNode) protocol
+        );
+    }
+
     private static ExpressionNode transformVariableReference(ExpressionBaseNode root, VariableReferenceNode referenceNode, Scope scope) {
         if (scope.type() == Scope.Type.FUNCTION && scope.findLocalVariable(referenceNode.variable))
             return referenceNode;
@@ -599,6 +639,18 @@ public class ExpressionTraverse {
             }
 
             return unaryExpression.operandType;
+        }
+        if (expression instanceof ConnectionNode connectionNode) {
+            return new FlowType(
+                "flow.networking.Socket",
+                false,
+                false,
+                List.of(
+                    new TypeArgument(
+                        connectionNode.protocolType.type
+                    )
+                )
+            );
         }
         if (expression instanceof LiteralNode literalNode) {
             return new FlowType(

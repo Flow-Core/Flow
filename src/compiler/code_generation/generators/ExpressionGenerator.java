@@ -12,6 +12,7 @@ import parser.nodes.components.ArgumentNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.expressions.UnaryOperatorNode;
+import parser.nodes.expressions.networking.ConnectionNode;
 import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.literals.*;
@@ -42,6 +43,8 @@ public class ExpressionGenerator {
             result = generateFieldReference(fieldReferenceNode, file.scope(), file, mv, vm, tracker, expectedType);
         } else if (expression instanceof UnaryOperatorNode unaryExpression) {
             result = generateUnary(unaryExpression, file.scope(), file, mv, vm, tracker, expectedType);
+        } else if (expression instanceof ConnectionNode connectionNode) {
+            result = generateConnection(connectionNode, file.scope(), file, mv, vm, tracker, expectedType);
         } else if (expression instanceof LiteralNode literalNode) {
             result = generateLiteral(literalNode, mv, tracker, expectedType);
         } else if (expression instanceof NullLiteral) {
@@ -54,6 +57,10 @@ public class ExpressionGenerator {
         if (expectedType == null) tracker.cleanStack();
 
         return result;
+    }
+
+    private static FlowType generateConnection(ConnectionNode connectionNode, Scope scope, FileWrapper file, MethodVisitor mv, VariableManager vm, StackTracker tracker, FlowType expectedType) {
+        return null;
     }
 
     private static FlowType generateVarReference(VariableReferenceNode refNode, VariableManager vm, StackTracker tracker, FlowType expectedType) {
@@ -161,7 +168,6 @@ public class ExpressionGenerator {
             return tracker.hang(declaration.returnType);
         }
     }
-
 
     private static FlowType generateFieldReference(FieldReferenceNode refNode, Scope scope, FileWrapper file, MethodVisitor mv, VariableManager vm, StackTracker tracker, FlowType expectedType) {
         final String holderFQName = FQNameMapper.getFQName(refNode.holderType.name, scope);
