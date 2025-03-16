@@ -303,14 +303,17 @@ public class ExpressionTraverse {
             return null;
         }
 
+        final Scope lambdaScope = new Scope(
+            scope,
+            FunctionLoader.loadParameters(lambdaNode.parameters),
+            lambdaNode,
+            Scope.Type.FUNCTION
+        );
+        lambdaNode.body.scope = lambdaScope;
+
         FunctionLoader.loadBody(
             lambdaNode,
-            new Scope(
-                null,
-                FunctionLoader.loadParameters(lambdaNode.parameters),
-                lambdaNode,
-                Scope.Type.FUNCTION
-            )
+            lambdaScope
         );
 
         return lambdaNode;
