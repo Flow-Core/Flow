@@ -92,12 +92,17 @@ public class FunctionLoader {
         scope.symbols().functions().add(functionDeclarationNode);
     }
 
-    public static void checkParameters(final List<ParameterNode> parameters, final Scope scope)  {
+    public static boolean checkParameters(final List<ParameterNode> parameters, final Scope scope)  {
+        boolean isValid = true;
+
         for (final ParameterNode parameter : parameters) {
             if (!TypeRecognize.findTypeDeclaration(parameter.type.name, scope)) {
                 LoggerFacade.error("Unresolved symbol: '" + parameter.type + "'", parameter);
+                isValid = false;
             }
         }
+
+        return isValid;
     }
 
     public static void loadBody(final FunctionDeclarationNode functionDeclarationNode, final Scope scope) {

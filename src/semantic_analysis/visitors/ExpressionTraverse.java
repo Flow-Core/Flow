@@ -12,11 +12,13 @@ import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.expressions.UnaryOperatorNode;
 import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.functions.LambdaExpressionNode;
 import parser.nodes.generics.TypeArgument;
 import parser.nodes.literals.LiteralNode;
 import parser.nodes.literals.NullLiteral;
 import parser.nodes.variable.FieldReferenceNode;
 import parser.nodes.variable.VariableReferenceNode;
+import semantic_analysis.loaders.FunctionLoader;
 import semantic_analysis.loaders.ModifierLoader;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.TypeRecognize;
@@ -35,6 +37,9 @@ public class ExpressionTraverse {
     private static ExpressionNode transformValue(ExpressionBaseNode root, ExpressionNode expression, Scope scope) {
         if (expression instanceof VariableReferenceNode referenceNode) {
             return transformVariableReference(root, referenceNode, scope);
+        }
+        if (expression instanceof LambdaExpressionNode lambdaExpressionNode) {
+            return transformLambda(root, lambdaExpressionNode, scope);
         }
 
         return transformOperators(root, expression, scope);
@@ -284,6 +289,27 @@ public class ExpressionTraverse {
         return null;
     }
 
+    private static ExpressionNode transformLambda(ExpressionBaseNode root, LambdaExpressionNode lambdaNode, Scope scope) {
+        if (!FunctionLoader.checkParameters(lambdaNode.parameters, scope)) return null;
+
+        if (!TypeRecognize.findTypeDeclaration(lambdaNode.returnType.name, scope)) {
+            LoggerFacade.error("Type '" + lambdaNode.returnType + "' was not found", root);
+            return null;
+        }
+
+        FunctionLoader.loadBody(
+            lambdaNode,
+            new Scope(
+                null,
+                FunctionLoader.loadParameters(lambdaNode.parameters),
+                lambdaNode,
+                Scope.Type.FUNCTION
+            )
+        );
+
+        return lambdaNode;
+    }
+
     private static FlowType determineType(ExpressionBaseNode root, ExpressionNode expression, Scope scope) {
         if (expression == null) {
             return null;
@@ -459,6 +485,13 @@ public class ExpressionTraverse {
 
             return !functionCall.isSafeCall ? function.returnType : new FlowType(function.returnType.name, true, false);
         }
+        if (expression instanceof LambdaExpressionNode lambdaNode) {
+            return new FlowType(
+                getLambdaInterfaceName(lambdaNode.parameters.size(), lambdaNode.returnType.name.equals("Void")),
+                false,
+                false
+            );
+        }
         if (expression instanceof FieldReferenceNode field) {
             FieldNode actualField;
             ClassDeclarationNode holder = null;
@@ -613,5 +646,15 @@ public class ExpressionTraverse {
     public enum UnaryOperatorType {
         MUTATING,
         FUNCTION
+    }
+
+    private static String getLambdaInterfaceName(int argumentCount, boolean hasReturnType) {
+        if (hasReturnType) {
+            return "Function" + argumentCount;
+        } else {
+            if (argumentCount == 0) return "Procedure";
+
+            return "Consumer" + argumentCount;
+        }
     }
 }
