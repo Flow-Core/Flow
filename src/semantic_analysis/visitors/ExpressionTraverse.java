@@ -292,7 +292,13 @@ public class ExpressionTraverse {
     private static ExpressionNode transformLambda(ExpressionBaseNode root, LambdaExpressionNode lambdaNode, Scope scope) {
         if (!FunctionLoader.checkParameters(lambdaNode.parameters, scope)) return null;
 
-        if (!TypeRecognize.findTypeDeclaration(lambdaNode.returnType.name, scope)) {
+        if (lambdaNode.returnType == null)
+            lambdaNode.returnType = new FlowType(
+                "Void",
+                false,
+                false
+            );
+        else if (!TypeRecognize.findTypeDeclaration(lambdaNode.returnType.name, scope)) {
             LoggerFacade.error("Type '" + lambdaNode.returnType + "' was not found", root);
             return null;
         }
