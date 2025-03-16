@@ -15,6 +15,7 @@ import parser.nodes.expressions.UnaryOperatorNode;
 import parser.nodes.expressions.networking.ConnectionNode;
 import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeArgument;
 import parser.nodes.literals.*;
 import parser.nodes.literals.ip.Ipv4LiteralNode;
 import parser.nodes.literals.ip.Ipv6LiteralNode;
@@ -60,7 +61,23 @@ public class ExpressionGenerator {
     }
 
     private static FlowType generateConnection(ConnectionNode connectionNode, Scope scope, FileWrapper file, MethodVisitor mv, VariableManager vm, StackTracker tracker, FlowType expectedType) {
-        return null;
+        // new Socket<PType>(address, PType::encode, PType::decode)
+
+        mv.visitTypeInsn(Opcodes.NEW, "flow/networking/Socket");
+        mv.visitInsn(Opcodes.DUP);
+
+        return tracker.hang(
+            new FlowType(
+                "flow.networking.Socket",
+                false,
+                false,
+                List.of(
+                    new TypeArgument(
+                        connectionNode.protocolType.type
+                    )
+                )
+            )
+        );
     }
 
     private static FlowType generateVarReference(VariableReferenceNode refNode, VariableManager vm, StackTracker tracker, FlowType expectedType) {
@@ -510,13 +527,24 @@ public class ExpressionGenerator {
     }
 
     private static class StackTracker {
-        private int hangingValues;
         private final MethodVisitor mv;
+        private int hangingValues;
 
         public StackTracker(MethodVisitor mv) {
             hangingValues = 0;
 
             this.mv = mv;
+        }
+
+        private static int getTypeSize(FlowType type) {
+            if (type == null) return 0;
+            if (!type.isPrimitive) return 1;
+
+            return switch (type.toString()) {
+                case "long", "double" -> 2;
+                case "void" -> 0;
+                default -> 1;
+            };
         }
 
         public FlowType hang(FlowType type) {
@@ -532,17 +560,6 @@ public class ExpressionGenerator {
             for (int i = 0; i < hangingValues; i++) {
                 mv.visitInsn(Opcodes.POP);
             }
-        }
-
-        private static int getTypeSize(FlowType type) {
-            if (type == null) return 0;
-            if (!type.isPrimitive) return 1;
-
-            return switch (type.toString()) {
-                case "long", "double" -> 2;
-                case "void" -> 0;
-                default -> 1;
-            };
         }
     }
 }

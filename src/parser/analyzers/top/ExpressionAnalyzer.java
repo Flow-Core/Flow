@@ -54,7 +54,7 @@ public class ExpressionAnalyzer extends TopAnalyzer {
                 rhs = parseBrackets(parser);
                 operatorSign = "[]";
             } else {
-                parser.consume(TokenType.BINARY_OPERATOR, TokenType.POLARITY_OPERATOR, TokenType.COLON_OPERATOR);
+                parser.consume(TokenType.BINARY_OPERATOR, TokenType.POLARITY_OPERATOR, TokenType.COLON_OPERATOR, TokenType.CONNECTION_OPERATOR);
 
                 rhs = parseValue(parser);
             }

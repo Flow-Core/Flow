@@ -108,7 +108,16 @@ public class ExpressionTraverse {
                 rightType,
                 scope
             );
-        } else if (binaryExpression.operator.equals("~"))
+        } else if (binaryExpression.operator.equals("~")) {
+            return transformConnection(
+                root,
+                binaryExpression.left,
+                leftType,
+                binaryExpression.right,
+                rightType,
+                scope
+            );
+        }
 
         if (rightType == null || binaryExpression.right instanceof TypeReferenceNode) {
             LoggerFacade.error("Expression expected", root);
