@@ -1,10 +1,11 @@
 package parser.nodes.generics;
 
 import parser.nodes.FlowType;
+import parser.nodes.expressions.ExpressionNode;
 
 import java.util.Objects;
 
-public class TypeArgument {
+public class TypeArgument implements ExpressionNode {
     public FlowType type;
 
     public TypeArgument(FlowType type) {

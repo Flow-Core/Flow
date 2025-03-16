@@ -12,6 +12,7 @@ import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.expressions.UnaryOperatorNode;
 import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeArgument;
 import parser.nodes.literals.LiteralNode;
 import parser.nodes.literals.NullLiteral;
 import parser.nodes.variable.FieldReferenceNode;
@@ -288,7 +289,30 @@ public class ExpressionTraverse {
             return null;
         }
         if (expression instanceof TypeReferenceNode typeReference) {
-            return typeReference.type;
+            if (!TypeRecognize.findTypeDeclaration(typeReference.type.name, scope)) {
+                LoggerFacade.error("Type '" + typeReference.type + "' was not found");
+                return null;
+            }
+
+            boolean isValid = true;
+            for (TypeArgument typeArgument : typeReference.type.typeArguments) {
+                isValid = isValid && determineType(root, typeArgument, scope) != null;
+            }
+
+            return isValid ? typeReference.type : null;
+        }
+        if (expression instanceof TypeArgument typeArgument) {
+            if (!TypeRecognize.findTypeDeclaration(typeArgument.type.name, scope)) {
+                LoggerFacade.error("Type '" + typeArgument.type + "' was not found");
+                return null;
+            }
+
+            boolean isValid = true;
+            for (TypeArgument typeSubArgument : typeArgument.type.typeArguments) {
+                isValid = isValid && determineType(root, typeSubArgument, scope) != null;
+            }
+
+            return isValid ? typeArgument.type : null;
         }
         if (expression instanceof ObjectNode objectNode) {
             if (objectNode.type.isNullable) {
@@ -302,6 +326,13 @@ public class ExpressionTraverse {
                 LoggerFacade.error("Unresolved symbol: '" + objectNode.type.name + "'", root);
                 return null;
             }
+
+            boolean isValid = true;
+            for (TypeArgument typeArgument : objectNode.type.typeArguments) {
+                isValid = isValid && determineType(root, typeArgument, scope) != null;
+            }
+
+            if (!isValid) return null;
 
             if (baseType instanceof InterfaceNode) {
                 LoggerFacade.error("Type '" + objectNode.type.name + "' does not have a constructor", root);
