@@ -61,7 +61,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
 
         final List<TypeParameterNode> typeParameters = parseTypeParameters(parser);
 
-        List<ParameterNode> parameters = parseParameters(parser);
+        List<ParameterNode> parameters = parseParametersList(parser);
 
         FlowType returnType = new FlowType("Void", false, true);
 
@@ -85,7 +85,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
         );
     }
 
-    public static List<ParameterNode> parseParameters(Parser parser) {
+    public static List<ParameterNode> parseParametersList(Parser parser) {
         parser.consume(TokenType.OPEN_PARENTHESES);
 
         List<ParameterNode> parameters = new ArrayList<>();
@@ -116,6 +116,38 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
             }
         }
         parser.advance();
+
+        return parameters;
+    }
+
+    public static List<ParameterNode> parseParameters(Parser parser) {
+        List<ParameterNode> parameters = new ArrayList<>();
+        while (!parser.check(TokenType.CLOSE_PARENTHESES)) {
+            String name = parser.consume(TokenType.IDENTIFIER).value();
+            parser.consume(TokenType.COLON_OPERATOR);
+
+            final FlowType type = FlowTypeAnalyzer.analyze(parser);
+
+            int line = parser.peek().line();
+
+            ExpressionNode defaultValue = null;
+            if (parser.peek().type() == TokenType.EQUAL_OPERATOR) {
+                parser.advance();
+                defaultValue = ExpressionAnalyzer.parseExpression(parser);
+            }
+
+            ParameterNode arg = (ParameterNode) ASTMetaDataStore.getInstance().addMetadata(new ParameterNode(
+                type,
+                name,
+                new ExpressionBaseNode(defaultValue, line, parser.file)
+            ), line, parser.file);
+
+            parameters.add(arg);
+
+            if (!parser.check(TokenType.CLOSE_PARENTHESES)) {
+                parser.consume(TokenType.COMMA);
+            }
+        }
 
         return parameters;
     }
