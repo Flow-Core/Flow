@@ -316,6 +316,12 @@ public class ExpressionTraverse {
             lambdaScope
         );
 
+        final TypeDeclarationNode containingType = scope.getContainingType();
+        if (containingType != null) {
+            containingType.methods.add(lambdaNode);
+        }
+        scope.symbols().functions().add(lambdaNode);
+
         return lambdaNode;
     }
 
