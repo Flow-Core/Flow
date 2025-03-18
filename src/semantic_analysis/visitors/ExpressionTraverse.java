@@ -37,6 +37,9 @@ public class ExpressionTraverse {
         if (expression instanceof LambdaExpressionNode lambdaExpressionNode) {
             return transformLambda(lambdaExpressionNode, scope);
         }
+        if (expression instanceof FunctionCallNode functionCallNode) {
+            return transformFunctionCall(root, functionCallNode, scope);
+        }
 
         return transformOperators(root, expression, scope);
     }
@@ -313,6 +316,57 @@ public class ExpressionTraverse {
         return lambdaNode;
     }
 
+    private static ExpressionNode transformFunctionCall(ExpressionBaseNode root, FunctionCallNode functionCallNode, Scope scope) {
+        final FunctionDeclarationNode function;
+
+        for (final ArgumentNode argNode : functionCallNode.arguments) {
+            argNode.type = new ExpressionTraverse().traverse(argNode.value, scope);
+        }
+
+        if (functionCallNode.callerType != null) {
+            final TypeDeclarationNode caller = TypeRecognize.getTypeDeclaration(functionCallNode.callerType.name, scope);
+
+            if (caller == null) {
+                LoggerFacade.error("Unresolved symbol: '" + functionCallNode.callerType + "'", root);
+                return null;
+            }
+
+            final List<FunctionDeclarationNode> functions = caller.findMethodsWithName(
+                scope,
+                functionCallNode.name
+            );
+
+            function = functions.stream()
+                .filter(method -> ParameterTraverse.compareParametersWithArguments(
+                    scope,
+                    method.parameters,
+                    functionCallNode.arguments,
+                    functionCallNode.callerType
+                )).findFirst().orElse(null);
+        } else {
+            function = ParameterTraverse.findMethodByArguments(
+                scope,
+                functionCallNode.name,
+                functionCallNode.arguments,
+                null
+            );
+        }
+
+        if (function == null) {
+            ExpressionNode varReference = transformVariableReference(root, new VariableReferenceNode(functionCallNode.name), scope);
+
+            return new FunctionCallNode(
+                determineType(root, varReference, scope),
+                varReference,
+                false,
+                "invoke",
+                functionCallNode.arguments
+            );
+        }
+
+        return functionCallNode;
+    }
+
     private static FlowType determineType(ExpressionBaseNode root, ExpressionNode expression, Scope scope) {
         if (expression == null) {
             return null;
@@ -429,10 +483,6 @@ public class ExpressionTraverse {
         }
         if (expression instanceof FunctionCallNode functionCall) {
             final FunctionDeclarationNode function;
-
-            for (final ArgumentNode argNode : functionCall.arguments) {
-                argNode.type = new ExpressionTraverse().traverse(argNode.value, scope);
-            }
 
             if (functionCall.callerType != null) {
                 final TypeDeclarationNode caller = TypeRecognize.getTypeDeclaration(functionCall.callerType.name, scope);
