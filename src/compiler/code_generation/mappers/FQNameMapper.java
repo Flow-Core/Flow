@@ -28,8 +28,12 @@ public class FQNameMapper {
             }
         }
 
-        if (!type.isPrimitive && !type.shouldBePrimitive() && !type.name.equals("Void")) {
-            return parseTypeArgumentSignature(type, scope, typeParameters, forSignature);
+        if (!type.shouldBePrimitive && !type.name.equals("Void")) {
+            if (!type.isPrimitive) {
+                return parseTypeArgumentSignature(type, scope, typeParameters, forSignature);
+            }
+
+            return "L" + getFQName(type.name, scope) + ";";
         }
 
         return switch (type.name) {

@@ -80,29 +80,15 @@ public class FunctionLoader {
             functionDeclarationNode.modifiers.add("public");
         }
 
-        if (functionDeclarationNode.returnType.shouldBePrimitive()) {
-            functionDeclarationNode.returnType.isPrimitive = true;
-        }
-        for (ParameterNode parameterNode : functionDeclarationNode.parameters) {
-            if (parameterNode.type.shouldBePrimitive()) {
-                parameterNode.type.isPrimitive = true;
-            }
-        }
-
         scope.symbols().functions().add(functionDeclarationNode);
     }
 
-    public static boolean checkParameters(final List<ParameterNode> parameters, final Scope scope)  {
-        boolean isValid = true;
-
+    public static void checkParameters(final List<ParameterNode> parameters, final Scope scope) {
         for (final ParameterNode parameter : parameters) {
             if (!TypeRecognize.findTypeDeclaration(parameter.type.name, scope)) {
                 LoggerFacade.error("Unresolved symbol: '" + parameter.type + "'", parameter);
-                isValid = false;
             }
         }
-
-        return isValid;
     }
 
     public static void loadBody(final FunctionDeclarationNode functionDeclarationNode, final Scope scope) {

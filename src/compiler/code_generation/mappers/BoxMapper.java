@@ -20,7 +20,7 @@ public class BoxMapper {
     }
 
     public static boolean needUnboxing(FlowType type, FlowType expectedType) {
-        return expectedType.isPrimitive && type.shouldBePrimitive();
+        return expectedType.isPrimitive && type.shouldBePrimitive;
     }
 
     public static void box(FlowType type, MethodVisitor mv) {

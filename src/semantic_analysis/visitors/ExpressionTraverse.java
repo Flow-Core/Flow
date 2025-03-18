@@ -6,6 +6,7 @@ import parser.nodes.ASTMetaDataStore;
 import parser.nodes.FlowType;
 import parser.nodes.classes.*;
 import parser.nodes.components.ArgumentNode;
+import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.BinaryExpressionNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
@@ -23,23 +24,18 @@ import semantic_analysis.loaders.ModifierLoader;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.TypeRecognize;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static semantic_analysis.visitors.ParameterTraverse.*;
 
 public class ExpressionTraverse {
-    public FlowType traverse(ExpressionBaseNode root, Scope scope) {
-        root.expression = transformValue(root, root.expression, scope);
-
-        return determineType(root, root.expression, scope);
-    }
-
     private static ExpressionNode transformValue(ExpressionBaseNode root, ExpressionNode expression, Scope scope) {
         if (expression instanceof VariableReferenceNode referenceNode) {
             return transformVariableReference(root, referenceNode, scope);
         }
         if (expression instanceof LambdaExpressionNode lambdaExpressionNode) {
-            return transformLambda(root, lambdaExpressionNode, scope);
+            return transformLambda(lambdaExpressionNode, scope);
         }
 
         return transformOperators(root, expression, scope);
@@ -289,31 +285,22 @@ public class ExpressionTraverse {
         return null;
     }
 
-    private static ExpressionNode transformLambda(ExpressionBaseNode root, LambdaExpressionNode lambdaNode, Scope scope) {
-        if (!FunctionLoader.checkParameters(lambdaNode.parameters, scope)) return null;
-
+    private static ExpressionNode transformLambda(LambdaExpressionNode lambdaNode, Scope scope) {
         if (lambdaNode.returnType == null)
             lambdaNode.returnType = new FlowType(
                 "Void",
                 false,
                 false
             );
-        else if (!TypeRecognize.findTypeDeclaration(lambdaNode.returnType.name, scope)) {
-            LoggerFacade.error("Type '" + lambdaNode.returnType + "' was not found", root);
-            return null;
-        }
 
-        final Scope lambdaScope = new Scope(
-            scope,
-            FunctionLoader.loadParameters(lambdaNode.parameters),
-            lambdaNode,
-            Scope.Type.FUNCTION
-        );
-        lambdaNode.body.scope = lambdaScope;
+        FunctionLoader.loadSignature(lambdaNode, scope, false);
+
+        for (ParameterNode parameterNode : lambdaNode.parameters)
+            parameterNode.type.shouldBePrimitive = false;
 
         FunctionLoader.loadBody(
             lambdaNode,
-            lambdaScope
+            lambdaNode.body.scope
         );
 
         final TypeDeclarationNode containingType = scope.getContainingType();
@@ -502,11 +489,7 @@ public class ExpressionTraverse {
             return !functionCall.isSafeCall ? function.returnType : new FlowType(function.returnType.name, true, false);
         }
         if (expression instanceof LambdaExpressionNode lambdaNode) {
-            return new FlowType(
-                getLambdaInterfaceName(lambdaNode.parameters.size(), !lambdaNode.returnType.name.equals("Void")),
-                false,
-                false
-            );
+            return getLambdaType(lambdaNode);
         }
         if (expression instanceof FieldReferenceNode field) {
             FieldNode actualField;
@@ -659,9 +642,23 @@ public class ExpressionTraverse {
         };
     }
 
-    public enum UnaryOperatorType {
-        MUTATING,
-        FUNCTION
+    private static FlowType getLambdaType(LambdaExpressionNode lambdaNode) {
+        final boolean hasReturnValue = !lambdaNode.returnType.name.equals("Void");
+
+        List<TypeArgument> typeArguments = new ArrayList<>(lambdaNode.parameters.stream()
+            .map((parameterNode) -> new TypeArgument(
+                parameterNode.type
+            )).toList());
+
+        if (hasReturnValue)
+            typeArguments.add(new TypeArgument(lambdaNode.returnType));
+
+        return new FlowType(
+            getLambdaInterfaceName(lambdaNode.parameters.size(), hasReturnValue),
+            false,
+            false,
+            typeArguments
+        );
     }
 
     private static String getLambdaInterfaceName(int argumentCount, boolean hasReturnType) {
@@ -672,5 +669,16 @@ public class ExpressionTraverse {
 
             return "Consumer" + argumentCount;
         }
+    }
+
+    public FlowType traverse(ExpressionBaseNode root, Scope scope) {
+        root.expression = transformValue(root, root.expression, scope);
+
+        return determineType(root, root.expression, scope);
+    }
+
+    public enum UnaryOperatorType {
+        MUTATING,
+        FUNCTION
     }
 }

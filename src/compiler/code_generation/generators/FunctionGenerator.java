@@ -101,7 +101,7 @@ public class FunctionGenerator {
         );
 
         for (ParameterNode parameterNode : functionDeclarationNode.parameters) {
-            if (parameterNode.type.shouldBePrimitive())
+            if (parameterNode.type.shouldBePrimitive)
                 parameterNode.type.isPrimitive = true;
 
             vm.recognizeVariable(parameterNode.name, parameterNode.type);

@@ -200,7 +200,7 @@ public class ExpressionGenerator {
             "invoke",
             "()L" + lambdaClass + ";",
             bootstrapHandle,
-            Type.getType(lambdaDescriptor),
+            Type.getType(getErasedDescriptor(lambdaExpressionNode.parameters.size(), !lambdaExpressionNode.returnType.name.equals("Void"))),
             implHandle,
             Type.getType(lambdaDescriptor)
         );
@@ -218,12 +218,28 @@ public class ExpressionGenerator {
         }
     }
 
+    private static String getErasedDescriptor(int parameterCount, boolean hasReturnValue) {
+        StringBuilder str = new StringBuilder("(");
+
+        str.append("Ljava/lang/Object;".repeat(Math.max(0, parameterCount)));
+
+        str.append(")");
+
+        if (hasReturnValue)
+            str.append("Ljava/lang/Object;");
+        else {
+            str.append("V");
+        }
+
+        return str.toString();
+    }
+
     private static FlowType generateFieldReference(FieldReferenceNode refNode, Scope scope, FileWrapper file, MethodVisitor mv, VariableManager vm, StackTracker tracker, FlowType expectedType) {
         final String holderFQName = FQNameMapper.getFQName(refNode.holderType.name, scope);
         final TypeDeclarationNode containingClass = TypeRecognize.getTypeDeclaration(refNode.holderType.name, scope);
         final String descriptor = FQNameMapper.getJVMName(refNode.type, scope, containingClass.typeParameters);
 
-        if (refNode.type.shouldBePrimitive()) refNode.type.isPrimitive = true;
+        if (refNode.type.shouldBePrimitive) refNode.type.isPrimitive = true;
 
         if (refNode.isStatic)
             mv.visitFieldInsn(Opcodes.GETSTATIC, holderFQName, refNode.name, descriptor);
