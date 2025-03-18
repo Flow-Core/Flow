@@ -48,7 +48,7 @@ public class ExpressionGenerator {
         } else if (expression instanceof LiteralNode literalNode) {
             result = generateLiteral(literalNode, mv, tracker, expectedType);
         } else if (expression instanceof LambdaExpressionNode lambdaExpressionNode) {
-            result = generateLambda(lambdaExpressionNode, file, mv);
+            result = generateLambda(lambdaExpressionNode, mv);
         } else if (expression instanceof NullLiteral) {
             mv.visitInsn(Opcodes.ACONST_NULL);
             tracker.hang(1);
@@ -167,14 +167,14 @@ public class ExpressionGenerator {
         }
     }
 
-    public static FlowType generateLambda(LambdaExpressionNode lambdaExpressionNode, FileWrapper file, MethodVisitor mv) {
+    public static FlowType generateLambda(LambdaExpressionNode lambdaExpressionNode, MethodVisitor mv) {
         final String lambdaDescriptor = getDescriptor(lambdaExpressionNode, lambdaExpressionNode.body.scope, new ArrayList<>());
 
         final String lambdaClass = parseLambdaClass(lambdaExpressionNode);
 
         final Handle implHandle = new Handle(
             Opcodes.H_INVOKESTATIC,
-            file.name() + "Fl",
+            lambdaExpressionNode.containingType.name,
             lambdaExpressionNode.name,
             lambdaDescriptor,
             false
@@ -200,7 +200,7 @@ public class ExpressionGenerator {
             "invoke",
             "()L" + lambdaClass + ";",
             bootstrapHandle,
-            "L" + lambdaClass + ";",
+            Type.getType(lambdaDescriptor),
             implHandle,
             Type.getType(lambdaDescriptor)
         );

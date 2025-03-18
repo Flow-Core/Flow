@@ -317,6 +317,7 @@ public class ExpressionTraverse {
         );
 
         final TypeDeclarationNode containingType = scope.getContainingType();
+        lambdaNode.containingType = containingType;
         if (containingType != null) {
             containingType.methods.add(lambdaNode);
         }
@@ -502,7 +503,7 @@ public class ExpressionTraverse {
         }
         if (expression instanceof LambdaExpressionNode lambdaNode) {
             return new FlowType(
-                getLambdaInterfaceName(lambdaNode.parameters.size(), lambdaNode.returnType.name.equals("Void")),
+                getLambdaInterfaceName(lambdaNode.parameters.size(), !lambdaNode.returnType.name.equals("Void")),
                 false,
                 false
             );

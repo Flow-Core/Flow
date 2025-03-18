@@ -22,7 +22,7 @@ public class TopLevelTransformer {
             new ArrayList<>(),
             new ArrayList<>(),
             new ArrayList<>(),
-            new ArrayList<>(),
+            new ArrayList<>(((ClassDeclarationNode) file.scope().currentParent()).methods),
             new ArrayList<>(),
             null,
             new BlockNode(new ArrayList<>())
