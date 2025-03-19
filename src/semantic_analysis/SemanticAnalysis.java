@@ -63,7 +63,7 @@ public class SemanticAnalysis {
             for (final FileWrapper file : currentPackageWrapper.files()) {
                 for (final ASTNode node : file.root().children) {
                     if (node instanceof FunctionDeclarationNode function)
-                        FunctionLoader.loadSignature(function, file.scope(), true);
+                        FunctionLoader.loadSignature(function, file.scope(), true, false);
                     else if (node instanceof ClassDeclarationNode classDeclaration) {
                         typeScopes.put(
                             classDeclaration,

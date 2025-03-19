@@ -22,7 +22,7 @@ import java.util.List;
 import static semantic_analysis.visitors.ClassTraverse.addThisToSymbolTable;
 
 public class FunctionLoader {
-    public static void loadSignature(final FunctionDeclarationNode functionDeclarationNode, final Scope scope, boolean isInterface) {
+    public static void loadSignature(final FunctionDeclarationNode functionDeclarationNode, final Scope scope, boolean isInterface, boolean isLambda) {
         ModifierLoader.load(
             functionDeclarationNode.modifiers,
             isInterface ?
@@ -80,19 +80,28 @@ public class FunctionLoader {
             functionDeclarationNode.modifiers.add("public");
         }
 
-        if (functionDeclarationNode.returnType.shouldBePrimitive()) {
-            functionDeclarationNode.returnType.isPrimitive = true;
-        }
-        for (ParameterNode parameterNode : functionDeclarationNode.parameters) {
-            if (parameterNode.type.shouldBePrimitive()) {
-                parameterNode.type.isPrimitive = true;
+        if (!isLambda) {
+            if (functionDeclarationNode.returnType.shouldBePrimitive) {
+                functionDeclarationNode.returnType.isPrimitive = true;
+            }
+
+            for (ParameterNode parameterNode : functionDeclarationNode.parameters) {
+                if (parameterNode.type.shouldBePrimitive) {
+                    parameterNode.type.isPrimitive = true;
+                }
+            }
+        } else {
+            functionDeclarationNode.returnType.shouldBePrimitive = false;
+
+            for (ParameterNode parameterNode : functionDeclarationNode.parameters) {
+                parameterNode.type.shouldBePrimitive = false;
             }
         }
 
         scope.symbols().functions().add(functionDeclarationNode);
     }
 
-    public static void checkParameters(final List<ParameterNode> parameters, final Scope scope)  {
+    public static void checkParameters(final List<ParameterNode> parameters, final Scope scope) {
         for (final ParameterNode parameter : parameters) {
             if (!TypeRecognize.findTypeDeclaration(parameter.type.name, scope)) {
                 LoggerFacade.error("Unresolved symbol: '" + parameter.type + "'", parameter);

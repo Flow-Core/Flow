@@ -1,6 +1,7 @@
 package semantic_analysis.loaders;
 
 import parser.nodes.ASTNode;
+import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.packages.PackageNode;
 import semantic_analysis.files.FileWrapper;
@@ -42,12 +43,33 @@ public class PackageMapper {
                 path -> new PackageWrapper(path, new ArrayList<>(), new Scope(null, SymbolTable.getEmptySymbolTable(), null, Scope.Type.TOP))
             );
 
-            Scope fileScope = new Scope(packageWrapper.scope(), SymbolTable.getEmptySymbolTable(), null, Scope.Type.TOP);
-            FileWrapper fileWrapper = new FileWrapper(root, fileScope, fileName);
+            FileWrapper fileWrapper = getFileWrapper(packageWrapper, fileName, root);
 
             packageWrapper.files().add(fileWrapper);
         }
 
         return packages;
+    }
+
+    private static FileWrapper getFileWrapper(PackageWrapper packageWrapper, String fileName, BlockNode root) {
+        Scope fileScope = new Scope(
+            packageWrapper.scope(),
+            SymbolTable.getEmptySymbolTable(),
+            new ClassDeclarationNode(
+                fileName + "Fl",
+                List.of("public"),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                null,
+                new BlockNode(new ArrayList<>())
+            ),
+            Scope.Type.TOP
+        );
+        return new FileWrapper(root, fileScope, fileName);
     }
 }

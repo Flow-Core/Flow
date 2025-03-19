@@ -6,34 +6,39 @@ import parser.nodes.ASTMetaDataStore;
 import parser.nodes.FlowType;
 import parser.nodes.classes.*;
 import parser.nodes.components.ArgumentNode;
+import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.BinaryExpressionNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
 import parser.nodes.expressions.UnaryOperatorNode;
 import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.functions.LambdaExpressionNode;
+import parser.nodes.generics.TypeArgument;
 import parser.nodes.literals.LiteralNode;
 import parser.nodes.literals.NullLiteral;
 import parser.nodes.variable.FieldReferenceNode;
 import parser.nodes.variable.VariableReferenceNode;
+import semantic_analysis.loaders.FunctionLoader;
 import semantic_analysis.loaders.ModifierLoader;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.TypeRecognize;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static semantic_analysis.visitors.ParameterTraverse.*;
 
 public class ExpressionTraverse {
-    public FlowType traverse(ExpressionBaseNode root, Scope scope) {
-        root.expression = transformValue(root, root.expression, scope);
-
-        return determineType(root, root.expression, scope);
-    }
-
     private static ExpressionNode transformValue(ExpressionBaseNode root, ExpressionNode expression, Scope scope) {
         if (expression instanceof VariableReferenceNode referenceNode) {
             return transformVariableReference(root, referenceNode, scope);
+        }
+        if (expression instanceof LambdaExpressionNode lambdaExpressionNode) {
+            return transformLambda(lambdaExpressionNode, scope);
+        }
+        if (expression instanceof FunctionCallNode functionCallNode) {
+            return transformFunctionCall(root, functionCallNode, scope);
         }
 
         return transformOperators(root, expression, scope);
@@ -283,12 +288,114 @@ public class ExpressionTraverse {
         return null;
     }
 
+    private static ExpressionNode transformLambda(LambdaExpressionNode lambdaNode, Scope scope) {
+        if (lambdaNode.returnType == null)
+            lambdaNode.returnType = new FlowType(
+                "Void",
+                false,
+                false
+            );
+
+        FunctionLoader.loadSignature(lambdaNode, scope, false, true);
+
+        for (ParameterNode parameterNode : lambdaNode.parameters)
+            parameterNode.type.shouldBePrimitive = false;
+
+        FunctionLoader.loadBody(
+            lambdaNode,
+            lambdaNode.body.scope
+        );
+
+        final TypeDeclarationNode containingType = scope.getContainingType();
+        lambdaNode.containingType = containingType;
+        if (containingType != null) {
+            containingType.methods.add(lambdaNode);
+        }
+        scope.symbols().functions().add(lambdaNode);
+
+        return lambdaNode;
+    }
+
+    private static ExpressionNode transformFunctionCall(ExpressionBaseNode root, FunctionCallNode functionCallNode, Scope scope) {
+        final FunctionDeclarationNode function;
+
+        for (final ArgumentNode argNode : functionCallNode.arguments) {
+            argNode.type = new ExpressionTraverse().traverse(argNode.value, scope);
+        }
+
+        if (functionCallNode.callerType != null) {
+            final TypeDeclarationNode caller = TypeRecognize.getTypeDeclaration(functionCallNode.callerType.name, scope);
+
+            if (caller == null) {
+                LoggerFacade.error("Unresolved symbol: '" + functionCallNode.callerType + "'", root);
+                return null;
+            }
+
+            final List<FunctionDeclarationNode> functions = caller.findMethodsWithName(
+                scope,
+                functionCallNode.name
+            );
+
+            function = functions.stream()
+                .filter(method -> ParameterTraverse.compareParametersWithArguments(
+                    scope,
+                    method.parameters,
+                    functionCallNode.arguments,
+                    functionCallNode.callerType
+                )).findFirst().orElse(null);
+        } else {
+            function = ParameterTraverse.findMethodByArguments(
+                scope,
+                functionCallNode.name,
+                functionCallNode.arguments,
+                null
+            );
+        }
+
+        if (function == null) {
+            ExpressionNode varReference = transformVariableReference(root, new VariableReferenceNode(functionCallNode.name), scope);
+
+            return new FunctionCallNode(
+                determineType(root, varReference, scope),
+                varReference,
+                false,
+                "invoke",
+                functionCallNode.arguments
+            );
+        }
+
+        return functionCallNode;
+    }
+
     private static FlowType determineType(ExpressionBaseNode root, ExpressionNode expression, Scope scope) {
         if (expression == null) {
             return null;
         }
         if (expression instanceof TypeReferenceNode typeReference) {
-            return typeReference.type;
+            if (!TypeRecognize.findTypeDeclaration(typeReference.type.name, scope)) {
+                LoggerFacade.error("Type '" + typeReference.type + "' was not found");
+                return null;
+            }
+
+            boolean isValid = true;
+            for (TypeArgument typeArgument : typeReference.type.typeArguments) {
+                isValid = isValid && determineType(root, typeArgument, scope) != null;
+            }
+
+            return isValid ? typeReference.type : null;
+        }
+        if (expression instanceof TypeArgument typeArgument) {
+            if (!TypeRecognize.findTypeDeclaration(typeArgument.type.name, scope)) {
+                LoggerFacade.error("Type '" + typeArgument.type + "' was not found");
+                return null;
+            }
+
+            boolean isValid = true;
+            for (TypeArgument typeSubArgument : typeArgument.type.typeArguments) {
+                isValid = isValid && determineType(root, typeSubArgument, scope) != null;
+            }
+
+            return isValid ? typeArgument.type : null;
         }
         if (expression instanceof ObjectNode objectNode) {
             if (objectNode.type.isNullable) {
@@ -302,6 +409,13 @@ public class ExpressionTraverse {
                 LoggerFacade.error("Unresolved symbol: '" + objectNode.type.name + "'", root);
                 return null;
             }
+
+            boolean isValid = true;
+            for (TypeArgument typeArgument : objectNode.type.typeArguments) {
+                isValid = isValid && determineType(root, typeArgument, scope) != null;
+            }
+
+            if (!isValid) return null;
 
             if (baseType instanceof InterfaceNode) {
                 LoggerFacade.error("Type '" + objectNode.type.name + "' does not have a constructor", root);
@@ -370,10 +484,6 @@ public class ExpressionTraverse {
         if (expression instanceof FunctionCallNode functionCall) {
             final FunctionDeclarationNode function;
 
-            for (final ArgumentNode argNode : functionCall.arguments) {
-                argNode.type = new ExpressionTraverse().traverse(argNode.value, scope);
-            }
-
             if (functionCall.callerType != null) {
                 final TypeDeclarationNode caller = TypeRecognize.getTypeDeclaration(functionCall.callerType.name, scope);
 
@@ -427,6 +537,9 @@ public class ExpressionTraverse {
             }
 
             return !functionCall.isSafeCall ? function.returnType : new FlowType(function.returnType.name, true, false);
+        }
+        if (expression instanceof LambdaExpressionNode lambdaNode) {
+            return getLambdaType(lambdaNode);
         }
         if (expression instanceof FieldReferenceNode field) {
             FieldNode actualField;
@@ -577,6 +690,41 @@ public class ExpressionTraverse {
             default:
                 yield UnaryOperatorType.FUNCTION;
         };
+    }
+
+    private static FlowType getLambdaType(LambdaExpressionNode lambdaNode) {
+        final boolean hasReturnValue = !lambdaNode.returnType.name.equals("Void");
+
+        List<TypeArgument> typeArguments = new ArrayList<>(lambdaNode.parameters.stream()
+            .map((parameterNode) -> new TypeArgument(
+                parameterNode.type
+            )).toList());
+
+        if (hasReturnValue)
+            typeArguments.add(new TypeArgument(lambdaNode.returnType));
+
+        return new FlowType(
+            getLambdaInterfaceName(lambdaNode.parameters.size(), hasReturnValue),
+            false,
+            false,
+            typeArguments
+        );
+    }
+
+    public static String getLambdaInterfaceName(int argumentCount, boolean hasReturnType) {
+        if (hasReturnType) {
+            return "Function" + argumentCount;
+        } else {
+            if (argumentCount == 0) return "Procedure";
+
+            return "Consumer" + argumentCount;
+        }
+    }
+
+    public FlowType traverse(ExpressionBaseNode root, Scope scope) {
+        root.expression = transformValue(root, root.expression, scope);
+
+        return determineType(root, root.expression, scope);
     }
 
     public enum UnaryOperatorType {

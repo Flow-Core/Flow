@@ -28,7 +28,7 @@ public class FQNameMapper {
             }
         }
 
-        if (!type.isPrimitive && !type.shouldBePrimitive() && !type.name.equals("Void")) {
+        if (!type.isPrimitive && !type.shouldBePrimitive && !type.name.equals("Void")) {
             return parseTypeArgumentSignature(type, scope, typeParameters, forSignature);
         }
 

@@ -13,7 +13,7 @@ import parser.nodes.components.ParameterNode;
 
 import java.util.List;
 
-import static parser.analyzers.top.FunctionDeclarationAnalyzer.parseParameters;
+import static parser.analyzers.top.FunctionDeclarationAnalyzer.parseParametersList;
 
 public class ConstructorAnalyzer extends TopAnalyzer {
     @Override
@@ -25,7 +25,7 @@ public class ConstructorAnalyzer extends TopAnalyzer {
         TopAnalyzer.testFor(parser, TokenType.CONSTRUCTOR);
         final int line = parser.peek().line();
 
-        final List<ParameterNode> parameters = parseParameters(parser);
+        final List<ParameterNode> parameters = parseParametersList(parser);
 
         parser.consume(TokenType.OPEN_BRACES);
         final BlockNode block = BlockAnalyzer.parse(
