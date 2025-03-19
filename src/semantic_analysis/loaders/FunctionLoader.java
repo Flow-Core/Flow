@@ -84,10 +84,17 @@ public class FunctionLoader {
             if (functionDeclarationNode.returnType.shouldBePrimitive) {
                 functionDeclarationNode.returnType.isPrimitive = true;
             }
+
             for (ParameterNode parameterNode : functionDeclarationNode.parameters) {
                 if (parameterNode.type.shouldBePrimitive) {
                     parameterNode.type.isPrimitive = true;
                 }
+            }
+        } else {
+            functionDeclarationNode.returnType.shouldBePrimitive = false;
+
+            for (ParameterNode parameterNode : functionDeclarationNode.parameters) {
+                parameterNode.type.shouldBePrimitive = false;
             }
         }
 

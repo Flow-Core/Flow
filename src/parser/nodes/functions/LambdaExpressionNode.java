@@ -14,7 +14,7 @@ public class LambdaExpressionNode extends FunctionDeclarationNode implements Exp
     public TypeDeclarationNode containingType;
 
     public LambdaExpressionNode(FlowType returnType, List<String> modifiers, List<ParameterNode> parameters, BodyNode body) {
-        super("lambda$" + lambdaCounter, returnType, modifiers, parameters, new ArrayList<>(), body);
+        super("lambda$" + lambdaCounter++, returnType, modifiers, parameters, new ArrayList<>(), body);
         modifiers.add("public");
         modifiers.add("static");
     }

@@ -69,9 +69,16 @@ public class PrimaryAnalyzer {
                 final BlockNode block =  BlockAnalyzer.parse(parser, AnalyzerDeclarations.getStatementScope(), TokenType.CLOSE_BRACES);
                 parser.consume(TokenType.CLOSE_BRACES);
 
+                FlowType returnType = new FlowType("Void", false, true);
+
+                if (parser.check(TokenType.ARROW_OPERATOR)) {
+                    parser.advance();
+                    returnType = FlowTypeAnalyzer.analyze(parser);
+                }
+
                 yield (ExpressionNode) ASTMetaDataStore.getInstance().addMetadata(
                     new LambdaExpressionNode(
-                        null,
+                        returnType,
                         new ArrayList<>(),
                         parameters,
                         new BodyNode(block)
