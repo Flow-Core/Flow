@@ -98,8 +98,9 @@ public class VariableLoader {
             fieldNode.modifiers.add("static");
         }
 
-        if (fieldNode.initialization.declaration.type != null && fieldNode.initialization.declaration.type.shouldBePrimitive()) {
+        if (fieldNode.initialization.declaration.type != null && fieldNode.initialization.declaration.type.shouldBePrimitive) {
             fieldNode.initialization.declaration.type.isPrimitive = true;
+            fieldNode.initialization.declaration.type.shouldBePrimitive = false;
         }
 
         scope.symbols().fields().add(fieldNode);

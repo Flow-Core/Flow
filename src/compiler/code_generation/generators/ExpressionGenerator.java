@@ -3,9 +3,7 @@ package compiler.code_generation.generators;
 import compiler.code_generation.manager.VariableManager;
 import compiler.code_generation.mappers.BoxMapper;
 import compiler.code_generation.mappers.FQNameMapper;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.*;
 import parser.nodes.FlowType;
 import parser.nodes.classes.*;
 import parser.nodes.components.ArgumentNode;
@@ -15,6 +13,7 @@ import parser.nodes.expressions.UnaryOperatorNode;
 import parser.nodes.expressions.networking.ConnectionNode;
 import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.functions.LambdaExpressionNode;
 import parser.nodes.generics.TypeArgument;
 import parser.nodes.literals.*;
 import parser.nodes.literals.ip.Ipv4LiteralNode;
@@ -26,8 +25,14 @@ import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.TypeRecognize;
 import semantic_analysis.visitors.ParameterTraverse;
 
+import java.lang.invoke.CallSite;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
+
+import static compiler.code_generation.generators.FunctionGenerator.getDescriptor;
 
 public class ExpressionGenerator {
     public static FlowType generate(ExpressionNode expression, MethodVisitor mv, VariableManager vm, FileWrapper file, FlowType expectedType) {
@@ -48,6 +53,8 @@ public class ExpressionGenerator {
             result = generateConnection(connectionNode, file.scope(), file, mv, vm, tracker, expectedType);
         } else if (expression instanceof LiteralNode literalNode) {
             result = generateLiteral(literalNode, mv, tracker, expectedType);
+        } else if (expression instanceof LambdaExpressionNode lambdaExpressionNode) {
+            result = generateLambda(lambdaExpressionNode, mv);
         } else if (expression instanceof NullLiteral) {
             mv.visitInsn(Opcodes.ACONST_NULL);
             tracker.hang(1);
@@ -97,7 +104,7 @@ public class ExpressionGenerator {
             }
 
             final String fqTopLevelName = FQNameMapper.getFQName(declaration, scope);
-            final String descriptor = FunctionGenerator.getDescriptor(declaration, scope, new ArrayList<>());
+            final String descriptor = getDescriptor(declaration, scope, new ArrayList<>());
 
             processFunctionArguments(
                 declaration.parameters,
@@ -128,7 +135,7 @@ public class ExpressionGenerator {
                 funcCallNode.arguments,
                 funcCallNode.callerType
             );
-            final String descriptor = FunctionGenerator.getDescriptor(declaration, scope, caller.typeParameters);
+            final String descriptor = getDescriptor(declaration, scope, caller.typeParameters);
             final boolean isStatic = declaration.modifiers.contains("static");
 
             final Label endLabel = new Label();
@@ -186,12 +193,82 @@ public class ExpressionGenerator {
         }
     }
 
+    public static FlowType generateLambda(LambdaExpressionNode lambdaExpressionNode, MethodVisitor mv) {
+        final String lambdaDescriptor = getDescriptor(lambdaExpressionNode, lambdaExpressionNode.body.scope, new ArrayList<>());
+
+        final String lambdaClass = parseLambdaClass(lambdaExpressionNode);
+
+        final Handle implHandle = new Handle(
+            Opcodes.H_INVOKESTATIC,
+            lambdaExpressionNode.containingType.name,
+            lambdaExpressionNode.name,
+            lambdaDescriptor,
+            false
+        );
+
+        final Handle bootstrapHandle = new Handle(
+            Opcodes.H_INVOKESTATIC,
+            "flow/LambdaMetaFactory",
+            "metaFactory",
+            MethodType.methodType(
+                CallSite.class,
+                MethodHandles.Lookup.class,
+                String.class,
+                MethodType.class,
+                MethodType.class,
+                MethodHandle.class,
+                MethodType.class
+            ).toMethodDescriptorString(),
+            false
+        );
+
+        mv.visitInvokeDynamicInsn(
+            "invoke",
+            "()L" + lambdaClass + ";",
+            bootstrapHandle,
+            Type.getType(getErasedDescriptor(lambdaExpressionNode.parameters.size(), !lambdaExpressionNode.returnType.name.equals("Void"))),
+            implHandle,
+            Type.getType(lambdaDescriptor)
+        );
+
+        return new FlowType(lambdaClass, false, false);
+    }
+
+    private static String parseLambdaClass(LambdaExpressionNode lambdaExpressionNode) {
+        final int params = lambdaExpressionNode.parameters.size();
+
+        if (lambdaExpressionNode.returnType.name.equals("Void")) {
+            return (params == 0) ? "flow/Procedure" : "flow/Consumer" + params;
+        } else {
+            return "flow/Function" + params;
+        }
+    }
+
+    private static String getErasedDescriptor(int parameterCount, boolean hasReturnValue) {
+        StringBuilder str = new StringBuilder("(");
+
+        str.append("Ljava/lang/Object;".repeat(Math.max(0, parameterCount)));
+
+        str.append(")");
+
+        if (hasReturnValue)
+            str.append("Ljava/lang/Object;");
+        else {
+            str.append("V");
+        }
+
+        return str.toString();
+    }
+
     private static FlowType generateFieldReference(FieldReferenceNode refNode, Scope scope, FileWrapper file, MethodVisitor mv, VariableManager vm, StackTracker tracker, FlowType expectedType) {
         final String holderFQName = FQNameMapper.getFQName(refNode.holderType.name, scope);
         final TypeDeclarationNode containingClass = TypeRecognize.getTypeDeclaration(refNode.holderType.name, scope);
         final String descriptor = FQNameMapper.getJVMName(refNode.type, scope, containingClass.typeParameters);
 
-        if (refNode.type.shouldBePrimitive()) refNode.type.isPrimitive = true;
+        if (refNode.type.shouldBePrimitive) {
+            refNode.type.isPrimitive = true;
+            refNode.type.shouldBePrimitive = false;
+        }
 
         if (refNode.isStatic)
             mv.visitFieldInsn(Opcodes.GETSTATIC, holderFQName, refNode.name, descriptor);
@@ -229,7 +306,7 @@ public class ExpressionGenerator {
             throw new RuntimeException("Constructor " + objNode.type.name + " was not found");
         }
 
-        final String constructorDescriptor = FunctionGenerator.getDescriptor(
+        final String constructorDescriptor = getDescriptor(
             constructorNode.parameters,
             new FlowType("Void", false, true),
             scope,
@@ -527,24 +604,13 @@ public class ExpressionGenerator {
     }
 
     private static class StackTracker {
-        private final MethodVisitor mv;
         private int hangingValues;
+        private final MethodVisitor mv;
 
         public StackTracker(MethodVisitor mv) {
             hangingValues = 0;
 
             this.mv = mv;
-        }
-
-        private static int getTypeSize(FlowType type) {
-            if (type == null) return 0;
-            if (!type.isPrimitive) return 1;
-
-            return switch (type.toString()) {
-                case "long", "double" -> 2;
-                case "void" -> 0;
-                default -> 1;
-            };
         }
 
         public FlowType hang(FlowType type) {
@@ -560,6 +626,17 @@ public class ExpressionGenerator {
             for (int i = 0; i < hangingValues; i++) {
                 mv.visitInsn(Opcodes.POP);
             }
+        }
+
+        private static int getTypeSize(FlowType type) {
+            if (type == null) return 0;
+            if (!type.isPrimitive) return 1;
+
+            return switch (type.toString()) {
+                case "long", "double" -> 2;
+                case "void" -> 0;
+                default -> 1;
+            };
         }
     }
 }

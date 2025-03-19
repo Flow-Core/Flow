@@ -14,12 +14,13 @@ import semantic_analysis.loaders.VariableLoader;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.SymbolTable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ClassTraverse {
     public static void loadMethodSignatures(TypeDeclarationNode typeDeclaration, Scope scope, boolean isInterface) {
         for (final FunctionDeclarationNode method : typeDeclaration.methods) {
-            FunctionLoader.loadSignature(method, scope, isInterface);
+            FunctionLoader.loadSignature(method, scope, isInterface, false);
         }
     }
 
@@ -30,7 +31,8 @@ public class ClassTraverse {
     }
 
     public static void loadMethodBodies(ClassDeclarationNode classDeclaration, Scope scope) {
-        for (final FunctionDeclarationNode method : classDeclaration.methods) {
+        final List<FunctionDeclarationNode> methods = new ArrayList<>(classDeclaration.methods);
+        for (final FunctionDeclarationNode method : methods) {
             FunctionLoader.loadBody(method, scope);
         }
     }

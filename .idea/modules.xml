@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/FlowLang.iml" filepath="$PROJECT_DIR$/FlowLang.iml" />
+      <module fileurl="file://$PROJECT_DIR$/flow-stdlib/flow-stdlib.iml" filepath="$PROJECT_DIR$/flow-stdlib/flow-stdlib.iml" />
     </modules>
   </component>
 </project>

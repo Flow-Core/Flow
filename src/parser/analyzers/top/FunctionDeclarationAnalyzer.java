@@ -61,18 +61,13 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
 
         final List<TypeParameterNode> typeParameters = parseTypeParameters(parser);
 
-        List<ParameterNode> parameters = parseParameters(parser);
+        List<ParameterNode> parameters = parseParametersList(parser);
 
         FlowType returnType = new FlowType("Void", false, true);
 
         if (parser.check(TokenType.COLON_OPERATOR)) {
             parser.advance();
-            returnType = new FlowType(parser.consume(TokenType.IDENTIFIER).value(), false, false);
-
-            if (parser.check(TokenType.NULLABLE)) {
-                parser.advance();
-                returnType.isNullable = true;
-            }
+            returnType = FlowTypeAnalyzer.analyze(parser);
         }
 
         return new FunctionDeclarationNode(
@@ -85,7 +80,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
         );
     }
 
-    public static List<ParameterNode> parseParameters(Parser parser) {
+    public static List<ParameterNode> parseParametersList(Parser parser) {
         parser.consume(TokenType.OPEN_PARENTHESES);
 
         List<ParameterNode> parameters = new ArrayList<>();

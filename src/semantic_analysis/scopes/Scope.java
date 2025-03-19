@@ -111,7 +111,7 @@ public record Scope (
         if (currentParent instanceof TypeDeclarationNode typeDeclaration)
             return typeDeclaration;
 
-        return parent.getContainingType();
+        return parent == null ? null : parent.getContainingType();
     }
 
     public enum Type {
