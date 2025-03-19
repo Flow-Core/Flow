@@ -26,6 +26,8 @@ public class FlowType {
         this.name = name;
         this.isNullable = isNullable;
         this.isPrimitive = isPrimitive;
+        shouldBePrimitive = !isPrimitive && !isNullable && isPrimitiveType();
+
         this.typeArguments = typeArguments;
     }
 

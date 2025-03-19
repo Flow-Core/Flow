@@ -239,7 +239,10 @@ public class ExpressionGenerator {
         final TypeDeclarationNode containingClass = TypeRecognize.getTypeDeclaration(refNode.holderType.name, scope);
         final String descriptor = FQNameMapper.getJVMName(refNode.type, scope, containingClass.typeParameters);
 
-        if (refNode.type.shouldBePrimitive) refNode.type.isPrimitive = true;
+        if (refNode.type.shouldBePrimitive) {
+            refNode.type.isPrimitive = true;
+            refNode.type.shouldBePrimitive = false;
+        }
 
         if (refNode.isStatic)
             mv.visitFieldInsn(Opcodes.GETSTATIC, holderFQName, refNode.name, descriptor);

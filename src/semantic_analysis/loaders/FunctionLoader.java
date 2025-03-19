@@ -22,7 +22,7 @@ import java.util.List;
 import static semantic_analysis.visitors.ClassTraverse.addThisToSymbolTable;
 
 public class FunctionLoader {
-    public static void loadSignature(final FunctionDeclarationNode functionDeclarationNode, final Scope scope, boolean isInterface) {
+    public static void loadSignature(final FunctionDeclarationNode functionDeclarationNode, final Scope scope, boolean isInterface, boolean isLambda) {
         ModifierLoader.load(
             functionDeclarationNode.modifiers,
             isInterface ?
@@ -78,6 +78,17 @@ public class FunctionLoader {
 
         if (ModifierLoader.isDefaultPublic(functionDeclarationNode.modifiers)) {
             functionDeclarationNode.modifiers.add("public");
+        }
+
+        if (!isLambda) {
+            if (functionDeclarationNode.returnType.shouldBePrimitive) {
+                functionDeclarationNode.returnType.isPrimitive = true;
+            }
+            for (ParameterNode parameterNode : functionDeclarationNode.parameters) {
+                if (parameterNode.type.shouldBePrimitive) {
+                    parameterNode.type.isPrimitive = true;
+                }
+            }
         }
 
         scope.symbols().functions().add(functionDeclarationNode);

@@ -67,12 +67,7 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
 
         if (parser.check(TokenType.COLON_OPERATOR)) {
             parser.advance();
-            returnType = new FlowType(parser.consume(TokenType.IDENTIFIER).value(), false, false);
-
-            if (parser.check(TokenType.NULLABLE)) {
-                parser.advance();
-                returnType.isNullable = true;
-            }
+            returnType = FlowTypeAnalyzer.analyze(parser);
         }
 
         return new FunctionDeclarationNode(
@@ -116,38 +111,6 @@ public class FunctionDeclarationAnalyzer extends TopAnalyzer {
             }
         }
         parser.advance();
-
-        return parameters;
-    }
-
-    public static List<ParameterNode> parseParameters(Parser parser) {
-        List<ParameterNode> parameters = new ArrayList<>();
-        while (!parser.check(TokenType.CLOSE_PARENTHESES)) {
-            String name = parser.consume(TokenType.IDENTIFIER).value();
-            parser.consume(TokenType.COLON_OPERATOR);
-
-            final FlowType type = FlowTypeAnalyzer.analyze(parser);
-
-            int line = parser.peek().line();
-
-            ExpressionNode defaultValue = null;
-            if (parser.peek().type() == TokenType.EQUAL_OPERATOR) {
-                parser.advance();
-                defaultValue = ExpressionAnalyzer.parseExpression(parser);
-            }
-
-            ParameterNode arg = (ParameterNode) ASTMetaDataStore.getInstance().addMetadata(new ParameterNode(
-                type,
-                name,
-                new ExpressionBaseNode(defaultValue, line, parser.file)
-            ), line, parser.file);
-
-            parameters.add(arg);
-
-            if (!parser.check(TokenType.CLOSE_PARENTHESES)) {
-                parser.consume(TokenType.COMMA);
-            }
-        }
 
         return parameters;
     }

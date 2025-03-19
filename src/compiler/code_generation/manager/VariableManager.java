@@ -58,7 +58,7 @@ public class VariableManager {
     }
 
     private int getStoreOpcode(FlowType type) {
-        if (!type.shouldBePrimitive) return Opcodes.ASTORE;
+        if (!type.isPrimitive) return Opcodes.ASTORE;
 
         return switch (type.name) {
             case "Int", "Bool", "Byte", "Short", "Char" -> Opcodes.ISTORE;
@@ -70,7 +70,7 @@ public class VariableManager {
     }
 
     private int getLoadOpCode(FlowType type) {
-        if (!type.shouldBePrimitive) return Opcodes.ALOAD;
+        if (!type.isPrimitive) return Opcodes.ALOAD;
 
         return switch (type.name) {
             case "Int", "Bool", "Byte", "Short", "Char" -> Opcodes.ILOAD;

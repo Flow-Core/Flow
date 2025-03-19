@@ -296,7 +296,7 @@ public class ExpressionTraverse {
                 false
             );
 
-        FunctionLoader.loadSignature(lambdaNode, scope, false);
+        FunctionLoader.loadSignature(lambdaNode, scope, false, true);
 
         for (ParameterNode parameterNode : lambdaNode.parameters)
             parameterNode.type.shouldBePrimitive = false;
@@ -711,7 +711,7 @@ public class ExpressionTraverse {
         );
     }
 
-    private static String getLambdaInterfaceName(int argumentCount, boolean hasReturnType) {
+    public static String getLambdaInterfaceName(int argumentCount, boolean hasReturnType) {
         if (hasReturnType) {
             return "Function" + argumentCount;
         } else {

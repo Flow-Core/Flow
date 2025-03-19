@@ -20,7 +20,7 @@ import java.util.List;
 public class ClassTraverse {
     public static void loadMethodSignatures(TypeDeclarationNode typeDeclaration, Scope scope, boolean isInterface) {
         for (final FunctionDeclarationNode method : typeDeclaration.methods) {
-            FunctionLoader.loadSignature(method, scope, isInterface);
+            FunctionLoader.loadSignature(method, scope, isInterface, false);
         }
     }
 
