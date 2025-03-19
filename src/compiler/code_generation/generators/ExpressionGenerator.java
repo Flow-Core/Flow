@@ -14,6 +14,7 @@ import parser.nodes.expressions.networking.ConnectionNode;
 import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.functions.LambdaExpressionNode;
+import parser.nodes.functions.MethodReferenceNode;
 import parser.nodes.generics.TypeArgument;
 import parser.nodes.literals.*;
 import parser.nodes.literals.ip.Ipv4LiteralNode;
@@ -55,6 +56,8 @@ public class ExpressionGenerator {
             result = generateLiteral(literalNode, mv, tracker, expectedType);
         } else if (expression instanceof LambdaExpressionNode lambdaExpressionNode) {
             result = generateLambda(lambdaExpressionNode, mv);
+        } else if (expression instanceof MethodReferenceNode methodReferenceNode) {
+            result = generateMethodReference(methodReferenceNode, mv);
         } else if (expression instanceof NullLiteral) {
             mv.visitInsn(Opcodes.ACONST_NULL);
             tracker.hang(1);
@@ -196,7 +199,7 @@ public class ExpressionGenerator {
     public static FlowType generateLambda(LambdaExpressionNode lambdaExpressionNode, MethodVisitor mv) {
         final String lambdaDescriptor = getDescriptor(lambdaExpressionNode, lambdaExpressionNode.body.scope, new ArrayList<>());
 
-        final String lambdaClass = parseLambdaClass(lambdaExpressionNode);
+        final String lambdaClass = parseLambdaClass(lambdaExpressionNode.parameters.size(), lambdaExpressionNode.returnType.name.equals("Void"));
 
         final Handle implHandle = new Handle(
             Opcodes.H_INVOKESTATIC,
@@ -234,14 +237,53 @@ public class ExpressionGenerator {
         return new FlowType(lambdaClass, false, false);
     }
 
-    private static String parseLambdaClass(LambdaExpressionNode lambdaExpressionNode) {
-        final int params = lambdaExpressionNode.parameters.size();
-
-        if (lambdaExpressionNode.returnType.name.equals("Void")) {
-            return (params == 0) ? "flow/Procedure" : "flow/Consumer" + params;
+    private static String parseLambdaClass(int parameterCount, boolean hasReturnType) {
+        if (hasReturnType) {
+            return (parameterCount == 0) ? "flow/Procedure" : "flow/Consumer" + parameterCount;
         } else {
-            return "flow/Function" + params;
+            return "flow/Function" + parameterCount;
         }
+    }
+
+    private static FlowType generateMethodReference(MethodReferenceNode referenceNode, MethodVisitor mv) {
+        final String lambdaDescriptor = getDescriptor(referenceNode.method, referenceNode.method.body.scope, new ArrayList<>());
+
+        final String lambdaClass = parseLambdaClass(referenceNode.method.parameters.size(), referenceNode.method.returnType.name.equals("Void"));
+
+        final Handle implHandle = new Handle(
+            Opcodes.H_INVOKESTATIC,
+            referenceNode.holderType.name,
+            referenceNode.method.name,
+            lambdaDescriptor,
+            false
+        );
+
+        final Handle bootstrapHandle = new Handle(
+            Opcodes.H_INVOKESTATIC,
+            "flow/LambdaMetaFactory",
+            "metaFactory",
+            MethodType.methodType(
+                CallSite.class,
+                MethodHandles.Lookup.class,
+                String.class,
+                MethodType.class,
+                MethodType.class,
+                MethodHandle.class,
+                MethodType.class
+            ).toMethodDescriptorString(),
+            false
+        );
+
+        mv.visitInvokeDynamicInsn(
+            "invoke",
+            "()L" + lambdaClass + ";",
+            bootstrapHandle,
+            Type.getType(getErasedDescriptor(referenceNode.method.parameters.size(), !referenceNode.method.returnType.name.equals("Void"))),
+            implHandle,
+            Type.getType(lambdaDescriptor)
+        );
+
+        return new FlowType(lambdaClass, false, false);
     }
 
     private static String getErasedDescriptor(int parameterCount, boolean hasReturnValue) {

@@ -46,7 +46,7 @@ public class ExpressionAnalyzer extends TopAnalyzer {
             ExpressionNode rhs;
             int nextPrecedence;
 
-            if (parser.check(TokenType.DOT_OPERATOR, TokenType.SAFE_CALL)) {
+            if (parser.check(TokenType.DOT_OPERATOR, TokenType.SAFE_CALL, TokenType.REFERENCE_OPERATOR)) {
                 parser.advance();
                 parser.advance(); // IdentifierReferenceAnalyzer uses peek(-1)
                 rhs = new IdentifierReferenceAnalyzer().parse(parser);
@@ -122,6 +122,7 @@ public class ExpressionAnalyzer extends TopAnalyzer {
         precedenceValues.put("%", 40);
         precedenceValues.put("~", 50);
         precedenceValues.put("[", 100);
+        precedenceValues.put("::", 500);
         precedenceValues.put(":", 1000);
         precedenceValues.put(".", 10000);
         precedenceValues.put("?.", 10000);

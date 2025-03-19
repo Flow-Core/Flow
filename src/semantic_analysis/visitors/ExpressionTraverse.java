@@ -14,8 +14,8 @@ import parser.nodes.expressions.UnaryOperatorNode;
 import parser.nodes.expressions.networking.ConnectionNode;
 import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
-import parser.nodes.generics.TypeArgument;
 import parser.nodes.functions.LambdaExpressionNode;
+import parser.nodes.functions.MethodReferenceNode;
 import parser.nodes.generics.TypeArgument;
 import parser.nodes.literals.LiteralNode;
 import parser.nodes.literals.NullLiteral;
@@ -89,7 +89,7 @@ public class ExpressionTraverse {
             return null;
         }
 
-        if (binaryExpression.operator.equals(".") || binaryExpression.operator.equals("?.")) {
+        if (binaryExpression.operator.equals(".") || binaryExpression.operator.equals("?.") || binaryExpression.operator.equals("::")) {
             return transformDotOperator(
                 root,
                 binaryExpression.operator,
@@ -265,8 +265,13 @@ public class ExpressionTraverse {
         if (rightExpr instanceof VariableReferenceNode reference) {
             if (leftTypeNode instanceof ClassDeclarationNode leftTypeClass) {
                 if (TypeRecognize.findTypeDeclaration(reference.variable, scope)) {
-                    LoggerFacade.error("Cannot access nested types", root);
-                    return null;
+                    return new TypeReferenceNode(
+                        new FlowType(
+                            leftType.name + "." + reference.variable,
+                            false,
+                            false
+                        )
+                    );
                 }
 
                 FieldNode field = leftTypeClass.findField(
@@ -297,6 +302,13 @@ public class ExpressionTraverse {
 
             for (final ArgumentNode argNode : call.arguments) {
                 argNode.type = new ExpressionTraverse().traverse(argNode.value, scope);
+
+                if (!operator.equals("::") && argNode.value.expression instanceof TypeReferenceNode) {
+                    LoggerFacade.error("Expression expected", root);
+                }
+                if (operator.equals("::") && !(argNode.value.expression instanceof TypeReferenceNode)) {
+                    LoggerFacade.error("Expected parameter type", root);
+                }
             }
 
             FunctionDeclarationNode function = findMethodByArguments(
@@ -316,6 +328,13 @@ public class ExpressionTraverse {
                         "' match the argument list", root);
                 }
                 return null;
+            }
+
+            if (operator.equals("::")) {
+                return new MethodReferenceNode(
+                    leftType,
+                    function
+                );
             }
 
             return new FunctionCallNode(
@@ -701,7 +720,10 @@ public class ExpressionTraverse {
             return !functionCall.isSafeCall ? function.returnType : new FlowType(function.returnType.name, true, false);
         }
         if (expression instanceof LambdaExpressionNode lambdaNode) {
-            return getLambdaType(lambdaNode);
+            return getLambdaType(lambdaNode.parameters, lambdaNode.returnType);
+        }
+        if (expression instanceof MethodReferenceNode methodReferenceNode) {
+            return getLambdaType(methodReferenceNode.method.parameters, methodReferenceNode.method.returnType);
         }
         if (expression instanceof FieldReferenceNode field) {
             FieldNode actualField;
@@ -866,19 +888,19 @@ public class ExpressionTraverse {
         };
     }
 
-    private static FlowType getLambdaType(LambdaExpressionNode lambdaNode) {
-        final boolean hasReturnValue = !lambdaNode.returnType.name.equals("Void");
+    private static FlowType getLambdaType(List<ParameterNode> parameters, FlowType returnType) {
+        final boolean hasReturnValue = !returnType.name.equals("Void");
 
-        List<TypeArgument> typeArguments = new ArrayList<>(lambdaNode.parameters.stream()
+        List<TypeArgument> typeArguments = new ArrayList<>(parameters.stream()
             .map((parameterNode) -> new TypeArgument(
                 parameterNode.type
             )).toList());
 
         if (hasReturnValue)
-            typeArguments.add(new TypeArgument(lambdaNode.returnType));
+            typeArguments.add(new TypeArgument(returnType));
 
         return new FlowType(
-            getLambdaInterfaceName(lambdaNode.parameters.size(), hasReturnValue),
+            getLambdaInterfaceName(parameters.size(), hasReturnValue),
             false,
             false,
             typeArguments

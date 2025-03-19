@@ -38,6 +38,19 @@ public class FlowType {
         };
     }
 
+    public FlowType duplicate() {
+        FlowType clone = new FlowType(
+            name,
+            isNullable,
+            isPrimitive,
+            typeArguments.stream().toList()
+        );
+
+        clone.shouldBePrimitive = shouldBePrimitive;
+
+        return clone;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
