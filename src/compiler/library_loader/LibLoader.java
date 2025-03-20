@@ -223,29 +223,38 @@ public class LibLoader {
         SignatureReader reader = new SignatureReader(signature);
 
         reader.accept(new SignatureVisitor(Opcodes.ASM9) {
-            String currentName;
-            FlowType currentBound;
+            String currentName = null;
+            final List<FlowType> currentBounds = new ArrayList<>();
 
             @Override
             public void visitFormalTypeParameter(String name) {
                 if (currentName != null) {
-                    typeParameters.add(new TypeParameterNode(currentName, currentBound));
+                    FlowType effectiveBound = currentBounds.isEmpty()
+                        ? new FlowType("java.lang.Object", false, false)
+                        : currentBounds.get(0);
+                    typeParameters.add(new TypeParameterNode(currentName, effectiveBound));
+                    currentBounds.clear();
                 }
                 currentName = name;
-                currentBound = null;
             }
 
             @Override
             public SignatureVisitor visitClassBound() {
-                return createFlowTypeVisitor(boundType -> currentBound = boundType);
+                return createFlowTypeVisitor(currentBounds::add);
+            }
+
+            @Override
+            public SignatureVisitor visitInterfaceBound() {
+                return createFlowTypeVisitor(currentBounds::add);
             }
 
             @Override
             public void visitEnd() {
                 if (currentName != null) {
-                    typeParameters.add(new TypeParameterNode(currentName, currentBound));
-                    currentName = null;
-                    currentBound = null;
+                    FlowType effectiveBound = currentBounds.isEmpty()
+                        ? new FlowType("java.lang.Object", false, false)
+                        : currentBounds.get(0);
+                    typeParameters.add(new TypeParameterNode(currentName, effectiveBound));
                 }
             }
         });
