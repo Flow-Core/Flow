@@ -9,7 +9,6 @@ import semantic_analysis.files.PackageWrapper;
 
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 public final class TypeRecognize {
@@ -119,7 +118,7 @@ public final class TypeRecognize {
             return true;
         }
 
-        if (Objects.equals(type.name, superType.name)) {
+        if (superType.name.equals("java.lang.Object")) {
             return true;
         }
 
@@ -168,12 +167,7 @@ public final class TypeRecognize {
                 return true;
             }
 
-            TypeDeclarationNode currentType = getTypeDeclaration(type.name, scope);
-            if (currentType == null) {
-                return false;
-            }
-
-            for (final BaseInterfaceNode baseInterfaceNode : currentType.implementedInterfaces) {
+            for (final BaseInterfaceNode baseInterfaceNode : typeDeclarationNode.implementedInterfaces) {
                 if (baseInterfaceNode.type.name.equals(superType.name) ||
                     isSameType(
                         new FlowType(

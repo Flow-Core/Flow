@@ -1,7 +1,7 @@
 <component name="ArtifactManager">
-  <artifact type="jar" name="FlowLang">
-    <output-path>$PROJECT_DIR$/out/artifacts/FlowLang</output-path>
-    <root id="archive" name="FlowLang.jar">
+  <artifact type="jar" name="Flow">
+    <output-path>$PROJECT_DIR$/out/artifacts/Flow</output-path>
+    <root id="archive" name="Flow.jar">
       <element id="module-output" name="FlowLang" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/asm-tree.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../asm-tree.jar" path-in-jar="/" />

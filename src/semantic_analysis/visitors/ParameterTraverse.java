@@ -136,12 +136,14 @@ public class ParameterTraverse {
         if (callerType != null) {
             TypeDeclarationNode typeDeclarationNode = TypeRecognize.getTypeDeclaration(callerType.name, scope);
 
-            if (typeDeclarationNode == null || typeDeclarationNode.typeParameters.size() != callerType.typeArguments.size()) {
+            if (typeDeclarationNode == null) {
                 return false;
             }
 
-            for (int i = 0; i < typeDeclarationNode.typeParameters.size(); i++) {
-                typeArgumentMapping.put(typeDeclarationNode.typeParameters.get(i).name, callerType.typeArguments.get(i).type);
+            if (!typeDeclarationNode.typeParameters.isEmpty() && callerType.typeArguments.size() == typeDeclarationNode.typeParameters.size()) {
+                for (int i = 0; i < typeDeclarationNode.typeParameters.size(); i++) {
+                    typeArgumentMapping.put(typeDeclarationNode.typeParameters.get(i).name, callerType.typeArguments.get(i).type);
+                }
             }
         }
 
