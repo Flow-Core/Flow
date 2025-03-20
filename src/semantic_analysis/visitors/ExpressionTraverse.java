@@ -436,7 +436,12 @@ public class ExpressionTraverse {
             new FlowType(
                 "flow.networking.Socket",
                 false,
-                false
+                false,
+                List.of(
+                    new TypeArgument(
+                        protocolType
+                    )
+                )
             ),
             List.of(
                 new ArgumentNode(null, new ExpressionBaseNode(address), addressType),
@@ -671,7 +676,7 @@ public class ExpressionTraverse {
             }
 
             if (!compareTypeParameters(scope, baseType.typeParameters, objectNode.type.typeArguments)) {
-                LoggerFacade.error("Type arguments does not match type parameters, actual: '" + objectNode.type + "', expected: '" + baseType.typeParameters + "'", root);
+                LoggerFacade.error("Type arguments do not match type parameters, actual: '" + objectNode.type + "', expected: '" + baseType.typeParameters + "'", root);
                 return null;
             }
 
