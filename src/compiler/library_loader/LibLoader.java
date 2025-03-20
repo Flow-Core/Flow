@@ -161,10 +161,11 @@ public class LibLoader {
             .map(baseInterface -> new BaseInterfaceNode(new FlowType(baseInterface.replace("/", "."), false, false)))
             .toList();
 
+        List<TypeParameterNode> typeParams = extractTypeParameters(classNode.signature);
         final ClassDeclarationNode flowClass = new ClassDeclarationNode(
             className,
             extractModifiers(classNode.access),
-            extractTypeParameters(classNode.signature),
+            typeParams,
             new ArrayList<>(),
             baseClasses,
             interfaces,
@@ -174,6 +175,11 @@ public class LibLoader {
             null,
             null
         );
+
+        symbolTable.bindingContext().put(flowClass, classNode.name.replace("/", "."));
+        for (TypeParameterNode typeParam : typeParams) {
+            symbolTable.typeParameters().add(typeParam);
+        }
 
         symbolTable.classes().add(flowClass);
         symbolTable.bindingContext().put(flowClass, classNode.name.replace("/", "."));
@@ -191,6 +197,7 @@ public class LibLoader {
             methods.add(convertToFlowMethod(method));
         }
 
+        List<TypeParameterNode> typeParams = extractTypeParameters(classNode.signature);
         InterfaceNode flowInterface = new InterfaceNode(
             interfaceName,
             extractModifiers(classNode.access),
@@ -200,6 +207,11 @@ public class LibLoader {
             new BlockNode(new ArrayList<>())
         );
 
+        symbolTable.bindingContext().put(flowInterface, classNode.name.replace("/", "."));
+        for (TypeParameterNode typeParam : typeParams) {
+            symbolTable.typeParameters().add(typeParam);
+        }
+
         symbolTable.interfaces().add(flowInterface);
         symbolTable.bindingContext().put(flowInterface, classNode.name.replace("/", "."));
     }
@@ -208,8 +220,8 @@ public class LibLoader {
         if (signature == null) return List.of();
 
         List<TypeParameterNode> typeParameters = new ArrayList<>();
-
         SignatureReader reader = new SignatureReader(signature);
+
         reader.accept(new SignatureVisitor(Opcodes.ASM9) {
             String currentName;
             FlowType currentBound;
@@ -258,8 +270,10 @@ public class LibLoader {
 
             @Override
             public void visitEnd() {
-                FlowType flowType = new FlowType(trimPackageName(name), false, false, typeArguments);
-                onComplete.accept(flowType);
+                if (name != null) {
+                    FlowType flowType = new FlowType(trimPackageName(name), false, false, typeArguments);
+                    onComplete.accept(flowType);
+                }
             }
         };
     }
