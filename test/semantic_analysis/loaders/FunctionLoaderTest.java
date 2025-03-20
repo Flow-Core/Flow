@@ -48,7 +48,7 @@ class FunctionLoaderTest {
                     .name("a").build()))
             .build();
 
-        FunctionLoader.loadSignature(function, scope, false);
+        FunctionLoader.loadSignature(function, scope, false, false);
         Assertions.assertTrue(scope.symbols().findFunction("sum"), "Function should be added to scope");
     }
 
@@ -63,7 +63,7 @@ class FunctionLoaderTest {
             .parameters(List.of(
                 ParameterNodeGenerator.builder().type(new FlowType("Int", false, true)).name("a").build()))
             .build();
-        FunctionLoader.loadSignature(function, scope, false);
+        FunctionLoader.loadSignature(function, scope, false, false);
 
         Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Unknown return type should fail");
     }
@@ -80,7 +80,7 @@ class FunctionLoaderTest {
                 ParameterNodeGenerator.builder().type(new FlowType("UnknownType", false, false)).name("a").build()))
             .build();
 
-        FunctionLoader.loadSignature(function, scope, false);
+        FunctionLoader.loadSignature(function, scope, false, false);
         Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Unknown parameter type should fail");
     }
 
@@ -103,7 +103,7 @@ class FunctionLoaderTest {
                 .build())
             .build();
 
-        FunctionLoader.loadSignature(function, scope, false);
+        FunctionLoader.loadSignature(function, scope, false, false);
         FunctionLoader.loadBody(function, scope);
 
         Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(), "Valid function body should pass");
@@ -126,7 +126,7 @@ class FunctionLoaderTest {
                         .build()))
                 .build()).build();
 
-        FunctionLoader.loadSignature(function, scope, false);
+        FunctionLoader.loadSignature(function, scope, false, false);
         FunctionLoader.loadBody(function, scope);
 
         Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(), "Void function can have empty return");
@@ -145,7 +145,7 @@ class FunctionLoaderTest {
             .block(BlockNodeGenerator.builder().children(new ArrayList<>()).build())
             .build();
 
-        FunctionLoader.loadSignature(function, scope, false);
+        FunctionLoader.loadSignature(function, scope, false, false);
         FunctionLoader.loadBody(function, scope);
 
         Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(), "Void function should not require return");
@@ -165,7 +165,7 @@ class FunctionLoaderTest {
             .block(BlockNodeGenerator.builder().children(new ArrayList<>()).build())
             .build();
 
-        FunctionLoader.loadSignature(function, scope, false);
+        FunctionLoader.loadSignature(function, scope, false, false);
         FunctionLoader.loadBody(function, scope);
 
         Assertions.assertTrue(LoggerFacade.getLogger().hasErrors(), "Function with missing return should fail");
@@ -192,10 +192,10 @@ class FunctionLoaderTest {
                 ParameterNodeGenerator.builder().type(new FlowType("Int", false, true)).name("b").build()))
             .build();
 
-        FunctionLoader.loadSignature(function1, scope, false);
+        FunctionLoader.loadSignature(function1, scope, false, false);
         Assertions.assertFalse(LoggerFacade.getLogger().hasErrors());
 
-        FunctionLoader.loadSignature(function2, scope, false);
+        FunctionLoader.loadSignature(function2, scope, false, false);
         Assertions.assertFalse(LoggerFacade.getLogger().hasErrors(), "Overloaded function should be allowed but failed.");
     }
 }

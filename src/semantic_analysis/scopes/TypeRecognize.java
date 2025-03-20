@@ -54,6 +54,11 @@ public final class TypeRecognize {
     public static TypeDeclarationNode getTypeDeclaration(String symbol, Scope scope) {
         if (symbol.contains(".")) {
             final PackageWrapper containingPackage = packages.get(extractPackageName(symbol));
+
+            if (containingPackage == null) {
+                return null;
+            }
+
             return containingPackage.scope().getTypeDeclaration(trimPackageName(symbol));
         }
 
@@ -163,7 +168,12 @@ public final class TypeRecognize {
                 return true;
             }
 
-            for (final BaseInterfaceNode baseInterfaceNode : getTypeDeclaration(type.name, scope).implementedInterfaces) {
+            TypeDeclarationNode currentType = getTypeDeclaration(type.name, scope);
+            if (currentType == null) {
+                return false;
+            }
+
+            for (final BaseInterfaceNode baseInterfaceNode : currentType.implementedInterfaces) {
                 if (baseInterfaceNode.type.name.equals(superType.name) ||
                     isSameType(
                         new FlowType(
