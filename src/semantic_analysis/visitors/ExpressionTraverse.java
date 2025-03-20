@@ -339,7 +339,7 @@ public class ExpressionTraverse {
 
             return new FunctionCallNode(
                 leftType,
-                leftExpr instanceof TypeReferenceNode ? null : leftExpr,
+                leftExpr,
                 operator.equals("?."),
                 call.name,
                 call.arguments
@@ -432,7 +432,7 @@ public class ExpressionTraverse {
             return null;
         }
 
-        return new ObjectNode(
+        return new ObjectNode( // new Socket(address, PType::encode(PType, OutputStream), PType::decode(InputStream))
             new FlowType(
                 "flow.networking.Socket",
                 false,
@@ -721,6 +721,11 @@ public class ExpressionTraverse {
         if (expression instanceof FunctionCallNode functionCall) {
             final FunctionDeclarationNode function;
 
+            for (final ArgumentNode argNode : functionCall.arguments) {
+                if (argNode.type == null)
+                    argNode.type = new ExpressionTraverse().traverse(argNode.value, scope);
+            }
+
             if (functionCall.callerType != null) {
                 final TypeDeclarationNode caller = TypeRecognize.getTypeDeclaration(functionCall.callerType.name, scope);
 
@@ -741,6 +746,13 @@ public class ExpressionTraverse {
                         functionCall.arguments,
                         functionCall.callerType
                     )).findFirst().orElse(null);
+
+                if (function != null)
+                    if (function.modifiers.contains("static") && !(functionCall.caller instanceof TypeReferenceNode)) {
+                        LoggerFacade.error("Cannot access static members via an instance", root);
+                    } else if (!function.modifiers.contains("static") && functionCall.caller instanceof TypeReferenceNode) {
+                        LoggerFacade.error("Cannot access non-static members in a static context", root);
+                    }
             } else {
                 function = ParameterTraverse.findMethodByArguments(
                     scope,
