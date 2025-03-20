@@ -34,7 +34,7 @@ public class Modifiers {
             if (component.style == null) {
                 component.style = new Style();
             }
-            component.style.backgroundColor = color.value;
+            component.style.backgroundColor = color.value();
         };
     }
 
@@ -43,7 +43,7 @@ public class Modifiers {
             if (component.style == null) {
                 component.style = new Style();
             }
-            component.style.textColor = color.value;
+            component.style.textColor = color.value();
         };
     }
 

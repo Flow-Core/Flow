@@ -3,13 +3,7 @@ package spark.style;
 /**
  * A Flow color wrapper
  */
-public class Color {
-    public final java.awt.Color value;
-
-    public Color(java.awt.Color value) {
-        this.value = value;
-    }
-
+public record Color(java.awt.Color value) {
     /**
      * Creates a Flow Color from red, green, blue values
      */
