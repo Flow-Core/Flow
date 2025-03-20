@@ -40,6 +40,7 @@ public class Text extends Component {
         if (nativePeer instanceof JLabel lbl) {
             lbl.setText(text.value);
             lbl.setEnabled(enabled);
+            applyStyleToNative();
         }
     }
 }

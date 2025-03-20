@@ -3,9 +3,9 @@ package spark.components;
 import flow.Procedure;
 import flow.String;
 import spark.Component;
+import spark.style.RoundedBorder;
 
 import javax.swing.JButton;
-import javax.swing.border.EmptyBorder;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -54,7 +54,7 @@ public class Button extends Component {
         btn.setBackground(new Color(66, 133, 244));
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
-        btn.setBorder(new EmptyBorder(5, 15, 5, 15));
+        btn.setBorder(new RoundedBorder(4, Color.WHITE));
 
         if (onClick != null) {
             btn.addActionListener(e -> onClick.invoke());
@@ -69,6 +69,7 @@ public class Button extends Component {
         if (nativePeer instanceof JButton btn) {
             btn.setText(text.value);
             btn.setEnabled(enabled);
+            applyStyleToNative();
         }
     }
 }
