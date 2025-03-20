@@ -136,7 +136,7 @@ public class ParameterTraverse {
         if (callerType != null) {
             TypeDeclarationNode typeDeclarationNode = TypeRecognize.getTypeDeclaration(callerType.name, scope);
 
-            if (typeDeclarationNode.typeParameters.size() != callerType.typeArguments.size()) {
+            if (typeDeclarationNode == null || typeDeclarationNode.typeParameters.size() != callerType.typeArguments.size()) {
                 return false;
             }
 
