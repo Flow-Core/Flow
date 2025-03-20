@@ -57,7 +57,7 @@ public class ExpressionGenerator {
         } else if (expression instanceof LambdaExpressionNode lambdaExpressionNode) {
             result = generateLambda(lambdaExpressionNode, mv);
         } else if (expression instanceof MethodReferenceNode methodReferenceNode) {
-            result = generateMethodReference(methodReferenceNode, mv);
+            result = generateMethodReference(methodReferenceNode, file.scope(), mv);
         } else if (expression instanceof NullLiteral) {
             mv.visitInsn(Opcodes.ACONST_NULL);
             tracker.hang(1);
@@ -245,14 +245,14 @@ public class ExpressionGenerator {
         }
     }
 
-    private static FlowType generateMethodReference(MethodReferenceNode referenceNode, MethodVisitor mv) {
-        final String lambdaDescriptor = getDescriptor(referenceNode.method, referenceNode.method.body.scope, new ArrayList<>());
+    private static FlowType generateMethodReference(MethodReferenceNode referenceNode, Scope scope, MethodVisitor mv) {
+        final String lambdaDescriptor = getDescriptor(referenceNode.method, scope, new ArrayList<>());
 
         final String lambdaClass = parseLambdaClass(referenceNode.method.parameters.size(), referenceNode.method.returnType.name.equals("Void"));
 
         final Handle implHandle = new Handle(
             Opcodes.H_INVOKESTATIC,
-            referenceNode.holderType.name,
+            FQNameMapper.getFQName(referenceNode.holderType.name, scope),
             referenceNode.method.name,
             lambdaDescriptor,
             false
