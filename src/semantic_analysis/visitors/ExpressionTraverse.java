@@ -432,9 +432,65 @@ public class ExpressionTraverse {
             return null;
         }
 
-        return new ConnectionNode(
-            address,
-            (TypeReferenceNode) protocol
+        return new ObjectNode(
+            new FlowType(
+                "flow.networking.Socket",
+                false,
+                false
+            ),
+            List.of(
+                new ArgumentNode(null, new ExpressionBaseNode(address), addressType),
+                new ArgumentNode(null, new ExpressionBaseNode(transformValue(
+                    root,
+                    new BinaryExpressionNode(
+                        protocol,
+                        new FunctionCallNode(
+                            "encode",
+                            List.of(
+                                new ArgumentNode(
+                                    null,
+                                    new ExpressionBaseNode(new TypeReferenceNode(protocolType))
+                                ),
+                                new ArgumentNode(
+                                    null,
+                                    new ExpressionBaseNode(new TypeReferenceNode(
+                                        new FlowType(
+                                            "java.io.OutputStream",
+                                            false,
+                                            false
+                                        )
+                                    ))
+                                )
+                            )
+                        ),
+                        "::"
+                    ),
+                    scope
+                ))),
+                new ArgumentNode(null, new ExpressionBaseNode(transformValue(
+                    root,
+                    new BinaryExpressionNode(
+                        protocol,
+                        new FunctionCallNode(
+                            "decode",
+                            List.of(
+                                new ArgumentNode(
+                                    null,
+                                    new ExpressionBaseNode(new TypeReferenceNode(
+                                        new FlowType(
+                                            "java.io.InputStream",
+                                            false,
+                                            false
+                                        )
+                                    ))
+                                )
+                            )
+                        ),
+                        "::"
+                    ),
+                    scope
+                )))
+            )
         );
     }
 

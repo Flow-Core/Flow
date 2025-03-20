@@ -13,10 +13,10 @@ public class Socket<P extends Protocol> {
     private final InputStream sockIn;
     private final OutputStream sockOut;
 
-    BiFunction<P, OutputStream, ByteArray> encode;
-    Function<InputStream, P> decode;
+    Function2<P, OutputStream, ByteArray> encode;
+    Function1<InputStream, P> decode;
 
-    public Socket(Ip ip, Int port, BiFunction<P, OutputStream, ByteArray> encode, Function<InputStream, P> decode) throws IOException {
+    public Socket(Ip ip, Int port, Function2<P, OutputStream, ByteArray> encode, Function1<InputStream, P> decode) throws IOException {
         socket = new java.net.Socket(ip.value.value, port.value);
         sockIn = socket.getInputStream();
         sockOut = socket.getOutputStream();
@@ -25,7 +25,7 @@ public class Socket<P extends Protocol> {
         this.decode = decode;
     }
 
-    public Socket(Address address, BiFunction<P, OutputStream, ByteArray> encode, Function<InputStream, P> decode) throws IOException {
+    public Socket(Address address, Function2<P, OutputStream, ByteArray> encode, Function1<InputStream, P> decode) throws IOException {
         socket = new java.net.Socket(address.ip.value.value, address.port.value);
         sockIn = socket.getInputStream();
         sockOut = socket.getOutputStream();
@@ -35,10 +35,10 @@ public class Socket<P extends Protocol> {
     }
 
     public void send(P message) {
-        ByteArray bytes = encode.apply(message, sockOut);
+        ByteArray bytes = encode.invoke(message, sockOut);
     }
 
     public P receive() {
-        return decode.apply(sockIn);
+        return decode.invoke(sockIn);
     }
 }
