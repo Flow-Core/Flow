@@ -17,6 +17,7 @@ public enum TokenType {
     FUNC("\\bfunc\\b"),
     CLASS("\\bclass\\b"),
     INTERFACE("\\binterface\\b"),
+    SERVER("\\bserver\\b"),
     TRY("\\btry\\b"),
     CATCH("\\bcatch\\b"),
     FINALLY("\\bfinally\\b"),
