@@ -16,6 +16,11 @@ public class Raw implements Protocol {
         this.data = data;
     }
 
+    public Raw(ByteArray data) {
+        this.size = data.bytes.length;
+        this.data = data;
+    }
+
     public static ByteArray encode(Raw message, OutputStream out) {
         try {
             out.write(message.data.bytes);

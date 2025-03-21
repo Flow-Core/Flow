@@ -1,5 +1,7 @@
 package flow;
 
+import flow.collections.ByteArray;
+
 public final class String extends Thing {
     public final java.lang.String value;
 
@@ -37,6 +39,10 @@ public final class String extends Thing {
 
     public int toInt() {
         return Integer.parseInt(value);
+    }
+
+    public ByteArray toByteArray() {
+        return new ByteArray(value.getBytes());
     }
 
     public static String fromPrimitive(java.lang.String value) {
