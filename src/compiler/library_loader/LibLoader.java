@@ -149,7 +149,9 @@ public class LibLoader {
             if (method.name.equals("<init>")) {
                 constructors.add(convertToFlowConstructor(method));
             } else {
-                methods.add(convertToFlowMethod(method));
+                FunctionDeclarationNode function = convertToFlowMethod(method);
+                methods.add(function);
+                symbolTable.functions().add(function);
             }
         }
 
