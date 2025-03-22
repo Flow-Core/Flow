@@ -6,9 +6,16 @@ import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
 import parser.nodes.FlowType;
 import parser.nodes.classes.*;
+import parser.nodes.components.ArgumentNode;
+import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
+import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.ExpressionBaseNode;
+import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeArgument;
 import parser.nodes.generics.TypeParameterNode;
+import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.scopes.Scope;
 import semantic_analysis.scopes.TypeRecognize;
 import semantic_analysis.visitors.ExpressionTraverse;
@@ -54,7 +61,108 @@ public class ClassLoader implements ASTVisitor<Scope> {
     }
 
     private void handleServer(final ServerNode serverNode, final Scope scope) {
-        serverNode.baseClasses.add(new BaseClassNode(new FlowType("flow.networking.Server", false, false), new ArrayList<>()));
+        serverNode.baseClasses.add(new BaseClassNode(new FlowType("flow.networking.Server", false, false, List.of(new TypeArgument(serverNode.protocol))), new ArrayList<>()));
+
+        serverNode.constructors.add(
+            new ConstructorNode(
+                "public",
+                new ArrayList<>(
+                    List.of(
+                        new ParameterNode(
+                            new FlowType(
+                                "Int",
+                                false,
+                                true
+                            ),
+                            "port",
+                            null
+                        ),
+                        new ParameterNode(
+                            new FlowType(
+                                "Function2",
+                                false,
+                                false,
+                                List.of(
+                                    new TypeArgument(
+                                        new FlowType(
+                                            "P",
+                                            false,
+                                            false
+                                        )
+                                    ),
+                                    new TypeArgument(
+                                        new FlowType(
+                                            "OutputStream",
+                                            false,
+                                            false
+                                        )
+                                    ),
+                                    new TypeArgument(
+                                        new FlowType(
+                                            "ByteArray",
+                                            false,
+                                            false
+                                        )
+                                    )
+                                )
+                            ),
+                            "encode",
+                            null
+                        ),
+                        new ParameterNode(
+                            new FlowType(
+                                "Function1",
+                                false,
+                                false,
+                                List.of(
+                                    new TypeArgument(
+                                        new FlowType(
+                                            "InputStream",
+                                            false,
+                                            false
+                                        )
+                                    ),
+                                    new TypeArgument(
+                                        new FlowType(
+                                            "P",
+                                            false,
+                                            false
+                                        )
+                                    )
+                                )
+                            ),
+                            "decode",
+                            null
+                        )
+                    )
+                ),
+                new BodyNode(
+                    new BlockNode(
+                        new ArrayList<>(
+                            List.of(
+                                new FunctionCallNode(
+                                    "setup",
+                                    List.of(
+                                        new ArgumentNode(
+                                            "port",
+                                            new ExpressionBaseNode(new VariableReferenceNode("port"))
+                                        ),
+                                        new ArgumentNode(
+                                            "encode",
+                                            new ExpressionBaseNode(new VariableReferenceNode("encode"))
+                                        ),
+                                        new ArgumentNode(
+                                            "decode",
+                                            new ExpressionBaseNode(new VariableReferenceNode("decode"))
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        );
 
         loadTypeParameters(serverNode, scope);
 
