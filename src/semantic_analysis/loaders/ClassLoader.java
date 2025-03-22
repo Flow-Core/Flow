@@ -22,7 +22,9 @@ import java.util.Set;
 public class ClassLoader implements ASTVisitor<Scope> {
     @Override
     public void visit(final ASTNode node, final Scope scope) {
-        if (node instanceof ClassDeclarationNode classDeclaration) {
+        if (node instanceof ServerNode serverNode) {
+            handleServer(serverNode, scope);
+        } else if (node instanceof ClassDeclarationNode classDeclaration) {
             handleClass(classDeclaration, scope);
         } else if (node instanceof InterfaceNode interfaceDeclaration) {
             handleInterface(interfaceDeclaration, scope);
@@ -49,6 +51,14 @@ public class ClassLoader implements ASTVisitor<Scope> {
         }
 
         loadConstructors(classDeclaration, scope);
+    }
+
+    private void handleServer(final ServerNode serverNode, final Scope scope) {
+        serverNode.baseClasses.add(new BaseClassNode(new FlowType("flow.networking.Server", false, false), new ArrayList<>()));
+
+        loadTypeParameters(serverNode, scope);
+
+        checkIfAllOverridden(serverNode, scope);
     }
 
     private void loadTypeParameters(final TypeDeclarationNode typeDeclarationNode, final Scope scope) {
