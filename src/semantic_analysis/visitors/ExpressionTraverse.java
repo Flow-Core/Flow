@@ -586,12 +586,26 @@ public class ExpressionTraverse {
                     functionCallNode.callerType
                 )).findFirst().orElse(null);
         } else {
-            function = ParameterTraverse.findMethodByArguments(
-                scope,
-                functionCallNode.name,
-                functionCallNode.arguments,
-                null
-            );
+            TypeDeclarationNode containingType = scope.getContainingType();
+            if (containingType != null) {
+                function = ParameterTraverse.findMethodByArguments(
+                    scope,
+                    containingType.methods,
+                    functionCallNode.name,
+                    functionCallNode.arguments,
+                    new FlowType(
+                        containingType.name,
+                        false,
+                        false
+                    )
+                ); // TODO: Replace with "this"
+            } else
+                function = ParameterTraverse.findMethodByArguments(
+                    scope,
+                    functionCallNode.name,
+                    functionCallNode.arguments,
+                    null
+                );
         }
 
         if (function == null) {

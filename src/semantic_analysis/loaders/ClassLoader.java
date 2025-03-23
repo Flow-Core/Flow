@@ -84,11 +84,7 @@ public class ClassLoader implements ASTVisitor<Scope> {
                                 false,
                                 List.of(
                                     new TypeArgument(
-                                        new FlowType(
-                                            "P",
-                                            false,
-                                            false
-                                        )
+                                        serverNode.protocol
                                     ),
                                     new TypeArgument(
                                         new FlowType(
@@ -123,11 +119,7 @@ public class ClassLoader implements ASTVisitor<Scope> {
                                         )
                                     ),
                                     new TypeArgument(
-                                        new FlowType(
-                                            "P",
-                                            false,
-                                            false
-                                        )
+                                        serverNode.protocol
                                     )
                                 )
                             ),
@@ -140,20 +132,22 @@ public class ClassLoader implements ASTVisitor<Scope> {
                     new BlockNode(
                         new ArrayList<>(
                             List.of(
-                                new FunctionCallNode(
-                                    "setup",
-                                    List.of(
-                                        new ArgumentNode(
-                                            "port",
-                                            new ExpressionBaseNode(new VariableReferenceNode("port"))
-                                        ),
-                                        new ArgumentNode(
-                                            "encode",
-                                            new ExpressionBaseNode(new VariableReferenceNode("encode"))
-                                        ),
-                                        new ArgumentNode(
-                                            "decode",
-                                            new ExpressionBaseNode(new VariableReferenceNode("decode"))
+                                new ExpressionBaseNode(
+                                    new FunctionCallNode(
+                                        "setup",
+                                        List.of(
+                                            new ArgumentNode(
+                                                null,
+                                                new ExpressionBaseNode(new VariableReferenceNode("port"))
+                                            ),
+                                            new ArgumentNode(
+                                                null,
+                                                new ExpressionBaseNode(new VariableReferenceNode("encode"))
+                                            ),
+                                            new ArgumentNode(
+                                                null,
+                                                new ExpressionBaseNode(new VariableReferenceNode("decode"))
+                                            )
                                         )
                                     )
                                 )
