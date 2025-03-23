@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
+import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -51,6 +52,10 @@ public abstract class Server<P extends Protocol> extends Thing {
             while (isServerRunning) {
                 Socket<P> clientSocket = new Socket<>(server.accept(), encode, decode);
                 clientThreads.execute(() -> handleClient(clientSocket));
+            }
+        } catch (SocketException e) {
+            if (isServerRunning) {
+                e.printStackTrace();
             }
         } catch (IOException e) {
             e.printStackTrace();
