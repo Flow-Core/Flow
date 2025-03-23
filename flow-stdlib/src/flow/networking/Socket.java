@@ -4,16 +4,17 @@ import flow.*;
 import flow.String;
 import flow.collections.ByteArray;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.Exception;
 import java.util.UUID;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Stream;
 
 public class Socket<P extends Protocol> {
     private final java.net.Socket socket;
     private final InputStream sockIn;
     private final OutputStream sockOut;
+    private boolean isConnected;
 
     Function2<P, OutputStream, ByteArray> encode;
     Function1<InputStream, P> decode;
@@ -47,15 +48,30 @@ public class Socket<P extends Protocol> {
         this.decode = decode;
     }
 
+    public boolean isAlive() {
+        return socket.isConnected() && isConnected;
+    }
+
     public void send(P message) {
-        ByteArray bytes = encode.invoke(message, sockOut);
+        try {
+            encode.invoke(message, sockOut);
+        } catch (Exception e) {
+            isConnected = false;
+            throw e;
+        }
     }
 
     public P receive() {
-        return decode.invoke(sockIn);
+        try {
+            return decode.invoke(sockIn);
+        } catch (Exception e) {
+            isConnected = false;
+            throw e;
+        }
     }
 
     public void close() throws IOException {
         socket.close();
+        isConnected = false;
     }
 }

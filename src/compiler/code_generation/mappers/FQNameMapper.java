@@ -3,7 +3,7 @@ package compiler.code_generation.mappers;
 import compiler.code_generation.constants.CodeGenerationConstant;
 import parser.nodes.ASTNode;
 import parser.nodes.FlowType;
-import parser.nodes.classes.TypeDeclarationNode;
+import parser.nodes.classes.*;
 import parser.nodes.generics.TypeArgument;
 import parser.nodes.generics.TypeParameterNode;
 import semantic_analysis.scopes.Scope;
@@ -60,6 +60,66 @@ public class FQNameMapper {
 
         jvmName.append(";");
         return jvmName.toString();
+    }
+
+    public static String buildClassSignature(
+        TypeDeclarationNode typeDeclarationNode,
+        Scope scope
+    ) {
+        StringBuilder sb = new StringBuilder();
+
+        if (!typeDeclarationNode.typeParameters.isEmpty()) {
+            sb.append("<");
+            for (TypeParameterNode param : typeDeclarationNode.typeParameters) {
+                sb.append(param.name).append(":");
+                if (param.bound != null) {
+                    sb.append(getJVMName(param.bound, scope, typeDeclarationNode.typeParameters, true));
+                } else {
+                    sb.append("L").append(CodeGenerationConstant.baseObjectFQName).append(";");
+                }
+            }
+            sb.append(">");
+        }
+
+        if (typeDeclarationNode instanceof ClassDeclarationNode classDeclarationNode && !classDeclarationNode.baseClasses.isEmpty()) {
+            BaseClassNode baseClassNode = classDeclarationNode.baseClasses.get(0);
+
+            sb.append("L").append(baseClassNode.type.name);
+            if (!baseClassNode.type.typeArguments.isEmpty()) {
+                sb.append("<");
+
+                ClassDeclarationNode baseClassDeclaration = TypeRecognize.getClass(baseClassNode.type.name, scope);
+                if (baseClassDeclaration == null) {
+                    throw new RuntimeException("Class should be loaded in the current scope");
+                }
+
+                for (TypeArgument arg : baseClassNode.type.typeArguments) {
+                    sb.append(getJVMName(arg.type, scope, baseClassDeclaration.typeParameters, true));
+                }
+                sb.append(">");
+            }
+            sb.append(";");
+        }
+
+        for (BaseInterfaceNode baseInterfaceNode : typeDeclarationNode.implementedInterfaces) {
+            sb.append("L").append(baseInterfaceNode.type.name);
+            if (!baseInterfaceNode.type.typeArguments.isEmpty()) {
+                sb.append("<");
+
+                InterfaceNode baseInterfaceDeclaration = TypeRecognize.getInterface(baseInterfaceNode.type.name, scope);
+                if (baseInterfaceDeclaration == null) {
+                    throw new RuntimeException("Interface should be loaded in the current scope");
+                }
+
+                for (TypeArgument arg : baseInterfaceNode.type.typeArguments) {
+                    sb.append(getJVMName(arg.type, scope, baseInterfaceDeclaration.typeParameters, true));
+                }
+                sb.append(">");
+            }
+            sb.append(";");
+        }
+
+        return sb.toString();
     }
 
     public static String parseTypeParameterSignature(List<TypeParameterNode> typeParameters, Scope scope) {

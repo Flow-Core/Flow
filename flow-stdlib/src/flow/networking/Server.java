@@ -14,12 +14,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public abstract class Server<P extends Protocol> extends Thing {
+    private ServerSocket server;
+
     private int port;
     private Function2<P, OutputStream, ByteArray> encode;
     private Function1<InputStream, P> decode;
 
     private ExecutorService clientThreads;
     private ExecutorService listenThread;
+
+    private boolean isServerRunning = true;
 
     public Server<P> setup(int port, Function2<P, OutputStream, ByteArray> encode, Function1<InputStream, P> decode) {
         this.port = port;
@@ -33,42 +37,56 @@ public abstract class Server<P extends Protocol> extends Thing {
         clientThreads = Executors.newCachedThreadPool();
 
         listenThread = Executors.newSingleThreadExecutor();
-        listenThread.submit(this::run);
+
+        listenThread.execute(this::run);
 
         return this;
     }
 
     private void run() {
-        try (ServerSocket server = new ServerSocket(port)) {
-            while (true) {
+        try {
+            server = new ServerSocket(port);
+            onStart();
+
+            while (isServerRunning) {
                 Socket<P> clientSocket = new Socket<>(server.accept(), encode, decode);
                 clientThreads.execute(() -> handleClient(clientSocket));
             }
         } catch (IOException e) {
-            close();
+            e.printStackTrace();
+
+            try {
+                close();
+            } catch (IOException ignore) {
+                e.printStackTrace();
+            }
         }
     }
 
     private void handleClient(Socket<P> connection) {
         try {
             onConnect(connection);
-        } catch (IOException ignored) {
         } finally {
             try {
                 connection.close();
-            } catch (IOException ignored) {
-            } finally {
+            } catch (IOException ignored) {} finally {
                 onDisconnect(connection.id);
             }
         }
     }
 
-    abstract void onConnect(Socket<P> connection) throws IOException;
+    public void onStart() {}
 
-    void onDisconnect(String connectionID) {}
+    public abstract void onConnect(Socket<P> connection);
 
-    public void close() {
-        listenThread.shutdown();
-        clientThreads.shutdown();
+    public void onDisconnect(String connectionID) {}
+
+    public void close() throws IOException {
+        isServerRunning = false;
+
+        server.close();
+
+        listenThread.shutdownNow();
+        clientThreads.shutdownNow();
     }
 }

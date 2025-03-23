@@ -586,7 +586,19 @@ public class ExpressionTraverse {
                     functionCallNode.callerType
                 )).findFirst().orElse(null);
         } else {
-            TypeDeclarationNode containingType = scope.getContainingType();
+            if (scope.findLocalVariable("this")) {
+                return ExpressionTraverse.transformBinaryOperator(
+                    root,
+                    new BinaryExpressionNode(
+                        new VariableReferenceNode("this"),
+                        functionCallNode,
+                        "."
+                    ),
+                    scope
+                );
+            }
+
+            final TypeDeclarationNode containingType = scope.getContainingType();
             if (containingType != null) {
                 function = ParameterTraverse.findMethodByArguments(
                     scope,
@@ -598,14 +610,15 @@ public class ExpressionTraverse {
                         false,
                         false
                     )
-                ); // TODO: Replace with "this"
-            } else
+                );
+            } else {
                 function = ParameterTraverse.findMethodByArguments(
                     scope,
                     functionCallNode.name,
                     functionCallNode.arguments,
                     null
                 );
+            }
         }
 
         if (function == null) {

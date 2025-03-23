@@ -34,7 +34,7 @@ public class ClassGenerator {
             CodeGenerationConstant.byteCodeVersion,
             ModifierMapper.map(classDeclarationNode.modifiers),
             FQNameMapper.getFQName(classDeclarationNode, file.scope()),
-            FQNameMapper.parseTypeParameterSignature(classDeclarationNode.typeParameters, file.scope()),
+            FQNameMapper.buildClassSignature(classDeclarationNode, file.scope()),
             baseClassName,
             baseInterfaceNames
         );
