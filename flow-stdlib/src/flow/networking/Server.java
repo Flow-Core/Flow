@@ -15,8 +15,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public abstract class Server<P extends Protocol> extends Thing {
-    private ServerSocket server;
-
     private int port;
     private Function2<P, OutputStream, ByteArray> encode;
     private Function1<InputStream, P> decode;
@@ -45,8 +43,7 @@ public abstract class Server<P extends Protocol> extends Thing {
     }
 
     private void run() {
-        try {
-            server = new ServerSocket(port);
+        try (ServerSocket server = new ServerSocket(port)) {
             onStart();
 
             while (isServerRunning) {
@@ -88,8 +85,6 @@ public abstract class Server<P extends Protocol> extends Thing {
 
     public void close() throws IOException {
         isServerRunning = false;
-
-        server.close();
 
         listenThread.shutdownNow();
         clientThreads.shutdownNow();

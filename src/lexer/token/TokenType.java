@@ -22,6 +22,7 @@ public enum TokenType {
     CATCH("\\bcatch\\b"),
     FINALLY("\\bfinally\\b"),
     THROW("\\bthrow\\b"),
+    BLOCK("\\bblock\\b"),
 
     CONST("\\bconst\\b"),
     VAL("\\bval\\b"),
@@ -69,9 +70,9 @@ public enum TokenType {
     // Operators
     ARROW_OPERATOR("~+>+|-+>+|=+>+|-+=+>+|~+=+>+|0=+\\[}:::+>+|\\|+>+|>>>>+"),
     ASSIGNMENT_OPERATOR("\\+=|-=|\\*=|/=|%=|&=|\\|=|\\^=|<<=|>>="),
+    BINARY_OPERATOR("==|!=|<=|>=|<|>|\\*|/|%|&&|\\|\\|"),
     UNARY_OPERATOR("!!|!|\\+\\+|--"),
     POLARITY_OPERATOR("\\+|-"),
-    BINARY_OPERATOR("==|!=|<=|>=|<|>|\\*|/|%|&&|\\|\\|"),
     EQUAL_OPERATOR("="),
     CONNECTION_OPERATOR("~"),
     REFERENCE_OPERATOR("::"),
