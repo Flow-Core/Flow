@@ -1,6 +1,5 @@
 package flow.collections;
 
-import flow.Consumer1;
 import flow.Consumer2;
 import flow.Int;
 
@@ -39,6 +38,25 @@ public class Array<T> implements Iterable<T> {
     public List<T> toList() {
         return new List<>(Arrays.stream(_arr).toList());
     }
+
+    public static <T> Array<T> fromPrimitiveArray(T[] primArr) {
+        Array<T> result = new Array<>(primArr.length);
+
+        for (int i = 0; i < primArr.length; i++) {
+            result.set(i, primArr[i]);
+        }
+
+        return result;
+    }
+
+    public static <T> T[] toPrimitiveArray(Array<T> arr, Class<T> componentType) {
+        T[] primArr = (T[]) java.lang.reflect.Array.newInstance(componentType, arr._arr.length);
+        for (int i = 0; i < arr._arr.length; i++) {
+            primArr[i] = arr.get(i);
+        }
+        return primArr;
+    }
+
 
     private class ArrayIterator implements Iterator<T> {
         int cursor;
