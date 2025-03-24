@@ -15,7 +15,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public abstract class Server<P extends Protocol> extends Thing {
-    private int port;
+    public int port;
+
     private Function2<P, OutputStream, ByteArray> encode;
     private Function1<InputStream, P> decode;
     private ServerSocket server;
