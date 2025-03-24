@@ -1,11 +1,12 @@
 package flow.collections;
 
+import flow.*;
 import flow.Byte;
-import flow.Consumer2;
-import flow.Int;
 import flow.String;
 
-public class ByteArray implements Iterable<Byte> {
+import java.util.Arrays;
+
+public class ByteArray extends Thing implements Iterable<Byte> {
     public byte[] bytes;
 
     public ByteArray(int size) {
@@ -41,6 +42,16 @@ public class ByteArray implements Iterable<Byte> {
 
     public String getString() {
         return new String(new java.lang.String(bytes));
+    }
+
+    @Override
+    public java.lang.String toString() {
+        return Arrays.toString(bytes);
+    }
+
+    @Override
+    public String string() {
+        return new String(Arrays.toString(bytes));
     }
 
     @Override

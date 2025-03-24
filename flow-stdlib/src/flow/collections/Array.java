@@ -2,10 +2,11 @@ package flow.collections;
 
 import flow.Consumer2;
 import flow.Int;
+import flow.Thing;
 
 import java.util.Arrays;
 
-public class Array<T> implements Iterable<T> {
+public class Array<T> extends Thing implements Iterable<T> {
     T[] _arr;
 
     @SuppressWarnings("unchecked")
@@ -57,6 +58,15 @@ public class Array<T> implements Iterable<T> {
         return primArr;
     }
 
+    @Override
+    public String toString() {
+        return Arrays.toString(_arr);
+    }
+
+    @Override
+    public flow.String string() {
+        return new flow.String(Arrays.toString(_arr));
+    }
 
     private class ArrayIterator implements Iterator<T> {
         int cursor;

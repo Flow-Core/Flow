@@ -1,10 +1,11 @@
 package flow.collections;
 
 import flow.*;
+import flow.String;
 
 import java.util.ArrayList;
 
-public class List<T> implements Collection<T> {
+public class List<T> extends Thing implements Collection<T> {
     java.util.List<T> _list;
 
     public List() {
@@ -163,6 +164,16 @@ public class List<T> implements Collection<T> {
         while (it.hasNext()) {
             delegate.invoke(new Int(it.cursor), it.next());
         }
+    }
+
+    @Override
+    public java.lang.String toString() {
+        return _list.toString();
+    }
+
+    @Override
+    public String string() {
+        return new String(_list.toString());
     }
 
     private class ListIterator implements Iterator<T> {
