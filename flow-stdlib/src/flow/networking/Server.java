@@ -11,11 +11,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.SocketException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public abstract class Server<P extends Protocol> extends Thing {
     public int port;
+    public ConcurrentHashMap<String, Socket<P>> connections = new ConcurrentHashMap<>();
 
     private Function2<P, OutputStream, ByteArray> encode;
     private Function1<InputStream, P> decode;
@@ -51,6 +53,7 @@ public abstract class Server<P extends Protocol> extends Thing {
 
             while (isServerRunning) {
                 Socket<P> clientSocket = new Socket<>(server.accept(), encode, decode);
+                connections.put(clientSocket.id, clientSocket);
                 clientThreads.execute(() -> handleClient(clientSocket));
             }
         } catch (SocketException e) {
@@ -78,6 +81,7 @@ public abstract class Server<P extends Protocol> extends Thing {
         try {
             onConnect(connection);
         } finally {
+            connections.remove(connection.id);
             try {
                 connection.close();
             } catch (IOException ignored) {} finally {
@@ -94,6 +98,10 @@ public abstract class Server<P extends Protocol> extends Thing {
 
     public void close() throws IOException {
         isServerRunning = false;
+
+        for (Socket<P> client : connections.values()) {
+            client.close();
+        }
 
         if (!server.isClosed()) {
             server.close();
