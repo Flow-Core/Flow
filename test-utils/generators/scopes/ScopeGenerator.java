@@ -1,13 +1,16 @@
 package generators.scopes;
 
+import generators.ast.classes.ClassNodeGenerator;
 import parser.nodes.ASTNode;
+import parser.nodes.classes.ClassDeclarationNode;
 import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.scopes.Scope;
 
 public class ScopeGenerator {
-    private Scope parent = null;
+    private final ClassDeclarationNode containingType = ClassNodeGenerator.builder().name("fileFl").build();
+    private Scope parent = new Scope(null, SymbolTableGenerator.builder().build(), null, Scope.Type.TOP);
     private SymbolTable symbols = SymbolTable.getEmptySymbolTable();
-    private ASTNode currentParent = null;
+    private ASTNode currentParent = containingType;
     private Scope.Type type = Scope.Type.TOP;
 
     public static ScopeGenerator builder() {
