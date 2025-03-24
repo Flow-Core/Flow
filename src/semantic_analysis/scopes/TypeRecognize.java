@@ -111,7 +111,7 @@ public final class TypeRecognize {
             return false;
         }
 
-        if (!superType.isNullable && type.isNullable)
+        if (!superType.isExternalType && !superType.isNullable && type.isNullable)
             return false;
 
         if (type.name.equals(superType.name)) {

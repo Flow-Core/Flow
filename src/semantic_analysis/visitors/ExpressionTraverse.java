@@ -258,7 +258,7 @@ public class ExpressionTraverse {
         ExpressionNode rightExpr,
         Scope scope
     ) {
-        if (operator.equals(".") && leftType.isNullable) {
+        if (!leftType.isExternalType && operator.equals(".") && leftType.isNullable) {
             LoggerFacade.error("Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type '" + leftType + "'", root);
         }
 

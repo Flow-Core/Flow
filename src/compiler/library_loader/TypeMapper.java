@@ -21,6 +21,6 @@ public class TypeMapper {
     }
 
     public static FlowType mapType(String className) {
-        return TYPE_MAP.getOrDefault(className, new FlowType(className.replace("/", "."), false, false));
+        return TYPE_MAP.getOrDefault(className, new FlowType(className.replace("/", "."), false, false, true));
     }
 }

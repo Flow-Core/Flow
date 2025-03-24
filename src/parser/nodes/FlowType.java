@@ -11,12 +11,24 @@ public class FlowType {
     public boolean isNullable;
     public boolean isPrimitive;
     public boolean shouldBePrimitive;
+    public boolean isExternalType;
     public List<TypeArgument> typeArguments;
 
     public FlowType(String name, boolean isNullable, boolean isPrimitive) {
         this.name = name;
         this.isNullable = isNullable;
         this.isPrimitive = isPrimitive;
+        isExternalType = false;
+        shouldBePrimitive = !isPrimitive && !isNullable && isPrimitiveType();
+
+        typeArguments = new ArrayList<>();
+    }
+
+    public FlowType(String name, boolean isNullable, boolean isPrimitive, boolean isExternalType) {
+        this.name = name;
+        this.isNullable = isNullable;
+        this.isPrimitive = isPrimitive;
+        this.isExternalType = isExternalType;
         shouldBePrimitive = !isPrimitive && !isNullable && isPrimitiveType();
 
         typeArguments = new ArrayList<>();
@@ -26,6 +38,7 @@ public class FlowType {
         this.name = name;
         this.isNullable = isNullable;
         this.isPrimitive = isPrimitive;
+        isExternalType = false;
         shouldBePrimitive = !isPrimitive && !isNullable && isPrimitiveType();
 
         this.typeArguments = typeArguments;
@@ -88,6 +101,7 @@ public class FlowType {
         }
 
         sb.append(isNullable ? "?" : "");
+        sb.append(isExternalType ? "!" : "");
 
         return sb.toString();
     }
