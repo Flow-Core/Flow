@@ -47,6 +47,8 @@ public enum TokenType {
     INIT("\\binit\\b"),
     CONSTRUCTOR("\\bconstructor\\b"),
 
+    START("\\bstart\\b"),
+
     // Boolean literals
     BOOLEAN("\\b(true|false)\\b"),
 

@@ -105,4 +105,20 @@ public class FlowType {
 
         return sb.toString();
     }
+
+    public static FlowType of(String name) {
+        return new FlowType(name, false, false);
+    }
+
+    public static FlowType of(String name, List<TypeArgument> typeArguments) {
+        return new FlowType(name, false, false, typeArguments);
+    }
+
+    public static FlowType primitive(String name) {
+        return new FlowType(name, false, true);
+    }
+
+    public static FlowType nullable(String name) {
+        return new FlowType(name, true, false);
+    }
 }

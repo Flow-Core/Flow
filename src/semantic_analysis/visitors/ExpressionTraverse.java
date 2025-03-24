@@ -9,6 +9,7 @@ import parser.nodes.components.ArgumentNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.*;
 import parser.nodes.expressions.networking.ConnectionNode;
+import parser.nodes.expressions.networking.StartNode;
 import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.functions.LambdaExpressionNode;
@@ -44,6 +45,9 @@ public class ExpressionTraverse {
         }
         if (expression instanceof FunctionCallNode functionCallNode) {
             return transformFunctionCall(root, functionCallNode, scope);
+        }
+        if (expression instanceof StartNode startNode) {
+            return transformStart(root, startNode, scope);
         }
 
         return transformOperators(root, expression, scope);
@@ -272,11 +276,7 @@ public class ExpressionTraverse {
             if (leftTypeNode instanceof ClassDeclarationNode leftTypeClass) {
                 if (TypeRecognize.findTypeDeclaration(reference.variable, scope)) {
                     return new TypeReferenceNode(
-                        new FlowType(
-                            leftType.name + "." + reference.variable,
-                            false,
-                            false
-                        )
+                        FlowType.of(leftType.name + "." + reference.variable)
                     );
                 }
 
@@ -359,11 +359,7 @@ public class ExpressionTraverse {
     private static ExpressionNode transformAddress(ExpressionBaseNode root, ExpressionNode ip, FlowType ipType, ExpressionNode port, FlowType portType, Scope scope) {
         if (!TypeRecognize.isSameType(
             ipType,
-            new FlowType(
-                "flow.Ip",
-                false,
-                false
-            ),
+            FlowType.of("flow.Ip"),
             scope
         )) {
             LoggerFacade.error("Left side of an address declaration must be of type 'Ip'", root);
@@ -372,11 +368,7 @@ public class ExpressionTraverse {
 
         if (!TypeRecognize.isSameType(
             portType,
-            new FlowType(
-                "flow.Int",
-                false,
-                true
-            ),
+            FlowType.primitive("flow.Int"),
             scope
         )) {
             LoggerFacade.error("Right side of an address declaration must be of type 'Int'", root);
@@ -384,11 +376,7 @@ public class ExpressionTraverse {
         }
 
         return new ObjectNode(
-            new FlowType(
-                "flow.Address",
-                false,
-                false
-            ),
+            FlowType.of("flow.Address"),
             List.of(
                 new ArgumentNode(
                     null,
@@ -409,11 +397,7 @@ public class ExpressionTraverse {
     private static ExpressionNode transformConnection(ExpressionBaseNode root, ExpressionNode address, FlowType addressType, ExpressionNode protocol, FlowType protocolType, Scope scope) {
         if (!TypeRecognize.isSameType(
             addressType,
-            new FlowType(
-                "flow.Address",
-                false,
-                false
-            ),
+            FlowType.of("flow.Address"),
             scope
         )) {
             LoggerFacade.error("Left side of a connection declaration must be of type 'Address'", root);
@@ -427,11 +411,7 @@ public class ExpressionTraverse {
 
         if (!TypeRecognize.isSameType(
             protocolType,
-            new FlowType(
-                "flow.networking.Protocol",
-                false,
-                false
-            ),
+            FlowType.of("flow.networking.Protocol"),
             scope
         )) {
             LoggerFacade.error("Protocol class must be a subtype of 'Protocol'", root);
@@ -439,10 +419,8 @@ public class ExpressionTraverse {
         }
 
         return new ObjectNode( // new Socket(address, PType::encode(PType, OutputStream), PType::decode(InputStream))
-            new FlowType(
+            FlowType.of(
                 "flow.networking.Socket",
-                false,
-                false,
                 List.of(
                     new TypeArgument(
                         protocolType
@@ -451,58 +429,109 @@ public class ExpressionTraverse {
             ),
             List.of(
                 new ArgumentNode(null, new ExpressionBaseNode(address), addressType),
-                new ArgumentNode(null, new ExpressionBaseNode(transformValue(
-                    root,
-                    new BinaryExpressionNode(
-                        protocol,
-                        new FunctionCallNode(
-                            "encode",
-                            List.of(
-                                new ArgumentNode(
-                                    null,
-                                    new ExpressionBaseNode(new TypeReferenceNode(protocolType))
-                                ),
-                                new ArgumentNode(
-                                    null,
-                                    new ExpressionBaseNode(new TypeReferenceNode(
-                                        new FlowType(
-                                            "java.io.OutputStream",
-                                            false,
-                                            false
-                                        )
-                                    ))
-                                )
-                            )
-                        ),
-                        "::"
-                    ),
-                    scope
-                ))),
-                new ArgumentNode(null, new ExpressionBaseNode(transformValue(
-                    root,
-                    new BinaryExpressionNode(
-                        protocol,
-                        new FunctionCallNode(
-                            "decode",
-                            List.of(
-                                new ArgumentNode(
-                                    null,
-                                    new ExpressionBaseNode(new TypeReferenceNode(
-                                        new FlowType(
-                                            "java.io.InputStream",
-                                            false,
-                                            false
-                                        )
-                                    ))
-                                )
-                            )
-                        ),
-                        "::"
-                    ),
-                    scope
-                )))
+                getEncodeArg(root, protocolType, scope),
+                getDecodeArg(root, protocolType, scope)
             )
         );
+    }
+
+    private static ExpressionNode transformStart(ExpressionBaseNode root, StartNode startNode, Scope scope) {
+        ClassDeclarationNode serverTypeNode = TypeRecognize.getClass(
+            startNode.serverType.name,
+            scope
+        );
+
+        if (serverTypeNode == null) {
+            LoggerFacade.error("Unresolved type: '" + startNode.serverType);
+            return null;
+        }
+
+        if (serverTypeNode.baseClasses.isEmpty() || !serverTypeNode.baseClasses.get(0).type.name.equals("Server")) {
+            LoggerFacade.error("'" + startNode.serverType + "' does not inherit from 'Server'. Only server types can be started", root);
+            return null;
+        }
+
+        FlowType protocolType = serverTypeNode.baseClasses.get(0).type.typeArguments.get(0).type;
+
+        FlowType portType = new ExpressionTraverse().traverse(startNode.port, scope);
+
+        if (!TypeRecognize.isSameType(
+            portType,
+            FlowType.primitive("flow.Int"),
+            scope
+        )) {
+            LoggerFacade.error("Port must be of type 'flow.Int'", root);
+        }
+
+        return transformValue(
+            root,
+            new BinaryExpressionNode(
+                new ObjectNode(
+                    startNode.serverType,
+                    List.of(
+                        new ArgumentNode(
+                            null, startNode.port
+                        ),
+                        getEncodeArg(root, protocolType, scope),
+                        getDecodeArg(root, protocolType, scope)
+                    )
+                ),
+                new FunctionCallNode(
+                    "start",
+                    List.of()
+                ),
+                "."
+            ),
+            scope
+        );
+    }
+
+    private static ArgumentNode getEncodeArg(ExpressionBaseNode root, FlowType protocolType, Scope scope) {
+        return new ArgumentNode(null, new ExpressionBaseNode(transformValue(
+            root,
+            new BinaryExpressionNode(
+                new TypeReferenceNode(protocolType),
+                new FunctionCallNode(
+                    "encode",
+                    List.of(
+                        new ArgumentNode(
+                            null,
+                            new ExpressionBaseNode(new TypeReferenceNode(protocolType))
+                        ),
+                        new ArgumentNode(
+                            null,
+                            new ExpressionBaseNode(new TypeReferenceNode(
+                                FlowType.of("java.io.OutputStream")
+                            ))
+                        )
+                    )
+                ),
+                "::"
+            ),
+            scope
+        )));
+    }
+
+    private static ArgumentNode getDecodeArg(ExpressionBaseNode root, FlowType protocolType, Scope scope) {
+        return new ArgumentNode(null, new ExpressionBaseNode(transformValue(
+            root,
+            new BinaryExpressionNode(
+                new TypeReferenceNode(protocolType),
+                new FunctionCallNode(
+                    "decode",
+                    List.of(
+                        new ArgumentNode(
+                            null,
+                            new ExpressionBaseNode(new TypeReferenceNode(
+                                FlowType.of("java.io.InputStream")
+                            ))
+                        )
+                    )
+                ),
+                "::"
+            ),
+            scope
+        )));
     }
 
     private static ExpressionNode transformCast(ExpressionBaseNode root, BinaryExpressionNode binaryExpressionNode) {
@@ -529,11 +558,7 @@ public class ExpressionTraverse {
 
         if (TypeRecognize.findTypeDeclaration(referenceNode.variable, scope)) {
             return new TypeReferenceNode(
-                new FlowType(
-                    referenceNode.variable,
-                    false,
-                    false
-                )
+                FlowType.of(referenceNode.variable)
             );
         }
 
@@ -542,7 +567,7 @@ public class ExpressionTraverse {
 
         if (field != null) {
             return new FieldReferenceNode(
-                containingType != null ? new FlowType(containingType.name, false, false) : null,
+                containingType != null ? FlowType.of(containingType.name) : null,
                 field.initialization.declaration.name,
                 new VariableReferenceNode("this"),
                 field.initialization.declaration.type,
@@ -556,11 +581,7 @@ public class ExpressionTraverse {
 
     private static ExpressionNode transformLambda(LambdaExpressionNode lambdaNode, Scope scope) {
         if (lambdaNode.returnType == null)
-            lambdaNode.returnType = new FlowType(
-                "Void",
-                false,
-                false
-            );
+            lambdaNode.returnType = FlowType.of("Void");
 
         FunctionLoader.loadSignature(lambdaNode, scope, false, true);
 
@@ -629,11 +650,7 @@ public class ExpressionTraverse {
                     containingType.methods,
                     functionCallNode.name,
                     functionCallNode.arguments,
-                    new FlowType(
-                        containingType.name,
-                        false,
-                        false
-                    )
+                    FlowType.of(containingType.name)
                 );
             } else {
                 function = ParameterTraverse.findMethodByArguments(
@@ -828,11 +845,7 @@ public class ExpressionTraverse {
 
             if (modifier.equals("private") && (containingType == null || !containingType.name.equals(functionCall.callerType.name)) ||
                 modifier.equals("protected") && (containingType == null || !TypeRecognize.isSameType(
-                    new FlowType(
-                        containingType.name,
-                        false,
-                        false
-                    ),
+                    FlowType.of(containingType.name),
                     functionCall.callerType,
                     scope
                 ))
@@ -841,7 +854,7 @@ public class ExpressionTraverse {
                 return null;
             }
 
-            return !functionCall.isSafeCall ? function.returnType : new FlowType(function.returnType.name, true, false);
+            return !functionCall.isSafeCall ? function.returnType : FlowType.nullable(function.returnType.name);
         }
         if (expression instanceof LambdaExpressionNode lambdaNode) {
             return getLambdaType(lambdaNode.parameters, lambdaNode.returnType);
@@ -877,8 +890,8 @@ public class ExpressionTraverse {
             if (holder != null)
                 if (modifier.equals("private") && (containingType == null || !containingType.name.equals(holder.name)) ||
                     modifier.equals("protected") && (containingType == null || !TypeRecognize.isSameType(
-                        new FlowType(containingType.name, false, false),
-                        new FlowType(holder.name, false, false),
+                        FlowType.of(containingType.name),
+                        FlowType.of(holder.name),
                         scope
                     ))
                 ) {
@@ -919,13 +932,11 @@ public class ExpressionTraverse {
             return castExpressionNode.castType;
         }
         if (expression instanceof IsExpressionNode) {
-            return new FlowType("Bool", false, true);
+            return FlowType.primitive("Bool");
         }
         if (expression instanceof ConnectionNode connectionNode) {
-            return new FlowType(
+            return FlowType.of(
                 "flow.networking.Socket",
-                false,
-                false,
                 List.of(
                     new TypeArgument(
                         connectionNode.protocolType.type
@@ -934,18 +945,10 @@ public class ExpressionTraverse {
             );
         }
         if (expression instanceof LiteralNode literalNode) {
-            return new FlowType(
-                literalNode.getClassName(),
-                false,
-                true
-            );
+            return FlowType.primitive(literalNode.getClassName());
         }
         if (expression instanceof NullLiteral) {
-            return new FlowType(
-                "null",
-                true,
-                false
-            );
+            return FlowType.nullable("null");
         }
 
         LoggerFacade.error("Could not resolve type: '" + expression + "'", root);
@@ -1030,10 +1033,8 @@ public class ExpressionTraverse {
         if (hasReturnValue)
             typeArguments.add(new TypeArgument(returnType));
 
-        return new FlowType(
+        return FlowType.of(
             getLambdaInterfaceName(parameters.size(), hasReturnValue),
-            false,
-            false,
             typeArguments
         );
     }

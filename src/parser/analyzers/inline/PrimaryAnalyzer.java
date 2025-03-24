@@ -13,7 +13,9 @@ import parser.nodes.components.ArgumentNode;
 import parser.nodes.components.BlockNode;
 import parser.nodes.components.BodyNode;
 import parser.nodes.components.ParameterNode;
+import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
+import parser.nodes.expressions.networking.StartNode;
 import parser.nodes.functions.LambdaExpressionNode;
 import parser.nodes.literals.*;
 import parser.nodes.literals.ip.Ipv4LiteralNode;
@@ -55,6 +57,15 @@ public class PrimaryAnalyzer {
                 parser.consume(TokenType.CLOSE_PARENTHESES);
 
                 yield (ExpressionNode) ASTMetaDataStore.getInstance().addMetadata(new ObjectNode(type, args), line, parser.file);
+            }
+            case START -> {
+                final FlowType serverType = FlowTypeAnalyzer.analyze(parser);
+
+                parser.consume(TokenType.OPEN_PARENTHESES);
+                final ExpressionBaseNode port = (ExpressionBaseNode) new ExpressionAnalyzer().parse(parser).node();
+                parser.consume(TokenType.CLOSE_PARENTHESES);
+
+                yield (ExpressionNode) ASTMetaDataStore.getInstance().addMetadata(new StartNode(serverType, port), line, parser.file);
             }
             case OPEN_PARENTHESES -> {
                 ExpressionNode expr = ExpressionAnalyzer.parseExpression(parser);
