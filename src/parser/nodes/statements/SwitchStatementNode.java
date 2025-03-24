@@ -18,7 +18,6 @@ public class SwitchStatementNode implements StatementNode {
         this.defaultBlock = defaultBlock;
     }
 
-
     @Override
     public <D> void accept(final ASTVisitor<D> visitor, final D data) {
         StatementNode.super.accept(visitor, data);
@@ -29,7 +28,9 @@ public class SwitchStatementNode implements StatementNode {
             caseNode.accept(visitor, data);
         }
 
-        defaultBlock.accept(visitor, data);
+        if (defaultBlock != null) {
+            defaultBlock.accept(visitor, data);
+        }
     }
 
     @Override

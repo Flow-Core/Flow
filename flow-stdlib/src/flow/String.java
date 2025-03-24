@@ -87,6 +87,11 @@ public final class String extends Thing {
     }
 
     @Override
+    public int hash() {
+        return value.hashCode();
+    }
+
+    @Override
     public String string() {
         return this;
     }

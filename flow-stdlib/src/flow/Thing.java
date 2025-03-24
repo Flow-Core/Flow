@@ -2,7 +2,11 @@ package flow;
 
 public abstract class Thing {
     public boolean equals(Thing other) {
-        return this == other;
+        if (other == null) {
+            return false;
+        }
+
+        return this.hashCode() == other.hashCode() || this == other;
     }
 
     public int hash() {

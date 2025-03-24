@@ -101,13 +101,16 @@ public final class Int extends Thing {
         return Integer.hashCode(value);
     }
 
-    // Overriding string() to return a java.lang.String representation
+    @Override
+    public int hash() {
+        return Integer.hashCode(value);
+    }
+
     @Override
     public String string() {
         return new String(java.lang.String.valueOf(value));
     }
 
-    // Creates a copy of this Int wrapper
     @Override
     public Int copy() {
         return new Int(value);
