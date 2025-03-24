@@ -8,7 +8,9 @@ import parser.nodes.FlowType;
 import parser.nodes.classes.*;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.components.ParameterNode;
+import parser.nodes.expressions.CastExpressionNode;
 import parser.nodes.expressions.ExpressionNode;
+import parser.nodes.expressions.IsExpressionNode;
 import parser.nodes.expressions.UnaryOperatorNode;
 import parser.nodes.expressions.networking.ConnectionNode;
 import parser.nodes.functions.FunctionCallNode;
@@ -52,12 +54,23 @@ public class ExpressionGenerator {
             result = generateUnary(unaryExpression, file.scope(), file, mv, vm, tracker, expectedType);
         } else if (expression instanceof ConnectionNode connectionNode) {
             result = generateConnection(connectionNode, file.scope(), file, mv, vm, tracker, expectedType);
-        } else if (expression instanceof CastNode castNode) {
-            generate(castNode.base, mv, vm, file, castNode.castType);
+        } else if (expression instanceof CastExpressionNode castExpressionNode) {
+            generate(castExpressionNode.base, mv, vm, file, castExpressionNode.castType);
 
-            mv.visitTypeInsn(Opcodes.CHECKCAST, FQNameMapper.getFQName(castNode.castType.name, file.scope()));
+            mv.visitTypeInsn(Opcodes.CHECKCAST, FQNameMapper.getFQName(castExpressionNode.castType.name, file.scope()));
 
-            return tracker.hang(castNode.castType);
+            return tracker.hang(castExpressionNode.castType);
+        } else if (expression instanceof IsExpressionNode isExpressionNode) {
+            generate(isExpressionNode.base, mv, vm, file, isExpressionNode.checkType);
+
+            mv.visitTypeInsn(Opcodes.INSTANCEOF, FQNameMapper.getFQName(isExpressionNode.checkType.name, file.scope()));
+
+            if (isExpressionNode.isNegated) {
+                mv.visitInsn(Opcodes.ICONST_1);
+                mv.visitInsn(Opcodes.IXOR);
+            }
+
+            return tracker.hang(new FlowType("Bool", false, true));
         } else if (expression instanceof LiteralNode literalNode) {
             result = generateLiteral(literalNode, mv, tracker, expectedType);
         } else if (expression instanceof LambdaExpressionNode lambdaExpressionNode) {

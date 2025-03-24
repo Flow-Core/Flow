@@ -1,15 +1,14 @@
-package parser.nodes.classes;
+package parser.nodes.expressions;
 
 import parser.nodes.FlowType;
-import parser.nodes.expressions.ExpressionNode;
 
 import java.util.Objects;
 
-public class CastNode implements ExpressionNode {
+public class CastExpressionNode implements ExpressionNode {
     public ExpressionNode base;
     public FlowType castType;
 
-    public CastNode(ExpressionNode base, FlowType castType) {
+    public CastExpressionNode(ExpressionNode base, FlowType castType) {
         this.base = base;
         this.castType = castType;
     }
@@ -18,8 +17,8 @@ public class CastNode implements ExpressionNode {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
 
-        CastNode castNode = (CastNode) o;
-        return Objects.equals(base, castNode.base) && Objects.equals(castType, castNode.castType);
+        CastExpressionNode castExpressionNode = (CastExpressionNode) o;
+        return Objects.equals(base, castExpressionNode.base) && Objects.equals(castType, castExpressionNode.castType);
     }
 
     @Override

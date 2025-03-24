@@ -7,10 +7,7 @@ import parser.nodes.FlowType;
 import parser.nodes.classes.*;
 import parser.nodes.components.ArgumentNode;
 import parser.nodes.components.ParameterNode;
-import parser.nodes.expressions.BinaryExpressionNode;
-import parser.nodes.expressions.ExpressionBaseNode;
-import parser.nodes.expressions.ExpressionNode;
-import parser.nodes.expressions.UnaryOperatorNode;
+import parser.nodes.expressions.*;
 import parser.nodes.expressions.networking.ConnectionNode;
 import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
@@ -133,6 +130,9 @@ public class ExpressionTraverse {
             }
             case "as" -> {
                 return transformCast(root, binaryExpression);
+            }
+            case "is", "is not" -> {
+                return transformIs(root, binaryExpression);
             }
         }
 
@@ -511,7 +511,16 @@ public class ExpressionTraverse {
             return null;
         }
 
-        return new CastNode(binaryExpressionNode.left, typeReferenceNode.type);
+        return new CastExpressionNode(binaryExpressionNode.left, typeReferenceNode.type);
+    }
+
+    private static ExpressionNode transformIs(ExpressionBaseNode root, BinaryExpressionNode binaryExpressionNode) {
+        if (!(binaryExpressionNode.right instanceof TypeReferenceNode typeReferenceNode)) {
+            LoggerFacade.error("Right side of a instance check must be a type reference", root);
+            return null;
+        }
+
+        return new IsExpressionNode(binaryExpressionNode.left, typeReferenceNode.type, binaryExpressionNode.operator.equals("is not"));
     }
 
     private static ExpressionNode transformVariableReference(ExpressionBaseNode root, VariableReferenceNode referenceNode, Scope scope) {
@@ -905,9 +914,12 @@ public class ExpressionTraverse {
 
             return unaryExpression.operandType;
         }
-        if (expression instanceof CastNode castNode) {
-            castNode.castType.shouldBePrimitive = false;
-            return castNode.castType;
+        if (expression instanceof CastExpressionNode castExpressionNode) {
+            castExpressionNode.castType.shouldBePrimitive = false;
+            return castExpressionNode.castType;
+        }
+        if (expression instanceof IsExpressionNode) {
+            return new FlowType("Bool", false, true);
         }
         if (expression instanceof ConnectionNode connectionNode) {
             return new FlowType(
