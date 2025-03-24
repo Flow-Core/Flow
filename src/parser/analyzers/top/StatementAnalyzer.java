@@ -197,12 +197,16 @@ public class StatementAnalyzer extends TopAnalyzer {
                 );
             case THROW:
                 return new AnalyzerResult(
-                    new ThrowNode(
-                        new ExpressionBaseNode(
-                            ExpressionAnalyzer.parseExpression(parser),
-                            line,
-                            parser.file
-                        )
+                    ASTMetaDataStore.getInstance().addMetadata(
+                        new ThrowNode(
+                            new ExpressionBaseNode(
+                                ExpressionAnalyzer.parseExpression(parser),
+                                line,
+                                parser.file
+                            )
+                        ),
+                        line,
+                        parser.file
                     ),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
@@ -221,13 +225,13 @@ public class StatementAnalyzer extends TopAnalyzer {
                     parser.consume(TokenType.CLOSE_PARENTHESES);
 
                     return new AnalyzerResult(
-                        blockStatementNode,
+                        ASTMetaDataStore.getInstance().addMetadata(blockStatementNode, line, parser.file),
                         parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                     );
                 }
 
                 return new AnalyzerResult(
-                    new WhileStatementNode(new ExpressionBaseNode(new BooleanLiteralNode(true), parser.peek().line(), parser.file), new BodyNode(new BlockNode(new ArrayList<>()))),
+                    ASTMetaDataStore.getInstance().addMetadata(new WhileStatementNode(new ExpressionBaseNode(new BooleanLiteralNode(true), line, parser.file), new BodyNode(new BlockNode(new ArrayList<>()))), line, parser.file),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
             case RETURN:

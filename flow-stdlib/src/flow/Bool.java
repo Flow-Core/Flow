@@ -28,21 +28,21 @@ public class Bool extends Thing {
     }
 
     @Override
-    public Bool equals(Thing other) {
+    public boolean equals(Thing other) {
         if (other instanceof Bool) {
-            return new Bool(this.value == ((Bool) other).value);
+            return this.value == ((Bool) other).value;
         }
-        return new Bool(false);
+
+        return false;
     }
 
-    public Bool notEquals(Thing other) {
-        Bool eq = this.equals(other);
-        return new Bool(!eq.value);
+    public boolean notEquals(Thing other) {
+        return !this.equals(other);
     }
 
     @Override
-    public Int hash() {
-        return new Int(Boolean.hashCode(value));
+    public int hash() {
+        return Boolean.hashCode(value);
     }
 
     @Override

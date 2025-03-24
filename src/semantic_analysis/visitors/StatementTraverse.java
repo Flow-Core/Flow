@@ -34,7 +34,7 @@ public class StatementTraverse {
 
     private static void handleIfStatement(final IfStatementNode ifStatementNode, final Scope scope) {
         final FlowType conditionType = new ExpressionTraverse().traverse(ifStatementNode.condition, scope);
-        if (conditionType == null || !conditionType.name.equals("Bool") && !conditionType.isNullable) {
+        if (conditionType == null || !conditionType.name.equals("Bool") && !conditionType.name.equals("flow.Bool") || conditionType.isNullable) {
             LoggerFacade.error("Condition type mismatch: 'Bool' was expected", ifStatementNode);
         }
 
@@ -50,7 +50,7 @@ public class StatementTraverse {
 
     private static void handleWhileStatement(final WhileStatementNode whileStatementNode, final Scope scope) {
         final FlowType conditionType = new ExpressionTraverse().traverse(whileStatementNode.condition, scope);
-        if (conditionType == null || !conditionType.name.equals("Bool") && !conditionType.isNullable) {
+        if (conditionType == null || !conditionType.name.equals("Bool") && !conditionType.name.equals("flow.Bool") || conditionType.isNullable) {
             LoggerFacade.error("Condition type mismatch: 'Bool' was expected", whileStatementNode);
         }
 

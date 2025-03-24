@@ -30,10 +30,10 @@ public class Text extends Protocol {
         while ((ch = in.read()) != -1) {
             sb.append((char) ch);
             if (
-                sb.length() >= delimiter.length().value &&
-                sb.substring(sb.length() - delimiter.length().value).equals(delimiter.value)
+                sb.length() >= delimiter.length() &&
+                sb.substring(sb.length() - delimiter.length()).equals(delimiter.value)
             ) {
-                String message = new String(sb.substring(0, sb.length() - delimiter.length().value));
+                String message = new String(sb.substring(0, sb.length() - delimiter.length()));
                 return new Text(message);
             }
         }

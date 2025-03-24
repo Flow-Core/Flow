@@ -18,6 +18,7 @@ public abstract class Server<P extends Protocol> extends Thing {
     private int port;
     private Function2<P, OutputStream, ByteArray> encode;
     private Function1<InputStream, P> decode;
+    private ServerSocket server;
 
     private ExecutorService clientThreads;
     private ExecutorService listenThread;
@@ -43,7 +44,8 @@ public abstract class Server<P extends Protocol> extends Thing {
     }
 
     private void run() {
-        try (ServerSocket server = new ServerSocket(port)) {
+        try {
+            server = new ServerSocket(port);
             onStart();
 
             while (isServerRunning) {
@@ -52,6 +54,12 @@ public abstract class Server<P extends Protocol> extends Thing {
             }
         } catch (SocketException e) {
             if (isServerRunning) {
+                e.printStackTrace();
+            }
+
+            try {
+                close();
+            } catch (IOException ignore) {
                 e.printStackTrace();
             }
         } catch (IOException e) {
@@ -85,6 +93,10 @@ public abstract class Server<P extends Protocol> extends Thing {
 
     public void close() throws IOException {
         isServerRunning = false;
+
+        if (!server.isClosed()) {
+            server.close();
+        }
 
         listenThread.shutdownNow();
         clientThreads.shutdownNow();

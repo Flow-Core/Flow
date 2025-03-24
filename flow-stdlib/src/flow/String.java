@@ -13,8 +13,8 @@ public final class String extends Thing {
         this.value = value.value;
     }
 
-    public Int length() {
-        return new Int(value.length());
+    public int length() {
+        return value.length();
     }
 
     public String plus(String other) {
@@ -58,32 +58,32 @@ public final class String extends Thing {
     }
 
     @Override
-    public Bool equals(Thing other) {
+    public boolean equals(Thing other) {
         if (other instanceof String) {
-            return new Bool(this.value.equals(((String) other).value));
+            return this.value.equals(((String) other).value);
         }
-        return new Bool(false);
+
+        return false;
     }
 
-    public Bool notEquals(Thing other) {
-        Bool eq = this.equals(other);
-        return new Bool(!eq.value);
+    public boolean notEquals(Thing other) {
+        return !this.equals(other);
     }
 
-    public Bool lessThan(String other) {
-        return new Bool(this.value.compareTo(other.value) < 0);
+    public boolean lessThan(String other) {
+        return this.value.compareTo(other.value) < 0;
     }
 
-    public Bool greaterThan(String other) {
-        return new Bool(this.value.compareTo(other.value) > 0);
+    public boolean greaterThan(String other) {
+        return this.value.compareTo(other.value) > 0;
     }
 
-    public Bool lessOrEquals(String other) {
-        return new Bool(this.value.compareTo(other.value) <= 0);
+    public boolean lessOrEquals(String other) {
+        return this.value.compareTo(other.value) <= 0;
     }
 
-    public Bool greaterOrEquals(String other) {
-        return new Bool(this.value.compareTo(other.value) >= 0);
+    public boolean greaterOrEquals(String other) {
+        return this.value.compareTo(other.value) >= 0;
     }
 
     @Override
