@@ -54,7 +54,7 @@ public class ExpressionAnalyzer extends TopAnalyzer {
                 rhs = parseBrackets(parser);
                 operatorSign = "[]";
             } else {
-                parser.consume(TokenType.BINARY_OPERATOR, TokenType.POLARITY_OPERATOR, TokenType.COLON_OPERATOR, TokenType.CONNECTION_OPERATOR);
+                parser.consume(TokenType.BINARY_OPERATOR, TokenType.POLARITY_OPERATOR, TokenType.COLON_OPERATOR, TokenType.CONNECTION_OPERATOR, TokenType.AS);
 
                 rhs = parseValue(parser);
             }
@@ -120,6 +120,7 @@ public class ExpressionAnalyzer extends TopAnalyzer {
         precedenceValues.put("*", 40);
         precedenceValues.put("/", 40);
         precedenceValues.put("%", 40);
+        precedenceValues.put("as", 45);
         precedenceValues.put("~", 50);
         precedenceValues.put("[", 100);
         precedenceValues.put("::", 500);

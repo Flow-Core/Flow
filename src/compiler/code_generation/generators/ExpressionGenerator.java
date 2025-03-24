@@ -52,6 +52,12 @@ public class ExpressionGenerator {
             result = generateUnary(unaryExpression, file.scope(), file, mv, vm, tracker, expectedType);
         } else if (expression instanceof ConnectionNode connectionNode) {
             result = generateConnection(connectionNode, file.scope(), file, mv, vm, tracker, expectedType);
+        } else if (expression instanceof CastNode castNode) {
+            generate(castNode.base, mv, vm, file, castNode.castType);
+
+            mv.visitTypeInsn(Opcodes.CHECKCAST, FQNameMapper.getFQName(castNode.castType.name, file.scope()));
+
+            return tracker.hang(castNode.castType);
         } else if (expression instanceof LiteralNode literalNode) {
             result = generateLiteral(literalNode, mv, tracker, expectedType);
         } else if (expression instanceof LambdaExpressionNode lambdaExpressionNode) {

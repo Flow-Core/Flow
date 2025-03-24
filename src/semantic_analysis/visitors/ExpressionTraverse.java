@@ -110,24 +110,30 @@ public class ExpressionTraverse {
 
         FlowType rightType = determineType(root, binaryExpression.right, scope);
 
-        if (binaryExpression.operator.equals(":")) {
-            return transformAddress(
-                root,
-                binaryExpression.left,
-                leftType,
-                binaryExpression.right,
-                rightType,
-                scope
-            );
-        } else if (binaryExpression.operator.equals("~")) {
-            return transformConnection(
-                root,
-                binaryExpression.left,
-                leftType,
-                binaryExpression.right,
-                rightType,
-                scope
-            );
+        switch (binaryExpression.operator) {
+            case ":" -> {
+                return transformAddress(
+                    root,
+                    binaryExpression.left,
+                    leftType,
+                    binaryExpression.right,
+                    rightType,
+                    scope
+                );
+            }
+            case "~" -> {
+                return transformConnection(
+                    root,
+                    binaryExpression.left,
+                    leftType,
+                    binaryExpression.right,
+                    rightType,
+                    scope
+                );
+            }
+            case "as" -> {
+                return transformCast(root, binaryExpression);
+            }
         }
 
         if (rightType == null || binaryExpression.right instanceof TypeReferenceNode) {
@@ -497,6 +503,15 @@ public class ExpressionTraverse {
                 )))
             )
         );
+    }
+
+    private static ExpressionNode transformCast(ExpressionBaseNode root, BinaryExpressionNode binaryExpressionNode) {
+        if (!(binaryExpressionNode.right instanceof TypeReferenceNode typeReferenceNode)) {
+            LoggerFacade.error("Right side of a cast must be a type reference", root);
+            return null;
+        }
+
+        return new CastNode(binaryExpressionNode.left, typeReferenceNode.type);
     }
 
     private static ExpressionNode transformVariableReference(ExpressionBaseNode root, VariableReferenceNode referenceNode, Scope scope) {
@@ -889,6 +904,10 @@ public class ExpressionTraverse {
             }
 
             return unaryExpression.operandType;
+        }
+        if (expression instanceof CastNode castNode) {
+            castNode.castType.shouldBePrimitive = false;
+            return castNode.castType;
         }
         if (expression instanceof ConnectionNode connectionNode) {
             return new FlowType(
