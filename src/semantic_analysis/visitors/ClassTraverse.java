@@ -27,6 +27,10 @@ public class ClassTraverse {
     public static void loadFields(ClassDeclarationNode classDeclaration, Scope scope) {
         for (final FieldNode field : classDeclaration.fields) {
             VariableLoader.loadDeclaration(field, scope);
+
+            if (field.initialization.assignment != null) {
+                field.isInitialized = false;
+            }
         }
     }
 
