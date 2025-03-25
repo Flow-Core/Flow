@@ -131,7 +131,7 @@ public class VariableLoader {
         fieldNode.isInitialized = true;
 
         if (actualType == null || actualType.name.equals("null")) {
-            if (!fieldNode.initialization.declaration.type.isNullable) {
+            if (fieldNode.initialization.declaration.type != null && !fieldNode.initialization.declaration.type.isNullable) {
                 LoggerFacade.error("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'", fieldNode);
             }
         } else if (!TypeRecognize.isSameType(actualType, varType, scope)) {
