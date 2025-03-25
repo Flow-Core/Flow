@@ -168,7 +168,7 @@ public class StatementGenerator {
             "()I",
             false
         );
-        vm.declareVariable("~switchVar", new FlowType("Int", false, true), new FlowType("Int", false, true));
+        vm.declareVariable("$switchVar", new FlowType("Int", false, true), new FlowType("Int", false, true));
 
         Label endLabel = new Label();
 
@@ -177,7 +177,7 @@ public class StatementGenerator {
             CaseNode caseNode = switchStatementNode.cases.get(i);
             Label nextCase = new Label();
 
-            vm.loadVariable("~switchVar", new FlowType("Int", false, true));
+            vm.loadVariable("$switchVar", new FlowType("Int", false, true));
             ExpressionGenerator.generate(
                 caseNode.value.expression,
                 mv, vm, file,

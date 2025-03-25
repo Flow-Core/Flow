@@ -45,7 +45,7 @@ public enum TokenType {
     NEW("\\bnew\\b"),
 
     INIT("\\binit\\b"),
-    CONSTRUCTOR("\\bconstructor\\b"),
+    CONSTRUCTOR("\\bctor\\b"),
 
     START("\\bstart\\b"),
 

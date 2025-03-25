@@ -163,7 +163,7 @@ public class VariableLoader {
                 return null;
             }
         } else {
-            LoggerFacade.error("'" + variableAssignment.variable.expression + "' is not assignable");
+            LoggerFacade.error("'" + variableAssignment.variable.expression + "' is not assignable", variableAssignment);
             return null;
         }
 

@@ -443,7 +443,7 @@ public class ExpressionTraverse {
         );
 
         if (serverTypeNode == null) {
-            LoggerFacade.error("Unresolved type: '" + startNode.serverType);
+            LoggerFacade.error("Unresolved type: '" + startNode.serverType + "'", root);
             return null;
         }
 
