@@ -446,7 +446,7 @@ public class ExpressionTraverse {
             return null;
         }
 
-        if (serverTypeNode.baseClasses.isEmpty() || !serverTypeNode.baseClasses.get(0).type.name.equals("Server")) {
+        if (serverTypeNode.baseClasses.isEmpty() || !serverTypeNode.baseClasses.get(0).type.name.equals("flow.networking.Server")) {
             LoggerFacade.error("'" + startNode.serverType + "' does not inherit from 'Server'. Only server types can be started", root);
             return null;
         }
