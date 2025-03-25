@@ -27,10 +27,6 @@ public class ClassTraverse {
     public static void loadFields(ClassDeclarationNode classDeclaration, Scope scope) {
         for (final FieldNode field : classDeclaration.fields) {
             VariableLoader.loadDeclaration(field, scope);
-
-            if (field.initialization.assignment != null) {
-                field.isInitialized = false;
-            }
         }
     }
 
@@ -52,6 +48,12 @@ public class ClassTraverse {
             }
 
             addThisToSymbolTable(symbolTable, classDeclaration.name);
+
+            for (final FieldNode field : classDeclaration.fields) {
+                if (field.initialization.assignment != null) {
+                    field.isInitialized = false;
+                }
+            }
 
             final Scope bodyScope = new Scope(scope, symbolTable, classDeclaration, Scope.Type.FUNCTION);
             BlockTraverse.traverse(constructorNode.body.blockNode, bodyScope);
