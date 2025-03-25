@@ -26,6 +26,7 @@ import semantic_analysis.scopes.TypeRecognize;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static semantic_analysis.visitors.ParameterTraverse.*;
 
@@ -446,7 +447,7 @@ public class ExpressionTraverse {
             return null;
         }
 
-        if (serverTypeNode.baseClasses.isEmpty() || !serverTypeNode.baseClasses.get(0).type.name.equals("flow.networking.Server")) {
+        if (serverTypeNode.baseClasses.isEmpty() || !serverTypeNode.baseClasses.get(0).type.name.equals("flow.networking.Server") && !Objects.equals(scope.getFQName(serverTypeNode.baseClasses.get(0)), "flow.networking.Server")) {
             LoggerFacade.error("'" + startNode.serverType + "' does not inherit from 'Server'. Only server types can be started", root);
             return null;
         }
