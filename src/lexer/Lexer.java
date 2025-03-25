@@ -70,6 +70,10 @@ public class Lexer {
 
                 if (type == TokenType.STRING || type == TokenType.CHAR) {
                     value = value.substring(1, value.length() - 1);
+
+                    if (type == TokenType.STRING) {
+                        value = unescape(value);
+                    }
                 }
                 if ((type == TokenType.FLOAT || type == TokenType.DOUBLE || type == TokenType.LONG) && !Character.isDigit(value.charAt(value.length() - 1))) {
                     value = value.substring(0, value.length() - 1);
@@ -89,5 +93,58 @@ public class Lexer {
         }
 
         return null;
+    }
+
+    private String unescape(String s) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '\\') {
+                if (i + 1 < s.length()) {
+                    char next = s.charAt(++i);
+                    switch (next) {
+                        case 'n':
+                            sb.append('\n');
+                            break;
+                        case 't':
+                            sb.append('\t');
+                            break;
+                        case 'r':
+                            sb.append('\r');
+                            break;
+                        case '\\':
+                            sb.append('\\');
+                            break;
+                        case '"':
+                            sb.append('"');
+                            break;
+                        case '\'':
+                            sb.append('\'');
+                            break;
+                        case 'u':
+                            if (i + 4 < s.length()) {
+                                String hex = s.substring(i + 1, i + 5);
+                                try {
+                                    int code = Integer.parseInt(hex, 16);
+                                    sb.append((char) code);
+                                } catch (NumberFormatException e) {
+                                    throw LoggerFacade.getLogger().panic("Invalid Unicode escape sequence: \\u" + hex, currentLine, file);
+                                }
+                                i += 4;
+                            } else {
+                                throw LoggerFacade.getLogger().panic("Incomplete Unicode escape sequence. Expected 4 hex digits after \\u.", currentLine, file);
+                            }
+                            break;
+                        default:
+                            throw LoggerFacade.getLogger().panic("Invalid escape sequence: \\" + next, currentLine, file);
+                    }
+                } else {
+                    throw LoggerFacade.getLogger().panic("Escape character '\\' at end of string", currentLine, file);
+                }
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 }
