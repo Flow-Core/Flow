@@ -116,7 +116,9 @@ public abstract class Server<P extends Protocol> extends Thing {
         isServerRunning = false;
 
         for (Socket<P> client : connections.values()) {
-            client.close();
+            if (client.isAlive()) {
+                client.close();
+            }
         }
 
         if (!server.isClosed()) {
