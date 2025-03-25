@@ -132,7 +132,7 @@ public class Lexer {
                                 }
                                 i += 4;
                             } else {
-                                throw LoggerFacade.getLogger().panic("Incomplete Unicode escape sequence. Expected 4 hex digits after \\u.", currentLine, file);
+                                throw LoggerFacade.getLogger().panic("Incomplete Unicode escape sequence. Expected 4 hex digits after \\u", currentLine, file);
                             }
                             break;
                         default:
