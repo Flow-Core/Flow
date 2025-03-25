@@ -37,9 +37,25 @@ public abstract class Server<P extends Protocol> extends Thing {
     }
 
     public Server<P> start() {
-        clientThreads = Executors.newCachedThreadPool();
+        clientThreads = Executors.newCachedThreadPool(r -> {
+            Thread t = Executors.defaultThreadFactory().newThread(r);
+            t.setDaemon(true);
+            return t;
+        });
 
-        listenThread = Executors.newSingleThreadExecutor();
+        listenThread = Executors.newSingleThreadExecutor(r -> {
+            Thread t = Executors.defaultThreadFactory().newThread(r);
+            t.setDaemon(true);
+            return t;
+        });
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }));
 
         listenThread.execute(this::run);
 
