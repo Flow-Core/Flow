@@ -36,6 +36,6 @@ public class StartNode implements ExpressionNode {
 
     @Override
     public String toString() {
-        return serverType + " ~ " + port;
+        return "start " + serverType + "(" + port + ")";
     }
 }
