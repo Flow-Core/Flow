@@ -296,6 +296,7 @@ public class ExpressionTraverse {
                     reference.variable,
                     leftExpr,
                     field.initialization.declaration.type,
+                    field,
                     field.modifiers.contains("static")
                 );
             }
@@ -572,6 +573,7 @@ public class ExpressionTraverse {
                 field.initialization.declaration.name,
                 new VariableReferenceNode("this"),
                 field.initialization.declaration.type,
+                field,
                 field.modifiers.contains("static")
             );
         }
