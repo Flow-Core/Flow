@@ -124,9 +124,9 @@ public class ExpressionAnalyzer extends TopAnalyzer {
         precedenceValues.put("%", 40);
         precedenceValues.put("as", 50);
         precedenceValues.put("~", 50);
-        precedenceValues.put("[", 100);
         precedenceValues.put("::", 500);
         precedenceValues.put(":", 1000);
+        precedenceValues.put("[", 10000);
         precedenceValues.put(".", 10000);
         precedenceValues.put("?.", 10000);
         //</editor-fold>

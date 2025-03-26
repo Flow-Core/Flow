@@ -14,6 +14,10 @@ public class Array<T> extends Thing implements Iterable<T> {
         _arr = (T[]) new Object[size];
     }
 
+    public Array(T[] arr) {
+        _arr = arr.clone();
+    }
+
     @Override
     public Iterator<T> iterator() {
         return new ArrayIterator(0);

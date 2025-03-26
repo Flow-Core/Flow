@@ -6,7 +6,6 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import parser.nodes.FlowType;
-import parser.nodes.classes.ObjectNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.statements.*;
 import semantic_analysis.files.FileWrapper;
@@ -69,7 +68,7 @@ public class StatementGenerator {
     }
 
     private static void generateReturnStatement(ReturnStatementNode returnStatementNode, MethodVisitor mv, VariableManager vm, FileWrapper file, Scope currentScope) {
-        if (returnStatementNode.returnValue.expression instanceof ObjectNode objectNode && objectNode.type.name.equals("Void")) {
+        if (returnStatementNode.returnType == null || returnStatementNode.returnType.name.equals("Void")) {
             mv.visitInsn(Opcodes.RETURN);
             return;
         }

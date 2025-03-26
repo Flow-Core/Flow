@@ -51,8 +51,9 @@ public class Parser {
     }
 
     public boolean checkIgnoreNewLine(final TokenType type) {
-        if (peek().type() == TokenType.NEW_LINE) {
+        if (peek(1).type() == type && peek().type() == TokenType.NEW_LINE) {
             advance();
+            return true;
         }
 
         return peek().type() == type;

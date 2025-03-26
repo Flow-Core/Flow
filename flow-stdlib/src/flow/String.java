@@ -1,6 +1,10 @@
 package flow;
 
+import flow.collections.Array;
 import flow.collections.ByteArray;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class String extends Thing {
     public final java.lang.String value;
@@ -41,6 +45,10 @@ public final class String extends Thing {
         return Integer.parseInt(value);
     }
 
+    public float toFloat() {
+        return Float.parseFloat(value);
+    }
+
     public ByteArray toByteArray() {
         return new ByteArray(value.getBytes());
     }
@@ -55,6 +63,18 @@ public final class String extends Thing {
 
     public static String fromJavaType(java.lang.String value) {
         return new String(value);
+    }
+
+    public Array<String> split(String delimiter) {
+        java.lang.String[] substrings = value.split(delimiter.value);
+
+        Array<String> out = new Array<>(substrings.length);
+
+        for (int i = 0; i < substrings.length; i++) {
+            out.set(i, new String(substrings[i]));
+        }
+
+        return out;
     }
 
     @Override

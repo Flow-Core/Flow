@@ -387,6 +387,11 @@ public class ClassLoader implements ASTVisitor<Scope> {
     private void addFieldsToConstructor(final ClassDeclarationNode classDeclarationNode) {
         for (int i = classDeclarationNode.fields.size() - 1; i >= 0; i--) {
             final FieldNode fieldNode = classDeclarationNode.fields.get(i);
+
+            if (fieldNode.initialization.declaration.modifier.equals("const")) {
+                continue;
+            }
+
             if (fieldNode.initialization.assignment != null) {
                 for (final ConstructorNode constructorNode : classDeclarationNode.constructors) {
                     constructorNode.body.blockNode.children.add(0, fieldNode.initialization.assignment);
