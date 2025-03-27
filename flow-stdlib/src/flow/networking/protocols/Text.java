@@ -17,7 +17,7 @@ public class Text extends Protocol {
     }
 
     public static ByteArray encode(Text message, OutputStream out) throws IOException {
-        out.write(message.data.toByteArray().bytes);
+        out.write(message.data.plus(delimiter).toByteArray().bytes);
 
         return message.data.toByteArray();
     }
