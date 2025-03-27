@@ -686,7 +686,7 @@ public class ExpressionTraverse {
         }
         if (expression instanceof TypeReferenceNode typeReference) {
             if (!TypeRecognize.findTypeDeclaration(typeReference.type.name, scope)) {
-                LoggerFacade.error("Type '" + typeReference.type + "' was not found");
+                LoggerFacade.error("Type '" + typeReference.type + "' was not found", root);
                 return null;
             }
 
@@ -699,7 +699,7 @@ public class ExpressionTraverse {
         }
         if (expression instanceof TypeArgument typeArgument) {
             if (!TypeRecognize.findTypeDeclaration(typeArgument.type.name, scope)) {
-                LoggerFacade.error("Type '" + typeArgument.type + "' was not found");
+                LoggerFacade.error("Type '" + typeArgument.type + "' was not found", root);
                 return null;
             }
 

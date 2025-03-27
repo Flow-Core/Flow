@@ -3,8 +3,7 @@ package flow;
 import flow.collections.Array;
 import flow.collections.ByteArray;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.regex.Pattern;
 
 public final class String extends Thing {
     public final java.lang.String value;
@@ -66,7 +65,7 @@ public final class String extends Thing {
     }
 
     public Array<String> split(String delimiter) {
-        java.lang.String[] substrings = value.split(delimiter.value);
+        java.lang.String[] substrings = value.split(Pattern.quote(delimiter.value));
 
         Array<String> out = new Array<>(substrings.length);
 

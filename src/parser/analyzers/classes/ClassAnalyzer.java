@@ -61,9 +61,13 @@ public class ClassAnalyzer extends TopAnalyzer {
 
         final Supertypes supertypes = parseInheritance(parser, parser.peek().line());
 
-        parser.consume(TokenType.OPEN_BRACES);
-        final BlockNode block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getClassScope(), TokenType.CLOSE_BRACES);
-        parser.consume(TokenType.CLOSE_BRACES);
+        BlockNode block = new BlockNode(new ArrayList<>());
+        if (parser.check(TokenType.OPEN_BRACES)) {
+            parser.advance();
+            block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getClassScope(), TokenType.CLOSE_BRACES);
+            parser.consume(TokenType.CLOSE_BRACES);
+        }
+
 
         final AnalyzerResult analyzerResult = new AnalyzerResult(
             ASTMetaDataStore.getInstance().addMetadata(
