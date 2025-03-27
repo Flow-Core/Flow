@@ -17,6 +17,7 @@ import parser.nodes.generics.TypeArgument;
 import parser.nodes.generics.TypeParameterNode;
 import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.scopes.Scope;
+import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.scopes.TypeRecognize;
 import semantic_analysis.visitors.ExpressionTraverse;
 import semantic_analysis.visitors.ParameterTraverse;
@@ -55,6 +56,19 @@ public class ClassLoader implements ASTVisitor<Scope> {
 
         if (!classDeclaration.modifiers.contains("abstract")) {
             checkIfAllOverridden(classDeclaration, scope);
+        }
+
+        if (classDeclaration.initBlock != null) {
+            classDeclaration.methods.add(
+                new FunctionDeclarationNode(
+                    "$init",
+                    FlowType.primitive("Void"),
+                    List.of("private"),
+                    List.of(),
+                    List.of(),
+                    new BodyNode(classDeclaration.initBlock, new Scope(scope, SymbolTable.getEmptySymbolTable(), classDeclaration, Scope.Type.FUNCTION))
+                )
+            );
         }
 
         loadConstructors(classDeclaration, scope);
@@ -196,7 +210,10 @@ public class ClassLoader implements ASTVisitor<Scope> {
                     ).toList().size() > 1
             ) {
                 LoggerFacade.error("Cannot have more than one constructor with the same signature", classDeclaration);
-                return;
+            }
+
+            if (classDeclaration.initBlock != null) {
+                constructorNode.body.blockNode.children.add(new ExpressionBaseNode(new FunctionCallNode("$init", new ArrayList<>())));
             }
         }
     }

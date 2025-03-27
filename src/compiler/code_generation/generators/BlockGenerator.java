@@ -29,7 +29,7 @@ public class BlockGenerator {
             } else if (node instanceof VariableAssignmentNode variableAssignmentNode) {
                 VariableAssignmentGenerator.generate(variableAssignmentNode, mv, vm, file, currentScope);
             } else {
-                throw new UnsupportedOperationException("Invalid operation");
+                throw new UnsupportedOperationException("Invalid operation: " + node);
             }
         }
     }

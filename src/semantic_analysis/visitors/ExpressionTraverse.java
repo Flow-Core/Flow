@@ -72,7 +72,7 @@ public class ExpressionTraverse {
         return expression;
     }
 
-    private static ExpressionNode transformBinaryOperator(
+    public static ExpressionNode transformBinaryOperator(
         ExpressionBaseNode root,
         BinaryExpressionNode binaryExpression,
         Scope scope

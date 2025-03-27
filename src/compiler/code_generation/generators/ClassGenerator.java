@@ -59,9 +59,6 @@ public class ClassGenerator {
                 constructorNode.body
             );
 
-            if (classDeclarationNode.initBlock != null)
-                constructorNode.body.blockNode.children.addAll(0, classDeclarationNode.initBlock.children);
-
             FunctionGenerator.generateConstructor(baseClassNode, function, classDeclarationNode, file, cw);
         }
 

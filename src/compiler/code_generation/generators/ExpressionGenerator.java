@@ -53,7 +53,7 @@ public class ExpressionGenerator {
         } else if (expression instanceof UnaryOperatorNode unaryExpression) {
             result = generateUnary(unaryExpression, file.scope(), file, mv, vm, tracker, expectedType);
         } else if (expression instanceof ConnectionNode connectionNode) {
-            result = generateConnection(connectionNode, file.scope(), file, mv, vm, tracker, expectedType);
+            result = generateConnection(connectionNode, mv, tracker);
         } else if (expression instanceof CastExpressionNode castExpressionNode) {
             generate(castExpressionNode.base, mv, vm, file, castExpressionNode.castType);
 
@@ -89,7 +89,7 @@ public class ExpressionGenerator {
         return result;
     }
 
-    private static FlowType generateConnection(ConnectionNode connectionNode, Scope scope, FileWrapper file, MethodVisitor mv, VariableManager vm, StackTracker tracker, FlowType expectedType) {
+    private static FlowType generateConnection(ConnectionNode connectionNode, MethodVisitor mv, StackTracker tracker) {
         // new Socket<PType>(address, PType::encode, PType::decode)
 
         mv.visitTypeInsn(Opcodes.NEW, "flow/networking/Socket");
