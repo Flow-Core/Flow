@@ -1,0 +1,103 @@
+// Basics
+func main() {
+    print("Hello, World!")
+}
+
+// Variables
+Int, String, Double, Float, Long, Char, Byte
+Int[] etc
+
+var x: Int = 10
+val x = 5
+const PI = 3.14f
+
+// Conditions
+if (condition) {
+
+} else if (condition) {
+
+} else {
+
+}
+
+// Loops
+while (condition) {
+
+}
+
+do {
+
+} while (condition)
+
+for (x in arr) {
+
+}
+
+for (var x = 0; x < 10; x++) {
+
+}
+
+// Functions
+func myFunc() {
+    print("hello!")   
+}
+
+func myFunc(): Int {
+    return 10 
+}
+
+func myFunc(x: Int, y: Int) {
+
+}
+
+myFunc(x = 124) // optional
+myFunc(124)
+
+// Classes 
+class MyClass(Int x, Int y) {
+    func myFunc() {
+        x = 10
+    }
+}
+
+interface MyInterface {
+    func myFunc()
+}
+
+class MyClass(ctor) : MyInterface {
+
+}
+
+// Class without ctor
+class A {
+
+}
+
+class B : A {
+
+}
+
+// Class with ctor
+class A(Int a) {
+
+}
+
+class B(Int a) : A(a) {
+
+}
+
+B b = B(5)
+
+// Special
+
+// Data types:
+Ip
+Port
+Address
+
+Socket
+Server
+
+Ip x = 127.0.0.1
+Port = 8080
+Address x = 127.0.0.1:8080 // Address
