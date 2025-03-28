@@ -2,28 +2,31 @@ package lexer;
 
 import lexer.token.Token;
 import lexer.token.TokenType;
+import logger.LoggerFacade;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Lexer {
-    public static final EnumMap<TokenType, Pattern> patterns = new EnumMap<>(TokenType.class);
     private final List<Token> tokens;
+    private final String file;
     private final String code;
     private int currentLine;
     private int currentPosition;
 
-    public Lexer(final String code) {
+    public Lexer(final String code, final String file) {
         this.code = code;
+        this.file = file;
+
         tokens = new ArrayList<>();
         currentLine = 1;
         currentPosition = 0;
     }
 
     public List<Token> tokenize() throws RuntimeException {
+        Token previousToken = null;
         while (currentPosition < code.length()) {
             char currentChar = code.charAt(currentPosition);
 
@@ -34,31 +37,46 @@ public class Lexer {
 
             final Token token = nextToken();
             if (token == null) {
-                throw new RuntimeException("Unexpected token at " + currentLine);
+                throw LoggerFacade.getLogger().panic("Unexpected token", currentLine, file);
             }
 
-            if (token.getType() != TokenType.COMMENT) {
-                tokens.add(token);
-                if (token.getType() == TokenType.NEW_LINE) {
+            if (token.type() != TokenType.COMMENT) {
+                if (!token.isLineTerminator() || (previousToken == null || !previousToken.isLineTerminator())) {
+                    tokens.add(token);
+                    previousToken = token;
+                }
+                if (token.type() == TokenType.NEW_LINE) {
                     currentLine++;
                 }
             }
         }
 
+        tokens.add(new Token(TokenType.EOF, "", currentLine));
         return tokens;
     }
 
     private Token nextToken() {
         for (final TokenType type : TokenType.values()) {
-            final Pattern pattern = patterns.get(type);
+            if (type.getRegex() == null) {
+                continue;
+            }
+
+            final Pattern pattern = Pattern.compile(type.getRegex());
             final Matcher matcher = pattern.matcher(code.substring(currentPosition));
 
             if (matcher.lookingAt()) {
                 String value = matcher.group();
                 currentPosition += value.length();
 
-                if (type == TokenType.STRING) {
+                if (type == TokenType.STRING || type == TokenType.CHAR) {
                     value = value.substring(1, value.length() - 1);
+
+                    if (type == TokenType.STRING) {
+                        value = unescape(value);
+                    }
+                }
+                if ((type == TokenType.FLOAT || type == TokenType.DOUBLE || type == TokenType.LONG) && !Character.isDigit(value.charAt(value.length() - 1))) {
+                    value = value.substring(0, value.length() - 1);
                 }
 
                 if (type == TokenType.STRING || type == TokenType.COMMENT) {
@@ -77,73 +95,56 @@ public class Lexer {
         return null;
     }
 
-    static {
-        patterns.put(TokenType.COMMENT, Pattern.compile("//.*|/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/"));
-
-        // Keywords (must be checked before identifiers)
-        patterns.put(TokenType.IF, Pattern.compile("if"));
-        patterns.put(TokenType.ELSE, Pattern.compile("\\belse\\b"));
-        patterns.put(TokenType.FOR, Pattern.compile("\\bfor\\b"));
-        patterns.put(TokenType.FOREACH, Pattern.compile("\\bforeach\\b"));
-        patterns.put(TokenType.WHILE, Pattern.compile("\\bwhile\\b"));
-        patterns.put(TokenType.DO, Pattern.compile("\\do\\b"));
-        patterns.put(TokenType.FUNC, Pattern.compile("\\b(func)\\b"));
-        patterns.put(TokenType.CLASS, Pattern.compile("\\bclass\\b"));
-        patterns.put(TokenType.INTERFACE, Pattern.compile("\\binterface\\b"));
-        patterns.put(TokenType.TRY, Pattern.compile("\\btry\\b"));
-        patterns.put(TokenType.CATCH, Pattern.compile("\\bcatch\\b"));
-        patterns.put(TokenType.FINAL, Pattern.compile("\\bfinal\\b"));
-        patterns.put(TokenType.CONST, Pattern.compile("\\bconst\\b"));
-
-        // Boolean literals
-        patterns.put(TokenType.BOOLEAN, Pattern.compile("\\b(true|false)\\b"));
-
-        // IP
-        patterns.put(TokenType.IPV4, Pattern.compile("^\\d+\\.\\d+\\.\\d+\\.\\d+"));
-        patterns.put(TokenType.IPV6, Pattern.compile(
-                "^(" +
-                        "([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|" +
-                        "([0-9a-fA-F]{1,4}:){1,7}:|" +
-                        "([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|" +
-                        "([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|" +
-                        "([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|" +
-                        "([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|" +
-                        "([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|" +
-                        "[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|" +
-                        ":((:[0-9a-fA-F]{1,4}){1,7}|:)|" +
-                        "fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]+|" +
-                        ":((ffff(:0{1,4})?:)?(([0-9]{1,3}\\.){3}[0-9]{1,3}))|" +
-                        "([0-9a-fA-F]{1,4}:){1,4}:(([0-9]{1,3}\\.){3}[0-9]{1,3})" +
-                        ")"
-        ));
-
-        // Numbers
-        patterns.put(TokenType.FLOAT, Pattern.compile("(^\\d+\\.\\d+f|^\\d+f|^\\.\\d+f)"));
-        patterns.put(TokenType.DOUBLE, Pattern.compile("(\\d+\\.\\d+|\\.\\d+)"));
-        patterns.put(TokenType.INT, Pattern.compile("^\\d+"));
-
-        // Identifiers
-        patterns.put(TokenType.IDENTIFIER, Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*"));
-
-        // Strings
-        patterns.put(TokenType.STRING, Pattern.compile("\"(\\\\.|[^\"])*\""));
-
-        // Operators
-        patterns.put(TokenType.OPERATOR, Pattern.compile("==|!=|<=|>=|<|>|\\+\\+|--|\\+|-|\\*|/|%|&&|\\|\\|"));
-        patterns.put(TokenType.EQUAL_OPERATOR, Pattern.compile("="));
-        patterns.put(TokenType.COLON_OPERATOR, Pattern.compile(":"));
-        patterns.put(TokenType.DOT_OPERATOR, Pattern.compile("\\."));
-        patterns.put(TokenType.COMMA, Pattern.compile(","));
-
-        // Grouping and Bracketing
-        patterns.put(TokenType.OPEN_PARENTHESES, Pattern.compile("\\("));
-        patterns.put(TokenType.CLOSE_PARENTHESES, Pattern.compile("\\)"));
-        patterns.put(TokenType.OPEN_BRACKETS, Pattern.compile("\\["));
-        patterns.put(TokenType.CLOSE_BRACKETS, Pattern.compile("]"));
-        patterns.put(TokenType.OPEN_BRACES, Pattern.compile("\\{"));
-        patterns.put(TokenType.CLOSE_BRACES, Pattern.compile("}"));
-
-        // New Line
-        patterns.put(TokenType.NEW_LINE, Pattern.compile("(\\r\\n|\\n|\\r)"));
+    private String unescape(String s) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '\\') {
+                if (i + 1 < s.length()) {
+                    char next = s.charAt(++i);
+                    switch (next) {
+                        case 'n':
+                            sb.append('\n');
+                            break;
+                        case 't':
+                            sb.append('\t');
+                            break;
+                        case 'r':
+                            sb.append('\r');
+                            break;
+                        case '\\':
+                            sb.append('\\');
+                            break;
+                        case '"':
+                            sb.append('"');
+                            break;
+                        case '\'':
+                            sb.append('\'');
+                            break;
+                        case 'u':
+                            if (i + 4 < s.length()) {
+                                String hex = s.substring(i + 1, i + 5);
+                                try {
+                                    int code = Integer.parseInt(hex, 16);
+                                    sb.append((char) code);
+                                } catch (NumberFormatException e) {
+                                    throw LoggerFacade.getLogger().panic("Invalid Unicode escape sequence: \\u" + hex, currentLine, file);
+                                }
+                                i += 4;
+                            } else {
+                                throw LoggerFacade.getLogger().panic("Incomplete Unicode escape sequence. Expected 4 hex digits after \\u", currentLine, file);
+                            }
+                            break;
+                        default:
+                            throw LoggerFacade.getLogger().panic("Invalid escape sequence: \\" + next, currentLine, file);
+                    }
+                } else {
+                    throw LoggerFacade.getLogger().panic("Escape character '\\' at end of string", currentLine, file);
+                }
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 }
