@@ -23,7 +23,7 @@ You can break files into packages by separating them into folders and adding the
 package your.package
 ```
 
-**Required**: One of the following functions must appear in one of the root source files:
+**Required**: One of the following functions must appear in one of the source files:
 ```
 func main() {}
 func main(Array<String> args) {}
