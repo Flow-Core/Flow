@@ -71,8 +71,11 @@ public class SignatureLoader {
             return;
         }
 
-        for (FieldNode field : classDeclaration.primaryConstructor) {
+        for (int i = classDeclaration.primaryConstructor.size() - 1; i >= 0; i--) {
+            FieldNode field = classDeclaration.primaryConstructor.get(i);
+
             primaryParameters.add(
+                0,
                 new ParameterNode(
                     field.initialization.declaration.type,
                     field.initialization.declaration.name,
@@ -81,6 +84,9 @@ public class SignatureLoader {
             );
 
             classDeclaration.fields.add(0, field);
+        }
+
+        for (FieldNode field : classDeclaration.primaryConstructor) {
             assignments.add(
                 new VariableAssignmentNode(
                     new ExpressionBaseNode(

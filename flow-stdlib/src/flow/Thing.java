@@ -1,16 +1,20 @@
 package flow;
 
 public abstract class Thing {
-    public Bool equals(Thing other) {
-        return new Bool(this == other);
+    public boolean equals(Thing other) {
+        if (other == null) {
+            return false;
+        }
+
+        return this.hashCode() == other.hashCode() || this == other;
     }
 
-    public Int hash() {
-        return new Int(System.identityHashCode(this));
+    public int hash() {
+        return System.identityHashCode(this);
     }
 
     public String string() {
-        return new String(type() + "@" + hash().value);
+        return new String(type() + "@" + hash());
     }
 
     public String type() {

@@ -34,7 +34,7 @@ public class ClassGenerator {
             CodeGenerationConstant.byteCodeVersion,
             ModifierMapper.map(classDeclarationNode.modifiers),
             FQNameMapper.getFQName(classDeclarationNode, file.scope()),
-            FQNameMapper.parseTypeParameterSignature(classDeclarationNode.typeParameters, file.scope()),
+            FQNameMapper.buildClassSignature(classDeclarationNode, file.scope()),
             baseClassName,
             baseInterfaceNames
         );
@@ -58,9 +58,6 @@ public class ClassGenerator {
                 List.of(),
                 constructorNode.body
             );
-
-            if (classDeclarationNode.initBlock != null)
-                constructorNode.body.blockNode.children.addAll(0, classDeclarationNode.initBlock.children);
 
             FunctionGenerator.generateConstructor(baseClassNode, function, classDeclarationNode, file, cw);
         }

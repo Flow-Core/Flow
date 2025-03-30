@@ -7,6 +7,7 @@ import parser.analyzers.AnalyzerDeclarations;
 import parser.analyzers.TopAnalyzer;
 import parser.analyzers.top.BlockAnalyzer;
 import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
 
 public class DefaultCaseAnalyzer extends TopAnalyzer {
     @Override
@@ -19,7 +20,7 @@ public class DefaultCaseAnalyzer extends TopAnalyzer {
         parser.consume(TokenType.CLOSE_BRACES);
 
         return new AnalyzerResult(
-            ASTMetaDataStore.getInstance().addMetadata(block, line, parser.file),
+            ASTMetaDataStore.getInstance().addMetadata(new BodyNode(block), line, parser.file),
             parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
         );
     }

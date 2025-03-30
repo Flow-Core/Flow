@@ -1,17 +1,21 @@
 package flow.collections;
 
-import flow.Consumer1;
 import flow.Consumer2;
 import flow.Int;
+import flow.Thing;
 
 import java.util.Arrays;
 
-public class Array<T> implements Iterable<T> {
+public class Array<T> extends Thing implements Iterable<T> {
     T[] _arr;
 
     @SuppressWarnings("unchecked")
     public Array(int size) {
         _arr = (T[]) new Object[size];
+    }
+
+    public Array(T[] arr) {
+        _arr = arr.clone();
     }
 
     @Override
@@ -38,6 +42,34 @@ public class Array<T> implements Iterable<T> {
 
     public List<T> toList() {
         return new List<>(Arrays.stream(_arr).toList());
+    }
+
+    public static <T> Array<T> fromPrimitiveArray(T[] primArr) {
+        Array<T> result = new Array<>(primArr.length);
+
+        for (int i = 0; i < primArr.length; i++) {
+            result.set(i, primArr[i]);
+        }
+
+        return result;
+    }
+
+    public static <T> T[] toPrimitiveArray(Array<T> arr, Class<T> componentType) {
+        T[] primArr = (T[]) java.lang.reflect.Array.newInstance(componentType, arr._arr.length);
+        for (int i = 0; i < arr._arr.length; i++) {
+            primArr[i] = arr.get(i);
+        }
+        return primArr;
+    }
+
+    @Override
+    public String toString() {
+        return Arrays.toString(_arr);
+    }
+
+    @Override
+    public flow.String string() {
+        return new flow.String(Arrays.toString(_arr));
     }
 
     private class ArrayIterator implements Iterator<T> {

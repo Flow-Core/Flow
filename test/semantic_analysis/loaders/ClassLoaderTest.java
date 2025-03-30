@@ -6,17 +6,26 @@ import generators.ast.classes.ConstructorNodeGenerator;
 import generators.ast.classes.InterfaceNodeGenerator;
 import generators.ast.components.ParameterNodeGenerator;
 import generators.ast.functions.FunctionNodeGenerator;
+import generators.files.FileWrapperGenerator;
+import generators.files.PackageWrapperGenerator;
 import generators.scopes.ScopeGenerator;
+import generators.scopes.SymbolTableGenerator;
 import logger.LoggerFacade;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import parser.nodes.FlowType;
-import parser.nodes.classes.*;
+import parser.nodes.classes.BaseClassNode;
+import parser.nodes.classes.ClassDeclarationNode;
+import parser.nodes.classes.ConstructorNode;
+import parser.nodes.classes.InterfaceNode;
+import parser.nodes.components.BlockNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import semantic_analysis.scopes.Scope;
+import semantic_analysis.scopes.TypeRecognize;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -26,6 +35,8 @@ class ClassLoaderTest {
 
     @BeforeEach
     void setUp() {
+        ClassDeclarationNode thing = ClassNodeGenerator.builder().name("Thing").build();
+        TypeRecognize.init(Map.of("flow", PackageWrapperGenerator.builder().path("flow").scope(ScopeGenerator.builder().symbols(SymbolTableGenerator.builder().classes(List.of(thing)).build()).build()).files(List.of(FileWrapperGenerator.builder().root(new BlockNode(List.of(thing))).build())).build()));
         LoggerFacade.initLogger(new LoggerFake());
         classLoader = new ClassLoader();
         testScope = ScopeGenerator
@@ -37,7 +48,7 @@ class ClassLoaderTest {
 
     @AfterEach
     void tearDown() {
-        LoggerFacade.clearLogger(); // Ensure a fresh logger state for each test
+        LoggerFacade.clearLogger();
     }
 
     @Test

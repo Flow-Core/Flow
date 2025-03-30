@@ -3,7 +3,6 @@ package semantic_analysis.loaders;
 import logger.LoggerFacade;
 import parser.nodes.ASTMetaDataStore;
 import parser.nodes.ASTNode;
-import parser.nodes.classes.BaseClassNode;
 import parser.nodes.classes.BaseInterfaceNode;
 import parser.nodes.classes.ClassDeclarationNode;
 import parser.nodes.classes.InterfaceNode;
@@ -97,47 +96,23 @@ public class ImportLoader {
                 .filter(currentClass -> currentClass.name.equals(module))
                 .findFirst();
 
+            Scope scope = new Scope(
+                new Scope(
+                    null,
+                    importedSymbols,
+                    null,
+                    Scope.Type.TOP
+                ),
+                data,
+                null,
+                Scope.Type.TOP
+            );
+
             if (optionalClass.isPresent()) {
                 data.classes().add(optionalClass.get());
                 data.bindingContext().put(optionalClass.get(), importNode.module);
 
-                final Scope combinedSymbols = new Scope(
-                    new Scope(
-                        null,
-                        importedSymbols,
-                        null,
-                        Scope.Type.TOP
-                    ),
-                    data,
-                    null,
-                    Scope.Type.TOP
-                );
-
-                if (!optionalClass.get().baseClasses.isEmpty()) {
-                    final BaseClassNode baseClassNode = optionalClass.get().baseClasses.get(0);
-                    ClassDeclarationNode classDeclarationNode = TypeRecognize.getClass(
-                        baseClassNode.type.name,
-                        combinedSymbols
-                    );
-
-                    data.classes().add(classDeclarationNode);
-                    data.bindingContext().put(baseClassNode, importedSymbols.bindingContext().get(classDeclarationNode));
-                }
-
-                for (final BaseInterfaceNode baseInterfaceNode : optionalClass.get().implementedInterfaces) {
-                    InterfaceNode interfaceNode = TypeRecognize.getInterface(
-                        baseInterfaceNode.type.name,
-                        combinedSymbols
-                    );
-
-                    if (interfaceNode == null) {
-                        LoggerFacade.error("Unresolved interface: '" + baseInterfaceNode.type.name + "' in type '" + optionalClass.get().name + "'");
-                        continue;
-                    }
-
-                    data.interfaces().add(interfaceNode);
-                    data.bindingContext().put(baseInterfaceNode, importedSymbols.bindingContext().get(interfaceNode));
-                }
+                addBaseTypesRecursively(optionalClass.get(), scope, importedSymbols);
 
                 return;
             }
@@ -150,10 +125,7 @@ public class ImportLoader {
                 data.interfaces().add(optionalInterface.get());
                 data.bindingContext().put(optionalInterface.get(), importNode.module);
 
-                for (final BaseInterfaceNode baseInterfaceNode : optionalInterface.get().implementedInterfaces) {
-                    final InterfaceNode interfaceNode = importedSymbols.getInterface(baseInterfaceNode.type.name);
-                    data.interfaces().add(interfaceNode);
-                }
+                addBaseInterfacesRecursively(optionalInterface.get(), scope, importedSymbols);
 
                 return;
             }
@@ -179,6 +151,34 @@ public class ImportLoader {
             }
 
             LoggerFacade.error("Symbol not found in package: " + module, importNode);
+        }
+    }
+
+    private void addBaseTypesRecursively(ClassDeclarationNode classDecl, Scope scope, SymbolTable importedSymbols) {
+        if (!classDecl.baseClasses.isEmpty()) {
+            ClassDeclarationNode baseDecl = TypeRecognize.getClass(classDecl.baseClasses.get(0).type.name, scope);
+            if (baseDecl != null && !scope.symbols().bindingContext().containsKey(baseDecl)) {
+                scope.symbols().bindingContext().put(baseDecl, importedSymbols.bindingContext().get(baseDecl));
+                addBaseTypesRecursively(baseDecl, scope, importedSymbols);
+            }
+        }
+
+        for (BaseInterfaceNode baseInterface : classDecl.implementedInterfaces) {
+            InterfaceNode ifaceDecl = TypeRecognize.getInterface(baseInterface.type.name, scope);
+            if (ifaceDecl != null && !scope.symbols().bindingContext().containsKey(baseInterface)) {
+                scope.symbols().bindingContext().put(baseInterface, importedSymbols.bindingContext().get(ifaceDecl));
+                addBaseInterfacesRecursively(ifaceDecl, scope, importedSymbols);
+            }
+        }
+    }
+
+    private void addBaseInterfacesRecursively(InterfaceNode iface, Scope scope, SymbolTable importedSymbols) {
+        for (BaseInterfaceNode baseInterface : iface.implementedInterfaces) {
+            InterfaceNode superIface = TypeRecognize.getInterface(baseInterface.type.name, scope);
+            if (superIface != null && !scope.symbols().bindingContext().containsKey(baseInterface)) {
+                scope.symbols().bindingContext().put(baseInterface, importedSymbols.bindingContext().get(superIface));
+                addBaseInterfacesRecursively(superIface, scope, importedSymbols);
+            }
         }
     }
 }

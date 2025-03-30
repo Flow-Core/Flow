@@ -1,9 +1,6 @@
 package parser.analyzers;
 
-import parser.analyzers.classes.ClassAnalyzer;
-import parser.analyzers.classes.ConstructorAnalyzer;
-import parser.analyzers.classes.InitAnalyzer;
-import parser.analyzers.classes.InterfaceAnalyzer;
+import parser.analyzers.classes.*;
 import parser.analyzers.switches.CaseAnalyzer;
 import parser.analyzers.switches.DefaultCaseAnalyzer;
 import parser.analyzers.top.*;
@@ -18,6 +15,7 @@ public final class AnalyzerDeclarations {
     private final static List<TopAnalyzer> STATEMENT_SCOPE = new ArrayList<>();
     private final static List<TopAnalyzer> CLASS_SCOPE = new ArrayList<>();
     private final static List<TopAnalyzer> INTERFACE_SCOPE = new ArrayList<>();
+    private final static List<TopAnalyzer> SERVER_SCOPE = new ArrayList<>();
     private final static List<TopAnalyzer> SWITCH_SCOPE = new ArrayList<>();
     private final static List<TopAnalyzer> INLINE_SCOPE = new ArrayList<>();
 
@@ -43,9 +41,14 @@ public final class AnalyzerDeclarations {
         return Collections.unmodifiableList(INTERFACE_SCOPE);
     }
 
+    public static List<TopAnalyzer> getServerScope() {
+        return Collections.unmodifiableList(SERVER_SCOPE);
+    }
+
     public static List<TopAnalyzer> getSwitchScope() {
         return Collections.unmodifiableList(SWITCH_SCOPE);
     }
+
     public static List<TopAnalyzer> getInlineScope() {
         return Collections.unmodifiableList(INLINE_SCOPE);
     }
@@ -55,6 +58,7 @@ public final class AnalyzerDeclarations {
         TOP_LEVEL_SCOPE.add(new FunctionDeclarationAnalyzer());
         TOP_LEVEL_SCOPE.add(new ClassAnalyzer());
         TOP_LEVEL_SCOPE.add(new InterfaceAnalyzer());
+        TOP_LEVEL_SCOPE.add(new ServerAnalyzer());
         TOP_LEVEL_SCOPE.add(new FieldAnalyzer());
         TOP_LEVEL_SCOPE.add(new ImportAnalyzer());
         TOP_LEVEL_SCOPE.add(new PackageAnalyzer());
@@ -86,6 +90,12 @@ public final class AnalyzerDeclarations {
         INTERFACE_SCOPE.add(new ClassAnalyzer());
         INTERFACE_SCOPE.add(new InterfaceAnalyzer());
         INTERFACE_SCOPE.add(new FieldAnalyzer());
+
+        // Server Scope
+        SERVER_SCOPE.add(new FunctionDeclarationAnalyzer());
+        SERVER_SCOPE.add(new ClassAnalyzer());
+        SERVER_SCOPE.add(new InterfaceAnalyzer());
+        SERVER_SCOPE.add(new FieldAnalyzer());
 
         // Switch Scope
         SWITCH_SCOPE.add(new CaseAnalyzer());

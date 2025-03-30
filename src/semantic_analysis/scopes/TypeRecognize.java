@@ -111,7 +111,7 @@ public final class TypeRecognize {
             return false;
         }
 
-        if (!superType.isNullable && type.isNullable)
+        if (!superType.isExternalType && !superType.isNullable && type.isNullable)
             return false;
 
         if (type.name.equals(superType.name)) {
@@ -201,7 +201,7 @@ public final class TypeRecognize {
         return type;
     }
 
-    private static String trimPackageName(String name) {
+    public static String trimPackageName(String name) {
         int lastDotIndex = name.lastIndexOf(".");
         return (lastDotIndex != -1) ? name.substring(lastDotIndex + 1) : name;
     }

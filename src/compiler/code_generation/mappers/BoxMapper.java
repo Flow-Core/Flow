@@ -3,6 +3,7 @@ package compiler.code_generation.mappers;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import parser.nodes.FlowType;
+import semantic_analysis.scopes.TypeRecognize;
 
 public class BoxMapper {
     public static void boxIfNeeded(FlowType type, FlowType expectedType, MethodVisitor mv) {
@@ -24,7 +25,7 @@ public class BoxMapper {
     }
 
     public static void box(FlowType type, MethodVisitor mv) {
-        switch (type.name) {
+        switch (TypeRecognize.trimPackageName(type.name)) {
             case "Int" -> mv.visitMethodInsn(Opcodes.INVOKESTATIC, "flow/Int", "fromPrimitive", "(I)Lflow/Int;", false);
             case "Bool" -> mv.visitMethodInsn(Opcodes.INVOKESTATIC, "flow/Bool", "fromPrimitive", "(Z)Lflow/Bool;", false);
             case "Float" -> mv.visitMethodInsn(Opcodes.INVOKESTATIC, "flow/Float", "fromPrimitive", "(F)Lflow/Float;", false);
@@ -38,7 +39,7 @@ public class BoxMapper {
     }
 
     public static void unbox(FlowType type, MethodVisitor mv) {
-        switch (type.name) {
+        switch (TypeRecognize.trimPackageName(type.name)) {
             case "Int" -> mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Int", "value", "I");
             case "Bool" -> mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Bool", "value", "Z");
             case "Float" -> mv.visitFieldInsn(Opcodes.GETFIELD, "flow/Float", "value", "F");

@@ -26,10 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -149,7 +146,9 @@ public class LibLoader {
             if (method.name.equals("<init>")) {
                 constructors.add(convertToFlowConstructor(method));
             } else {
-                methods.add(convertToFlowMethod(method));
+                FunctionDeclarationNode function = convertToFlowMethod(method);
+                methods.add(function);
+                symbolTable.functions().add(function);
             }
         }
 
@@ -162,6 +161,7 @@ public class LibLoader {
             .toList();
 
         List<TypeParameterNode> typeParams = extractTypeParameters(classNode.signature);
+
         final ClassDeclarationNode flowClass = new ClassDeclarationNode(
             className,
             extractModifiers(classNode.access),
@@ -220,6 +220,7 @@ public class LibLoader {
         if (signature == null) return List.of();
 
         List<TypeParameterNode> typeParameters = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
         SignatureReader reader = new SignatureReader(signature);
 
         reader.accept(new SignatureVisitor(Opcodes.ASM9) {
@@ -228,14 +229,20 @@ public class LibLoader {
 
             @Override
             public void visitFormalTypeParameter(String name) {
-                if (currentName != null) {
-                    FlowType effectiveBound = currentBounds.isEmpty()
-                        ? new FlowType("java.lang.Object", false, false)
-                        : currentBounds.get(0);
-                    typeParameters.add(new TypeParameterNode(currentName, effectiveBound));
+                if (seen.contains(name)) {
+                    currentName = null;
                     currentBounds.clear();
+                } else {
+                    if (currentName != null) {
+                        FlowType effectiveBound = currentBounds.isEmpty()
+                            ? new FlowType("java.lang.Object", false, false)
+                            : currentBounds.get(0);
+                        typeParameters.add(new TypeParameterNode(currentName, effectiveBound));
+                        seen.add(currentName);
+                        currentBounds.clear();
+                    }
+                    currentName = name;
                 }
-                currentName = name;
             }
 
             @Override
@@ -250,11 +257,12 @@ public class LibLoader {
 
             @Override
             public void visitEnd() {
-                if (currentName != null) {
+                if (currentName != null && !seen.contains(currentName)) {
                     FlowType effectiveBound = currentBounds.isEmpty()
                         ? new FlowType("java.lang.Object", false, false)
                         : currentBounds.get(0);
                     typeParameters.add(new TypeParameterNode(currentName, effectiveBound));
+                    seen.add(currentName);
                 }
             }
         });

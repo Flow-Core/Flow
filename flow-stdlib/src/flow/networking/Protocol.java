@@ -1,4 +1,5 @@
 package flow.networking;
 
-public interface Protocol {
-}
+import flow.Thing;
+
+public abstract class Protocol extends Thing { }

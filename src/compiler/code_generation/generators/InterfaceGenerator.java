@@ -27,7 +27,7 @@ public class InterfaceGenerator {
             CodeGenerationConstant.byteCodeVersion,
             ModifierMapper.map(interfaceNode.modifiers) | Opcodes.ACC_INTERFACE | Opcodes.ACC_ABSTRACT,
             interfaceName,
-            FQNameMapper.parseTypeParameterSignature(interfaceNode.typeParameters, file.scope()),
+            FQNameMapper.buildClassSignature(interfaceNode, file.scope()),
             CodeGenerationConstant.defaultBaseObjectFQName,
             implementedInterfaces
         );

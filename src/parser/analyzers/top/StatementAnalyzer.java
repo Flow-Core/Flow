@@ -12,6 +12,7 @@ import parser.nodes.components.BodyNode;
 import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.ExpressionBaseNode;
 import parser.nodes.expressions.ExpressionNode;
+import parser.nodes.literals.BooleanLiteralNode;
 import parser.nodes.literals.VoidLiteralNode;
 import parser.nodes.statements.*;
 import parser.nodes.variable.VariableAssignmentNode;
@@ -196,13 +197,41 @@ public class StatementAnalyzer extends TopAnalyzer {
                 );
             case THROW:
                 return new AnalyzerResult(
-                    new ThrowNode(
+                    ASTMetaDataStore.getInstance().addMetadata(
+                        new ThrowNode(
+                            new ExpressionBaseNode(
+                                ExpressionAnalyzer.parseExpression(parser),
+                                line,
+                                parser.file
+                            )
+                        ),
+                        line,
+                        parser.file
+                    ),
+                    parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
+                );
+            case BLOCK:
+                if (parser.check(TokenType.OPEN_PARENTHESES)) {
+                    parser.advance();
+                    final WhileStatementNode blockStatementNode = new WhileStatementNode(
                         new ExpressionBaseNode(
                             ExpressionAnalyzer.parseExpression(parser),
                             line,
                             parser.file
-                        )
-                    ),
+                        ),
+                        new BodyNode(new BlockNode(new ArrayList<>()))
+                    );
+
+                    parser.consume(TokenType.CLOSE_PARENTHESES);
+
+                    return new AnalyzerResult(
+                        ASTMetaDataStore.getInstance().addMetadata(blockStatementNode, line, parser.file),
+                        parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
+                    );
+                }
+
+                return new AnalyzerResult(
+                    ASTMetaDataStore.getInstance().addMetadata(new WhileStatementNode(new ExpressionBaseNode(new BooleanLiteralNode(true), line, parser.file), new BodyNode(new BlockNode(new ArrayList<>()))), line, parser.file),
                     parser.check(TokenType.NEW_LINE, TokenType.SEMICOLON) ? TerminationStatus.WAS_TERMINATED : TerminationStatus.NOT_TERMINATED
                 );
             case RETURN:

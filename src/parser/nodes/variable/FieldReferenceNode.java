@@ -1,6 +1,7 @@
 package parser.nodes.variable;
 
 import parser.nodes.FlowType;
+import parser.nodes.classes.FieldNode;
 import parser.nodes.expressions.ExpressionNode;
 
 import java.util.Objects;
@@ -10,6 +11,7 @@ public class FieldReferenceNode implements ExpressionNode {
     public String name;
     public ExpressionNode holder;
     public FlowType type;
+    public FieldNode declaration;
     public boolean isStatic;
 
     public FieldReferenceNode(
@@ -17,12 +19,14 @@ public class FieldReferenceNode implements ExpressionNode {
         String name,
         ExpressionNode holder,
         FlowType type,
+        FieldNode declaration,
         boolean isStatic
     ) {
         this.holderType = holderType;
         this.name = name;
         this.holder = holder;
         this.type = type;
+        this.declaration = declaration;
         this.isStatic = isStatic;
     }
 

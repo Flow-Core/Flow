@@ -6,7 +6,6 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import parser.nodes.FlowType;
-import parser.nodes.classes.ObjectNode;
 import parser.nodes.functions.FunctionDeclarationNode;
 import parser.nodes.statements.*;
 import semantic_analysis.files.FileWrapper;
@@ -69,7 +68,7 @@ public class StatementGenerator {
     }
 
     private static void generateReturnStatement(ReturnStatementNode returnStatementNode, MethodVisitor mv, VariableManager vm, FileWrapper file, Scope currentScope) {
-        if (returnStatementNode.returnValue.expression instanceof ObjectNode objectNode && objectNode.type.name.equals("Void")) {
+        if (returnStatementNode.returnType == null || returnStatementNode.returnType.name.equals("Void")) {
             mv.visitInsn(Opcodes.RETURN);
             return;
         }
@@ -156,6 +155,56 @@ public class StatementGenerator {
     }
 
     private static void generateSwitchStatement(SwitchStatementNode switchStatementNode, MethodVisitor mv, VariableManager vm, FileWrapper file) {
-        // TODO: finish
+        FlowType actualType = ExpressionGenerator.generate(
+            switchStatementNode.condition.expression,
+            mv, vm, file,
+            new FlowType("flow.Thing", false, false)
+        );
+        mv.visitMethodInsn(
+            Opcodes.INVOKEVIRTUAL,
+            FQNameMapper.getFQName(actualType.name, switchStatementNode.cases.get(0).body.scope),
+            "hash",
+            "()I",
+            false
+        );
+        vm.declareVariable("$switchVar", new FlowType("Int", false, true), new FlowType("Int", false, true));
+
+        Label endLabel = new Label();
+
+        int numCases = switchStatementNode.cases.size();
+        for (int i = 0; i < numCases; i++) {
+            CaseNode caseNode = switchStatementNode.cases.get(i);
+            Label nextCase = new Label();
+
+            vm.loadVariable("$switchVar", new FlowType("Int", false, true));
+            ExpressionGenerator.generate(
+                caseNode.value.expression,
+                mv, vm, file,
+                new FlowType("flow.Thing", false, false)
+            );
+            mv.visitMethodInsn(
+                Opcodes.INVOKEVIRTUAL,
+                FQNameMapper.getFQName(actualType.name, caseNode.body.scope),
+                "hash",
+                "()I",
+                false
+            );
+            mv.visitJumpInsn(Opcodes.IF_ICMPNE, nextCase);
+
+            BlockGenerator.generateFunctionBlock(caseNode.body.scope, caseNode.body.blockNode, file, mv, vm);
+            mv.visitJumpInsn(Opcodes.GOTO, endLabel);
+
+            mv.visitLabel(nextCase);
+        }
+
+        if (switchStatementNode.defaultBlock != null) {
+            BlockGenerator.generateFunctionBlock(
+                switchStatementNode.defaultBlock.scope,
+                switchStatementNode.defaultBlock.blockNode,
+                file, mv, vm
+            );
+        }
+
+        mv.visitLabel(endLabel);
     }
 }

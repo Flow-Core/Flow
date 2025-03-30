@@ -131,7 +131,7 @@ public class VariableLoader {
         fieldNode.isInitialized = true;
 
         if (actualType == null || actualType.name.equals("null")) {
-            if (!fieldNode.initialization.declaration.type.isNullable) {
+            if (fieldNode.initialization.declaration.type != null && !fieldNode.initialization.declaration.type.isNullable) {
                 LoggerFacade.error("Null cannot be a value of a non-null type '" + fieldNode.initialization.declaration.type + "'", fieldNode);
             }
         } else if (!TypeRecognize.isSameType(actualType, varType, scope)) {
@@ -156,14 +156,9 @@ public class VariableLoader {
                 LoggerFacade.error("Modifiers are not applicable to 'local variable'", variableAssignment);
             }
         } else if (variableAssignment.variable.expression instanceof FieldReferenceNode fieldReference) {
-            fieldNode = TypeRecognize.getField(fieldReference.name, scope);
-
-            if (fieldNode == null) {
-                LoggerFacade.error("Unresolved symbol: '" + fieldReference.name + "'", variableAssignment);
-                return null;
-            }
+            fieldNode = fieldReference.declaration;
         } else {
-            LoggerFacade.error("'" + variableAssignment.variable.expression + "' is not assignable");
+            LoggerFacade.error("'" + variableAssignment.variable.expression + "' is not assignable", variableAssignment);
             return null;
         }
 

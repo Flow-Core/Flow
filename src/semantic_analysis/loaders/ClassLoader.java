@@ -6,10 +6,18 @@ import parser.nodes.ASTNode;
 import parser.nodes.ASTVisitor;
 import parser.nodes.FlowType;
 import parser.nodes.classes.*;
+import parser.nodes.components.ArgumentNode;
+import parser.nodes.components.BlockNode;
+import parser.nodes.components.BodyNode;
+import parser.nodes.components.ParameterNode;
 import parser.nodes.expressions.ExpressionBaseNode;
+import parser.nodes.functions.FunctionCallNode;
 import parser.nodes.functions.FunctionDeclarationNode;
+import parser.nodes.generics.TypeArgument;
 import parser.nodes.generics.TypeParameterNode;
+import parser.nodes.variable.VariableReferenceNode;
 import semantic_analysis.scopes.Scope;
+import semantic_analysis.scopes.SymbolTable;
 import semantic_analysis.scopes.TypeRecognize;
 import semantic_analysis.visitors.ExpressionTraverse;
 import semantic_analysis.visitors.ParameterTraverse;
@@ -22,7 +30,9 @@ import java.util.Set;
 public class ClassLoader implements ASTVisitor<Scope> {
     @Override
     public void visit(final ASTNode node, final Scope scope) {
-        if (node instanceof ClassDeclarationNode classDeclaration) {
+        if (node instanceof ServerNode serverNode) {
+            handleServer(serverNode, scope);
+        } else if (node instanceof ClassDeclarationNode classDeclaration) {
             handleClass(classDeclaration, scope);
         } else if (node instanceof InterfaceNode interfaceDeclaration) {
             handleInterface(interfaceDeclaration, scope);
@@ -48,7 +58,127 @@ public class ClassLoader implements ASTVisitor<Scope> {
             checkIfAllOverridden(classDeclaration, scope);
         }
 
+        if (classDeclaration.initBlock != null) {
+            classDeclaration.methods.add(
+                new FunctionDeclarationNode(
+                    "$init",
+                    FlowType.primitive("Void"),
+                    List.of("private"),
+                    List.of(),
+                    List.of(),
+                    new BodyNode(classDeclaration.initBlock, new Scope(scope, SymbolTable.getEmptySymbolTable(), classDeclaration, Scope.Type.FUNCTION))
+                )
+            );
+        }
+
         loadConstructors(classDeclaration, scope);
+
+        addFieldsToConstructor(classDeclaration);
+    }
+
+    private void handleServer(final ServerNode serverNode, final Scope scope) {
+        serverNode.baseClasses.add(new BaseClassNode(new FlowType("flow.networking.Server", false, false, List.of(new TypeArgument(serverNode.protocol))), new ArrayList<>()));
+
+        serverNode.constructors.add(
+            new ConstructorNode(
+                "public",
+                new ArrayList<>(
+                    List.of(
+                        new ParameterNode(
+                            new FlowType(
+                                "Int",
+                                false,
+                                true
+                            ),
+                            "port",
+                            null
+                        ),
+                        new ParameterNode(
+                            new FlowType(
+                                "Function2",
+                                false,
+                                false,
+                                List.of(
+                                    new TypeArgument(
+                                        serverNode.protocol
+                                    ),
+                                    new TypeArgument(
+                                        new FlowType(
+                                            "OutputStream",
+                                            false,
+                                            false
+                                        )
+                                    ),
+                                    new TypeArgument(
+                                        new FlowType(
+                                            "ByteArray",
+                                            false,
+                                            false
+                                        )
+                                    )
+                                )
+                            ),
+                            "encode",
+                            null
+                        ),
+                        new ParameterNode(
+                            new FlowType(
+                                "Function1",
+                                false,
+                                false,
+                                List.of(
+                                    new TypeArgument(
+                                        new FlowType(
+                                            "InputStream",
+                                            false,
+                                            false
+                                        )
+                                    ),
+                                    new TypeArgument(
+                                        serverNode.protocol
+                                    )
+                                )
+                            ),
+                            "decode",
+                            null
+                        )
+                    )
+                ),
+                new BodyNode(
+                    new BlockNode(
+                        new ArrayList<>(
+                            List.of(
+                                new ExpressionBaseNode(
+                                    new FunctionCallNode(
+                                        "setup",
+                                        List.of(
+                                            new ArgumentNode(
+                                                null,
+                                                new ExpressionBaseNode(new VariableReferenceNode("port"))
+                                            ),
+                                            new ArgumentNode(
+                                                null,
+                                                new ExpressionBaseNode(new VariableReferenceNode("encode"))
+                                            ),
+                                            new ArgumentNode(
+                                                null,
+                                                new ExpressionBaseNode(new VariableReferenceNode("decode"))
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        );
+
+        loadTypeParameters(serverNode, scope);
+
+        checkIfAllOverridden(serverNode, scope);
+
+        addFieldsToConstructor(serverNode);
     }
 
     private void loadTypeParameters(final TypeDeclarationNode typeDeclarationNode, final Scope scope) {
@@ -80,7 +210,10 @@ public class ClassLoader implements ASTVisitor<Scope> {
                     ).toList().size() > 1
             ) {
                 LoggerFacade.error("Cannot have more than one constructor with the same signature", classDeclaration);
-                return;
+            }
+
+            if (classDeclaration.initBlock != null) {
+                constructorNode.body.blockNode.children.add(new ExpressionBaseNode(new FunctionCallNode("$init", new ArrayList<>())));
             }
         }
     }
@@ -266,6 +399,22 @@ public class ClassLoader implements ASTVisitor<Scope> {
         loadTypeParameters(interfaceDeclaration, scope);
 
         validateInterfaces(interfaceDeclaration, scope);
+    }
+
+    private void addFieldsToConstructor(final ClassDeclarationNode classDeclarationNode) {
+        for (int i = classDeclarationNode.fields.size() - 1; i >= 0; i--) {
+            final FieldNode fieldNode = classDeclarationNode.fields.get(i);
+
+            if (fieldNode.initialization.declaration.modifier.equals("const")) {
+                continue;
+            }
+
+            if (fieldNode.initialization.assignment != null) {
+                for (final ConstructorNode constructorNode : classDeclarationNode.constructors) {
+                    constructorNode.body.blockNode.children.add(0, fieldNode.initialization.assignment);
+                }
+            }
+        }
     }
 
     private List<FunctionDeclarationNode> getFunctionsByModifier(

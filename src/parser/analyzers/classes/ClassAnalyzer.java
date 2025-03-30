@@ -36,11 +36,24 @@ public class ClassAnalyzer extends TopAnalyzer {
         final List<FieldNode> classArgs = new ArrayList<>();
         if (parser.checkIgnoreNewLine(TokenType.OPEN_PARENTHESES)) {
             parser.advance();
+
+            if (parser.check(TokenType.NEW_LINE)) {
+                parser.advance();
+            }
+
             while (!parser.check(TokenType.CLOSE_PARENTHESES)) {
                 classArgs.add((FieldNode) new FieldAnalyzer().parse(parser).node());
 
+                if (parser.check(TokenType.NEW_LINE)) {
+                    parser.advance();
+                }
+
                 if (!parser.check(TokenType.CLOSE_PARENTHESES)) {
                     parser.consume(TokenType.COMMA);
+                }
+
+                if (parser.check(TokenType.NEW_LINE)) {
+                    parser.advance();
                 }
             }
             parser.advance();
@@ -48,9 +61,13 @@ public class ClassAnalyzer extends TopAnalyzer {
 
         final Supertypes supertypes = parseInheritance(parser, parser.peek().line());
 
-        parser.consume(TokenType.OPEN_BRACES);
-        final BlockNode block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getClassScope(), TokenType.CLOSE_BRACES);
-        parser.consume(TokenType.CLOSE_BRACES);
+        BlockNode block = new BlockNode(new ArrayList<>());
+        if (parser.check(TokenType.OPEN_BRACES)) {
+            parser.advance();
+            block = BlockAnalyzer.parse(parser, AnalyzerDeclarations.getClassScope(), TokenType.CLOSE_BRACES);
+            parser.consume(TokenType.CLOSE_BRACES);
+        }
+
 
         final AnalyzerResult analyzerResult = new AnalyzerResult(
             ASTMetaDataStore.getInstance().addMetadata(

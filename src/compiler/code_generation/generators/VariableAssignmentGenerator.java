@@ -44,7 +44,7 @@ public class VariableAssignmentGenerator {
             final String holderFQName = FQNameMapper.getFQName(fieldReferenceNode.holderType.name, scope);
             final String descriptor = FQNameMapper.getJVMName(fieldReferenceNode.type, file.scope(), holder.typeParameters);
 
-            if (fieldReferenceNode.holder == null) {
+            if (fieldReferenceNode.isStatic) {
                 opcode = Opcodes.PUTSTATIC;
             } else {
                 ExpressionGenerator.generate(fieldReferenceNode.holder, mv, vm, file, fieldReferenceNode.holderType);
